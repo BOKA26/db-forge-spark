@@ -32,14 +32,14 @@ const CourierDashboard = () => {
   });
 
   // Fetch all deliveries
-  const { data: deliveries } = useQuery({
+  const { data: deliveries, isLoading: deliveriesLoading } = useQuery({
     queryKey: ['courier-deliveries', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deliveries')
         .select(`
           *,
-          orders!inner(
+          orders(
             *,
             products(*),
             validations(*)
@@ -48,7 +48,10 @@ const CourierDashboard = () => {
         .eq('livreur_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching deliveries:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user?.id,

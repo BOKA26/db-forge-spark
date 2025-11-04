@@ -53,24 +53,54 @@ const UserProfile = () => {
   };
 
   const handleRoleSubmit = async () => {
-    if (!user?.id || !selectedRole) return;
+    if (!user?.id || !selectedRole) {
+      console.error('❌ user.id ou selectedRole manquant', { userId: user?.id, selectedRole });
+      return;
+    }
 
     setLoading(true);
     try {
       console.log('🔄 Tentative d\'enregistrement du rôle:', selectedRole, 'pour user:', user.id);
       
+      // D'abord vérifier s'il y a déjà des rôles pour cet utilisateur
+      const { data: existingRoles, error: checkError } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id);
+
+      console.log('📋 Rôles existants:', existingRoles);
+      
+      if (checkError) {
+        console.error('⚠️ Erreur lors de la vérification des rôles:', checkError);
+      }
+
+      // Si l'utilisateur a déjà ce rôle, on ne fait rien
+      if (existingRoles && existingRoles.some(r => r.role === selectedRole)) {
+        console.log('ℹ️ L\'utilisateur a déjà ce rôle');
+        toast.success('Rôle confirmé ! Redirection en cours...');
+        
+        setTimeout(() => {
+          if (selectedRole === 'acheteur') navigate('/dashboard-acheteur');
+          if (selectedRole === 'vendeur') navigate('/ma-boutique');
+          if (selectedRole === 'livreur') navigate('/dashboard-livreur');
+        }, 1000);
+        
+        return;
+      }
+      
       // Insérer le nouveau rôle
+      console.log('➕ Insertion du nouveau rôle...');
       const { data, error } = await supabase
         .from('user_roles')
         .insert({
           user_id: user.id,
           role: selectedRole as any
         })
-        .select()
-        .single();
+        .select();
 
       if (error) {
-        console.error('❌ Erreur Supabase:', error);
+        console.error('❌ Erreur Supabase lors de l\'insertion:', error);
+        console.error('❌ Détails complets:', JSON.stringify(error, null, 2));
         throw error;
       }
 
@@ -87,6 +117,7 @@ const UserProfile = () => {
       }, 1000);
     } catch (error: any) {
       console.error('❌ Erreur complète:', error);
+      console.error('❌ Stack trace:', error.stack);
       toast.error(`Erreur: ${error.message || 'Impossible d\'enregistrer le rôle'}`);
     } finally {
       setLoading(false);

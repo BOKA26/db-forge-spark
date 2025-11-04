@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle } from 'lucide-react';
+import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -247,6 +248,32 @@ const SellerDashboard = () => {
 
   const onShopSubmit = (values: ShopFormData) => {
     updateShopMutation.mutate(values);
+  };
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('products')
+        .update({ statut: 'supprimé' })
+        .eq('id', productId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-products'] });
+      toast.success('✅ Produit supprimé');
+    },
+    onError: (error) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+
+  const getStatusBadge = (statut: string) => {
+    if (statut === 'actif') return <Badge className="bg-green-500">Actif</Badge>;
+    if (statut === 'brouillon') return <Badge variant="secondary">Brouillon</Badge>;
+    if (statut === 'supprimé') return <Badge variant="destructive">Supprimé</Badge>;
+    return <Badge variant="outline">{statut}</Badge>;
   };
 
   // Calculate additional statistics
@@ -683,47 +710,100 @@ const SellerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="products" className="space-y-4">
-            <div className="flex justify-end mb-4">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter un produit
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products?.map((product) => (
-                <Card key={product.id}>
-                  <CardContent className="pt-6">
-                    <div className="aspect-square bg-muted rounded-lg mb-4" />
-                    <h3 className="font-semibold mb-2">{product.nom}</h3>
-                    <p className="text-xl font-bold text-primary mb-2">
-                      {product.prix.toLocaleString()} FCFA
-                    </p>
-                    <div className="flex justify-between text-sm text-muted-foreground mb-4">
-                      <span>Stock: {product.stock}</span>
-                      <Badge variant={product.statut === 'actif' ? 'default' : 'secondary'}>
-                        {product.statut}
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Modifier
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Mes Produits
+                  </CardTitle>
+                  <Link to="/ajouter-produit">
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter un produit
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {products && products.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[100px]">Image</TableHead>
+                          <TableHead>Nom</TableHead>
+                          <TableHead>Prix</TableHead>
+                          <TableHead>Stock</TableHead>
+                          <TableHead>Statut</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell>
+                              {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+                                <img 
+                                  src={product.images[0] as string} 
+                                  alt={product.nom}
+                                  className="w-16 h-16 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="font-medium">{product.nom}</TableCell>
+                            <TableCell className="font-semibold">{Number(product.prix).toLocaleString()} FCFA</TableCell>
+                            <TableCell>
+                              <span className={product.stock === 0 ? 'text-red-500 font-medium' : ''}>
+                                {product.stock}
+                              </span>
+                            </TableCell>
+                            <TableCell>{getStatusBadge(product.statut || 'actif')}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Link to={`/ajouter-produit?id=${product.id}`}>
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => {
+                                    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                                      deleteProductMutation.mutate(product.id);
+                                    }
+                                  }}
+                                  disabled={deleteProductMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg mb-2">Aucun produit</p>
+                    <p className="text-sm">Ajoutez votre premier produit pour commencer à vendre !</p>
+                    <Link to="/ajouter-produit">
+                      <Button className="mt-4">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter un produit
                       </Button>
-                      <Button variant="destructive" size="icon">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {products?.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucun produit. Ajoutez votre premier produit !</p>
-              </div>
-            )}
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">

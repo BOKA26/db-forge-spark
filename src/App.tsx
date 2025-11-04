@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ProductList from "./pages/Products/ProductList";
+import AddProduct from "./pages/Products/AddProduct";
 import BuyerDashboard from "./pages/Dashboard/BuyerDashboard";
 import SellerDashboard from "./pages/Dashboard/SellerDashboard";
 import CourierDashboard from "./pages/Dashboard/CourierDashboard";
@@ -88,6 +89,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="vendeur">
                   <MyShop />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ajouter-produit"
+              element={
+                <ProtectedRoute requireRole="vendeur">
+                  <AddProduct />
                 </ProtectedRoute>
               }
             />

@@ -15,6 +15,7 @@ import BuyerDashboard from "./pages/Dashboard/BuyerDashboard";
 import SellerDashboard from "./pages/Dashboard/SellerDashboard";
 import CourierDashboard from "./pages/Dashboard/CourierDashboard";
 import CreateShop from "./pages/Shop/CreateShop";
+import MyShop from "./pages/Shop/MyShop";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="vendeur">
                   <CreateShop />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ma-boutique"
+              element={
+                <ProtectedRoute requireRole="vendeur">
+                  <MyShop />
                 </ProtectedRoute>
               }
             />

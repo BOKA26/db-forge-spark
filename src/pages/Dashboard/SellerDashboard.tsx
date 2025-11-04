@@ -249,78 +249,160 @@ const SellerDashboard = () => {
     updateShopMutation.mutate(values);
   };
 
+  // Calculate additional statistics
+  const totalProducts = products?.length || 0;
+  const ordersInProgress = orders?.filter(o => ['fonds_bloques', 'en_livraison'].includes(o.statut)).length || 0;
+  const completedOrders = orders?.filter(o => o.statut === 'terminé').length || 0;
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
       <div className="container py-8 space-y-8">
-        {/* Profile Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Mon Profil Vendeur
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Nom</p>
-                  <p className="font-medium">{userProfile?.nom || 'Non renseigné'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{userProfile?.email || 'Non renseigné'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Téléphone</p>
-                  <p className="font-medium">{userProfile?.telephone || 'Non renseigné'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Tableau de bord Vendeur</h1>
+            <p className="text-lg text-muted-foreground mt-2">
+              Gérez votre boutique, vos produits et vos commandes en toute simplicité
+            </p>
+          </div>
 
-        {/* Statistics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {shop && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    {shop.logo_url && (
+                      <img 
+                        src={shop.logo_url} 
+                        alt={shop.nom_boutique} 
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                    )}
+                    <div>
+                      <h2 className="text-2xl font-semibold">{shop.nom_boutique}</h2>
+                      <Badge 
+                        variant={
+                          shop.statut === 'actif' ? 'default' : 
+                          shop.statut === 'en_attente' ? 'secondary' : 
+                          'destructive'
+                        }
+                        className="mt-1"
+                      >
+                        {shop.statut === 'actif' ? '✓ Active' : 
+                         shop.statut === 'en_attente' ? '⏳ En attente' : 
+                         '⚠ Suspendue'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link to={`/boutique/${shop.id}`}>
+                      <Button variant="outline">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Voir ma boutique publique
+                      </Button>
+                    </Link>
+                    <Link to="/ajouter-produit">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter un produit
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!shop && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <Store className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <div>
+                    <h2 className="text-2xl font-semibold">Créez votre boutique</h2>
+                    <p className="text-muted-foreground mt-2">
+                      Vous devez d'abord créer votre boutique pour commencer à vendre
+                    </p>
+                  </div>
+                  <Link to="/creer-boutique">
+                    <Button size="lg">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Créer ma boutique
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Status Banners */}
+          {shop?.statut === 'en_attente' && (
+            <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                Votre boutique est en attente de validation par l'administrateur.
+              </AlertDescription>
+            </Alert>
+          )}
+          {shop?.statut === 'suspendu' && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertDescription>
+                Votre boutique est suspendue. Contactez le support.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total des ventes</p>
-                  <p className="text-2xl font-bold">{totalSales.toLocaleString()} FCFA</p>
+                  <p className="text-sm font-medium text-muted-foreground">Nombre de produits</p>
+                  <p className="text-3xl font-bold mt-2">{totalProducts}</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-primary" />
+                <Package className="h-10 w-10 text-blue-500" />
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Ventes en attente</p>
-                  <p className="text-2xl font-bold">{pendingSales}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Commandes en cours</p>
+                  <p className="text-3xl font-bold mt-2">{ordersInProgress}</p>
                 </div>
-                <Clock className="h-8 w-8 text-orange-500" />
+                <Clock className="h-10 w-10 text-orange-500" />
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Paiements débloqués</p>
-                  <p className="text-2xl font-bold">{unlockedPayments.toLocaleString()} FCFA</p>
+                  <p className="text-sm font-medium text-muted-foreground">Commandes terminées</p>
+                  <p className="text-3xl font-bold mt-2">{completedOrders}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
+                <CheckCircle className="h-10 w-10 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Revenu total</p>
+                  <p className="text-3xl font-bold mt-2">{unlockedPayments.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">FCFA</p>
+                </div>
+                <DollarSign className="h-10 w-10 text-green-600" />
               </div>
             </CardContent>
           </Card>

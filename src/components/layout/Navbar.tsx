@@ -18,6 +18,9 @@ export const Navbar = () => {
   const { user, signOut } = useAuth();
   const { data: userRole } = useUserRole();
 
+  console.log('🔍 Navbar - User Role:', userRole);
+  console.log('🔍 Navbar - User:', user);
+
   const getDashboardLink = () => {
     if (userRole === 'admin') return '/admin';
     if (userRole === 'acheteur') return '/dashboard-acheteur';

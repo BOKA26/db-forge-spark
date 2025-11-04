@@ -146,17 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log('🔓 Tentative de déconnexion...');
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('❌ Erreur Supabase signOut:', error);
-        throw error;
-      }
-      console.log('✅ Déconnexion Supabase réussie');
+      if (error) throw error;
       toast.success('Déconnexion réussie');
-      navigate('/');
+      // La redirection est gérée automatiquement par onAuthStateChange
     } catch (error: any) {
-      console.error('❌ Erreur lors de la déconnexion:', error);
       toast.error(error.message || 'Erreur lors de la déconnexion');
     }
   };

@@ -47,11 +47,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           // Only redirect if not already on a dashboard page
           const currentPath = window.location.pathname;
-          if (!currentPath.includes('/dashboard-')) {
+          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique')) {
             if (role === 'acheteur') {
               navigate('/dashboard-acheteur');
             } else if (role === 'vendeur') {
-              navigate('/dashboard-vendeur');
+              navigate('/ma-boutique');
             } else if (role === 'livreur') {
               navigate('/dashboard-livreur');
             }
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (role === 'acheteur') {
           navigate('/dashboard-acheteur');
         } else if (role === 'vendeur') {
-          navigate('/dashboard-vendeur');
+          navigate('/ma-boutique');
         } else if (role === 'livreur') {
           navigate('/dashboard-livreur');
         } else {

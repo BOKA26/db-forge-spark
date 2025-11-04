@@ -5,12 +5,29 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Package, CheckCircle, AlertTriangle, User, Mail, Phone, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   const { data: orders } = useQuery({
     queryKey: ['buyer-orders', user?.id],
@@ -24,6 +41,22 @@ const BuyerDashboard = () => {
         `)
         .eq('acheteur_id', user?.id)
         .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: notifications } = useQuery({
+    queryKey: ['user-notifications', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
       if (error) throw error;
       return data;
@@ -103,96 +136,183 @@ const BuyerDashboard = () => {
     },
   });
 
+  const getStatusBadge = (statut: string) => {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
+      'en_attente_paiement': { variant: 'outline', label: 'En attente paiement' },
+      'fonds_bloques': { variant: 'secondary', label: 'Fonds bloqués' },
+      'en_livraison': { variant: 'default', label: 'En livraison' },
+      'livré': { variant: 'default', label: 'Livré' },
+      'litige': { variant: 'destructive', label: 'Litige' },
+      'terminé': { variant: 'secondary', label: 'Terminé' },
+    };
+
+    const config = statusConfig[statut] || { variant: 'outline' as const, label: statut };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <div className="container py-8">
+      <main className="container py-8 flex-1">
         <h1 className="text-4xl font-bold mb-8">Dashboard Acheteur</h1>
 
-        <div className="grid gap-6">
-          {orders?.map((order) => (
-            <Card key={order.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Commande #{order.id.slice(0, 8)}
-                  </div>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Produit</h4>
-                    <p>{order.products?.nom}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Quantité: {order.quantite}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">Montant</h4>
-                    <p className="text-xl font-bold">
-                      {order.montant.toLocaleString()} FCFA
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">Statut</h4>
-                    <p className="capitalize">{order.statut.replace(/_/g, ' ')}</p>
-                  </div>
-
-                  {order.statut === 'livré' && !order.validations?.acheteur_ok && (
-                    <div className="space-y-2">
-                      <Button
-                        onClick={() => validateOrder.mutate(order.id)}
-                        disabled={validateOrder.isPending}
-                        className="w-full"
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Confirmer la réception
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => openDispute.mutate(order.id)}
-                        disabled={openDispute.isPending}
-                        className="w-full"
-                      >
-                        <AlertTriangle className="mr-2 h-4 w-4" />
-                        Ouvrir un litige
-                      </Button>
-                    </div>
-                  )}
-
-                  {order.statut === 'litige' && (
-                    <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
-                      <p className="text-sm font-medium">Litige en cours</p>
-                      <p className="text-xs">Un administrateur traite votre demande</p>
-                    </div>
-                  )}
-
-                  {order.validations?.acheteur_ok && (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      <span>Réception confirmée</span>
-                    </div>
-                  )}
+        {/* Section Profil */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Mon Profil
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Nom</p>
+                  <p className="font-semibold">{userProfile?.nom || 'Non renseigné'}</p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {orders?.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              Aucune commande
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-semibold">{userProfile?.email || 'Non renseigné'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Téléphone</p>
+                  <p className="font-semibold">{userProfile?.telephone || 'Non renseigné'}</p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+
+        {/* Section Mes Commandes */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Mes Commandes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orders && orders.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Référence</TableHead>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Quantité</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          #{order.id.slice(0, 8)}
+                        </TableCell>
+                        <TableCell>{order.products?.nom || 'N/A'}</TableCell>
+                        <TableCell>{order.quantite}</TableCell>
+                        <TableCell className="font-semibold">
+                          {order.montant.toLocaleString()} FCFA
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.statut)}</TableCell>
+                        <TableCell>
+                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {order.statut === 'livré' && !order.validations?.acheteur_ok && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => validateOrder.mutate(order.id)}
+                                  disabled={validateOrder.isPending}
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Confirmer
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => openDispute.mutate(order.id)}
+                                  disabled={openDispute.isPending}
+                                >
+                                  <AlertTriangle className="mr-2 h-4 w-4" />
+                                  Litige
+                                </Button>
+                              </>
+                            )}
+                            {order.validations?.acheteur_ok && (
+                              <Badge variant="secondary" className="gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Confirmé
+                              </Badge>
+                            )}
+                            {order.statut === 'litige' && (
+                              <Badge variant="destructive">En cours</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Aucune commande pour le moment</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications Récentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {notifications && notifications.length > 0 ? (
+              <div className="space-y-3">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border bg-card"
+                  >
+                    <Bell className="h-4 w-4 mt-1 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="text-sm">{notif.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(notif.created_at).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p>Aucune notification</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
 
       <Footer />
     </div>

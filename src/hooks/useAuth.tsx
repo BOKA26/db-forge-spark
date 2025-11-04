@@ -24,10 +24,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Redirect to appropriate dashboard after email confirmation or sign in
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          const role = roleData?.role;
+          
+          // Only redirect if not already on a dashboard page
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes('/dashboard/')) {
+            if (role === 'acheteur') {
+              navigate('/dashboard/acheteur');
+            } else if (role === 'vendeur') {
+              navigate('/dashboard/vendeur');
+            } else if (role === 'livreur') {
+              navigate('/dashboard/livreur');
+            }
+          }
+        }
       }
     );
 
@@ -39,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {

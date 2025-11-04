@@ -48,21 +48,48 @@ const SellerDashboard = () => {
     enabled: !!user?.id,
   });
 
-  const validateOrder = useMutation({
+  const markAsShipped = useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase
+      // Update validations
+      const { error: validationError } = await supabase
         .from('validations')
         .update({ vendeur_ok: true })
         .eq('order_id', orderId);
 
-      if (error) throw error;
+      if (validationError) throw validationError;
+
+      // Update delivery status
+      const { error: deliveryError } = await supabase
+        .from('deliveries')
+        .update({ 
+          statut: 'en_livraison',
+          date_assignation: new Date().toISOString()
+        })
+        .eq('order_id', orderId);
+
+      if (deliveryError) throw deliveryError;
+
+      // Get order to send notification to buyer
+      const { data: order } = await supabase
+        .from('orders')
+        .select('acheteur_id')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.acheteur_id,
+          message: 'Votre commande est en cours de livraison.',
+          canal: 'app',
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
-      toast.success('Commande validée');
+      toast.success('Commande marquée comme expédiée');
     },
     onError: () => {
-      toast.error('Erreur lors de la validation');
+      toast.error('Erreur lors de la mise à jour');
     },
   });
 
@@ -150,14 +177,14 @@ const SellerDashboard = () => {
                       <p className="capitalize">{order.statut.replace(/_/g, ' ')}</p>
                     </div>
 
-                    {order.statut === 'livré' && !order.validations?.vendeur_ok && (
+                    {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok && (
                       <Button
-                        onClick={() => validateOrder.mutate(order.id)}
-                        disabled={validateOrder.isPending}
+                        onClick={() => markAsShipped.mutate(order.id)}
+                        disabled={markAsShipped.isPending}
                         className="w-full"
                       >
                         <CheckCircle className="mr-2 h-4 w-4" />
-                        Valider la livraison
+                        Marquer comme expédié
                       </Button>
                     )}
 

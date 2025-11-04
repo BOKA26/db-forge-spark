@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle } from 'lucide-react';
+import { Package, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BuyerDashboard = () => {
@@ -31,6 +31,39 @@ const BuyerDashboard = () => {
     enabled: !!user?.id,
   });
 
+  const openDispute = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ statut: 'litige' })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // Get order to send notification to admin
+      const { data: order } = await supabase
+        .from('orders')
+        .select('vendeur_id')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.vendeur_id,
+          message: 'Un litige a été ouvert sur une de vos commandes.',
+          canal: 'app',
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      toast.success('Litige ouvert, un administrateur va traiter votre demande');
+    },
+    onError: () => {
+      toast.error('Erreur lors de l\'ouverture du litige');
+    },
+  });
+
   const validateOrder = useMutation({
     mutationFn: async (orderId: string) => {
       const { error } = await supabase
@@ -39,10 +72,31 @@ const BuyerDashboard = () => {
         .eq('order_id', orderId);
 
       if (error) throw error;
+
+      // Update order status to 'livré'
+      await supabase
+        .from('orders')
+        .update({ statut: 'livré' })
+        .eq('id', orderId);
+
+      // Get order to send notification to vendor
+      const { data: order } = await supabase
+        .from('orders')
+        .select('vendeur_id')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.vendeur_id,
+          message: 'Le paiement a été libéré suite à la confirmation de réception.',
+          canal: 'app',
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Commande validée');
+      toast.success('Réception confirmée, paiement libéré');
     },
     onError: () => {
       toast.error('Erreur lors de la validation');
@@ -93,14 +147,32 @@ const BuyerDashboard = () => {
                   </div>
 
                   {order.statut === 'livré' && !order.validations?.acheteur_ok && (
-                    <Button
-                      onClick={() => validateOrder.mutate(order.id)}
-                      disabled={validateOrder.isPending}
-                      className="w-full"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Confirmer la réception
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        onClick={() => validateOrder.mutate(order.id)}
+                        disabled={validateOrder.isPending}
+                        className="w-full"
+                      >
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Confirmer la réception
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => openDispute.mutate(order.id)}
+                        disabled={openDispute.isPending}
+                        className="w-full"
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        Ouvrir un litige
+                      </Button>
+                    </div>
+                  )}
+
+                  {order.statut === 'litige' && (
+                    <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
+                      <p className="text-sm font-medium">Litige en cours</p>
+                      <p className="text-xs">Un administrateur traite votre demande</p>
+                    </div>
                   )}
 
                   {order.validations?.acheteur_ok && (

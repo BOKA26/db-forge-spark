@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, User, Search, Menu } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,8 @@ export const Navbar = () => {
                   <ShoppingCart className="h-5 w-5" />
                 </Button>
               </Link>
+
+              <NotificationBell />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

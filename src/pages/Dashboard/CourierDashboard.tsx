@@ -36,6 +36,10 @@ const CourierDashboard = () => {
 
   const markAsDelivered = useMutation({
     mutationFn: async (deliveryId: string) => {
+      const delivery = deliveries?.find(d => d.id === deliveryId);
+      if (!delivery) throw new Error('Delivery not found');
+
+      // Update delivery status
       const { error: deliveryError } = await supabase
         .from('deliveries')
         .update({ statut: 'livrée', date_livraison: new Date().toISOString() })
@@ -44,14 +48,34 @@ const CourierDashboard = () => {
       if (deliveryError) throw deliveryError;
 
       // Update order status
-      const delivery = deliveries?.find(d => d.id === deliveryId);
-      if (delivery) {
-        const { error: orderError } = await supabase
-          .from('orders')
-          .update({ statut: 'livré' })
-          .eq('id', delivery.order_id);
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ statut: 'livré' })
+        .eq('id', delivery.order_id);
 
-        if (orderError) throw orderError;
+      if (orderError) throw orderError;
+
+      // Update validation
+      const { error: validationError } = await supabase
+        .from('validations')
+        .update({ livreur_ok: true })
+        .eq('order_id', delivery.order_id);
+
+      if (validationError) throw validationError;
+
+      // Send notification to buyer
+      const { data: order } = await supabase
+        .from('orders')
+        .select('acheteur_id')
+        .eq('id', delivery.order_id)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.acheteur_id,
+          message: 'Votre colis est livré. Merci de confirmer la réception.',
+          canal: 'app',
+        });
       }
     },
     onSuccess: () => {
@@ -63,23 +87,6 @@ const CourierDashboard = () => {
     },
   });
 
-  const validateDelivery = useMutation({
-    mutationFn: async (orderId: string) => {
-      const { error } = await supabase
-        .from('validations')
-        .update({ livreur_ok: true })
-        .eq('order_id', orderId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courier-deliveries'] });
-      toast.success('Livraison validée');
-    },
-    onError: () => {
-      toast.error('Erreur lors de la validation');
-    },
-  });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -128,17 +135,6 @@ const CourierDashboard = () => {
                       className="w-full"
                     >
                       Marquer comme livrée
-                    </Button>
-                  )}
-
-                  {delivery.statut === 'livrée' && !(delivery.orders as any)?.validations?.[0]?.livreur_ok && (
-                    <Button
-                      onClick={() => validateDelivery.mutate(delivery.order_id)}
-                      disabled={validateDelivery.isPending}
-                      className="w-full"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Valider la livraison
                     </Button>
                   )}
 

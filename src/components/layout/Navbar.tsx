@@ -119,9 +119,14 @@ export const Navbar = () => {
                     </DropdownMenuItem>
                   )}
                   {userRole === 'vendeur' && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/ma-boutique" className="cursor-pointer">Ma Boutique</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard-vendeur" className="cursor-pointer">Dashboard Vendeur</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/ma-boutique" className="cursor-pointer">Ma Boutique</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {userRole === 'livreur' && (
                     <DropdownMenuItem asChild>
@@ -199,11 +204,18 @@ export const Navbar = () => {
                     </Link>
                   )}
                   {userRole === 'vendeur' && (
-                    <Link to="/ma-boutique">
-                      <Button variant="ghost" className="w-full justify-start">
-                        Ma Boutique
-                      </Button>
-                    </Link>
+                    <>
+                      <Link to="/dashboard-vendeur">
+                        <Button variant="ghost" className="w-full justify-start">
+                          📊 Dashboard Vendeur
+                        </Button>
+                      </Link>
+                      <Link to="/ma-boutique">
+                        <Button variant="ghost" className="w-full justify-start">
+                          🏪 Ma Boutique
+                        </Button>
+                      </Link>
+                    </>
                   )}
                   {userRole === 'livreur' && (
                     <Link to="/mes-livraisons">

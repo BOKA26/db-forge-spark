@@ -55,19 +55,15 @@ const UserProfile = () => {
 
     setLoading(true);
     try {
-      // Delete existing role
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', user.id);
-
-      // Insert new role
+      // Upsert: insert or update if exists
       const { error } = await supabase
         .from('user_roles')
-        .insert([{
+        .upsert({
           user_id: user.id,
           role: newRole as any
-        }]);
+        }, {
+          onConflict: 'user_id,role'
+        });
 
       if (error) throw error;
 
@@ -77,19 +73,9 @@ const UserProfile = () => {
 
       // Redirect to appropriate dashboard
       setTimeout(() => {
-        switch (newRole) {
-          case 'acheteur':
-            navigate('/dashboard-acheteur');
-            break;
-          case 'vendeur':
-            navigate('/ma-boutique');
-            break;
-          case 'livreur':
-            navigate('/dashboard-livreur');
-            break;
-          default:
-            navigate('/');
-        }
+        if (newRole === 'acheteur') navigate('/dashboard-acheteur');
+        if (newRole === 'vendeur') navigate('/ma-boutique');
+        if (newRole === 'livreur') navigate('/dashboard-livreur');
       }, 1000);
     } catch (error: any) {
       console.error('Error updating role:', error);

@@ -6,6 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function verifyPaystackSignature(req: Request, body: string): Promise<boolean> {
+  const signature = req.headers.get('x-paystack-signature');
+  if (!signature) {
+    console.error('Missing x-paystack-signature header');
+    return false;
+  }
+
+  const paystackSecret = Deno.env.get('PAYSTACK_SECRET_KEY');
+  if (!paystackSecret) {
+    console.error('PAYSTACK_SECRET_KEY not configured');
+    return false;
+  }
+
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(paystackSecret),
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
+    const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return computedSignature === signature;
+  } catch (error) {
+    console.error('Error verifying signature:', error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -16,8 +51,22 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const payload = await req.json();
+    const body = await req.text();
     
+    // Verify Paystack signature
+    const isValid = await verifyPaystackSignature(req, body);
+    if (!isValid) {
+      console.error('Invalid webhook signature');
+      return new Response(
+        JSON.stringify({ error: 'Invalid signature' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const payload = JSON.parse(body);
     console.log('Webhook received:', payload);
 
     // Verify it's a successful payment

@@ -104,18 +104,36 @@ const UserProfile = () => {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Nom complet</Label>
-                  <Input value={userData?.nom || ''} disabled />
+                  <Label htmlFor="nom">Nom complet</Label>
+                  <Input 
+                    id="nom"
+                    value={userData?.nom || ''} 
+                    placeholder="Non renseigné"
+                    disabled 
+                    className="bg-muted/50"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input value={userData?.email || user.email || ''} disabled />
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email"
+                    value={userData?.email || user.email || ''} 
+                    placeholder="Non renseigné"
+                    disabled 
+                    className="bg-muted/50"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Téléphone</Label>
-                  <Input value={userData?.telephone || ''} disabled />
+                  <Label htmlFor="telephone">Téléphone</Label>
+                  <Input 
+                    id="telephone"
+                    value={userData?.telephone || ''} 
+                    placeholder="Non renseigné"
+                    disabled 
+                    className="bg-muted/50"
+                  />
                 </div>
               </div>
 

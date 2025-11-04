@@ -10,6 +10,8 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import ResetPassword from "./pages/Auth/ResetPassword";
+import UpdatePassword from "./pages/Auth/UpdatePassword";
 import UserProfile from "./pages/Profile/UserProfile";
 import ProductList from "./pages/Products/ProductList";
 import AddProduct from "./pages/Products/AddProduct";
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />
+            <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
+            <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
             <Route path="/produits" element={<ProductList />} />
             <Route path="/boutique/:id" element={<PublicShop />} />
             <Route path="/a-propos" element={<About />} />

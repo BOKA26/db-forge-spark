@@ -72,7 +72,15 @@ const Login = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mot de passe</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Mot de passe</FormLabel>
+                      <Link 
+                        to="/mot-de-passe-oublie" 
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Mot de passe oublié ?
+                      </Link>
+                    </div>
                     <FormControl>
                       <Input type="password" {...field} />
                     </FormControl>

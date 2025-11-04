@@ -29,6 +29,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
 
+        // Handle sign out - redirect to home
+        if (event === 'SIGNED_OUT') {
+          navigate('/');
+          return;
+        }
+
         // Redirect to appropriate dashboard after email confirmation or sign in
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           const { data: roleData } = await supabase

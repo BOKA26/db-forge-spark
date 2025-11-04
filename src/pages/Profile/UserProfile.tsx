@@ -52,19 +52,19 @@ const UserProfile = () => {
     setUserData(data);
   };
 
-  const handleRoleChange = async (newRole: string) => {
-    if (!user?.id || !newRole) return;
+  const handleRoleSubmit = async () => {
+    if (!user?.id || !selectedRole) return;
 
     setLoading(true);
     try {
-      console.log('🔄 Tentative d\'enregistrement du rôle:', newRole, 'pour user:', user.id);
+      console.log('🔄 Tentative d\'enregistrement du rôle:', selectedRole, 'pour user:', user.id);
       
       // Insérer le nouveau rôle
       const { data, error } = await supabase
         .from('user_roles')
         .insert({
           user_id: user.id,
-          role: newRole as any
+          role: selectedRole as any
         })
         .select()
         .single();
@@ -75,16 +75,15 @@ const UserProfile = () => {
       }
 
       console.log('✅ Rôle enregistré avec succès:', data);
-      toast.success('Rôle mis à jour avec succès !');
-      setSelectedRole(newRole);
+      toast.success('Rôle enregistré avec succès ! Redirection en cours...');
       await refetch();
 
       // Redirect to appropriate dashboard
       setTimeout(() => {
         console.log('🔀 Redirection vers le dashboard...');
-        if (newRole === 'acheteur') navigate('/dashboard-acheteur');
-        if (newRole === 'vendeur') navigate('/ma-boutique');
-        if (newRole === 'livreur') navigate('/dashboard-livreur');
+        if (selectedRole === 'acheteur') navigate('/dashboard-acheteur');
+        if (selectedRole === 'vendeur') navigate('/ma-boutique');
+        if (selectedRole === 'livreur') navigate('/dashboard-livreur');
       }, 1000);
     } catch (error: any) {
       console.error('❌ Erreur complète:', error);
@@ -168,8 +167,8 @@ const UserProfile = () => {
                     <Label htmlFor="role">Votre rôle</Label>
                     <Select 
                       value={selectedRole} 
-                      onValueChange={handleRoleChange}
-                      disabled={loading}
+                      onValueChange={setSelectedRole}
+                      disabled={loading || !!currentRole}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionnez un rôle --" />
@@ -182,13 +181,24 @@ const UserProfile = () => {
                     </Select>
                   </div>
 
-                  {selectedRole && (
+                  {selectedRole && !currentRole && (
+                    <Button 
+                      onClick={handleRoleSubmit}
+                      disabled={loading}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {loading ? '⏳ Enregistrement...' : '✅ Valider mon rôle et accéder au dashboard'}
+                    </Button>
+                  )}
+
+                  {currentRole && (
                     <div className="p-4 bg-primary/10 rounded-lg">
                       <p className="text-sm">
                         <strong>Rôle actuel :</strong>{' '}
-                        {selectedRole === 'acheteur' && '🛒 Acheteur'}
-                        {selectedRole === 'vendeur' && '🏪 Vendeur'}
-                        {selectedRole === 'livreur' && '🚚 Livreur'}
+                        {currentRole === 'acheteur' && '🛒 Acheteur'}
+                        {currentRole === 'vendeur' && '🏪 Vendeur'}
+                        {currentRole === 'livreur' && '🚚 Livreur'}
                       </p>
                     </div>
                   )}

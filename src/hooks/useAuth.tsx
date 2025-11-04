@@ -43,14 +43,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
-      toast.success('Connexion réussie');
-      navigate('/');
+
+      // Get user role and redirect to appropriate dashboard
+      if (data.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+
+        const role = roleData?.role;
+        
+        toast.success('Connexion réussie');
+        
+        // Redirect based on role
+        if (role === 'acheteur') {
+          navigate('/dashboard/acheteur');
+        } else if (role === 'vendeur') {
+          navigate('/dashboard/vendeur');
+        } else if (role === 'livreur') {
+          navigate('/dashboard/livreur');
+        } else {
+          navigate('/');
+        }
+      } else {
+        navigate('/');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la connexion');
       throw error;

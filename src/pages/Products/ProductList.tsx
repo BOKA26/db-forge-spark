@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/layout/Navbar';
@@ -7,12 +7,20 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, Package } from 'lucide-react';
 
 const ProductList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState('all');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [category, setCategory] = useState(searchParams.get('categorie') || 'all');
   const [sortBy, setSortBy] = useState('recent');
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    const cat = searchParams.get('categorie');
+    if (q) setSearchTerm(q);
+    if (cat) setCategory(cat);
+  }, [searchParams]);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', searchTerm, category, sortBy],
@@ -92,13 +100,15 @@ const ProductList = () => {
         {/* Products Grid */}
         {isLoading ? (
           <div className="text-center py-12">Chargement...</div>
-        ) : (
+        ) : products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products?.map((product) => (
+            {products.map((product) => (
               <Link key={product.id} to={`/produit/${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow h-full">
+                <Card className="hover:shadow-lg transition-all hover:-translate-y-1 h-full">
                   <CardContent className="p-4">
-                    <div className="aspect-square bg-muted rounded-lg mb-4" />
+                    <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center">
+                      <Package className="h-12 w-12 text-muted-foreground" />
+                    </div>
                     <h3 className="font-semibold mb-2 line-clamp-2">{product.nom}</h3>
                     <p className="text-xl font-bold text-primary mb-2">
                       {product.prix.toLocaleString()} FCFA
@@ -112,12 +122,16 @@ const ProductList = () => {
               </Link>
             ))}
           </div>
-        )}
-
-        {products?.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            Aucun produit trouvé
-          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Aucun produit trouvé</h3>
+              <p className="text-muted-foreground">
+                Essayez d'ajuster vos filtres de recherche
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
 

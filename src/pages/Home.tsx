@@ -1,13 +1,36 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Search, Shield, TruckIcon, Package } from 'lucide-react';
+import { Search, Shield, TruckIcon, Package, ChevronRight, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+const categories = [
+  { name: 'Électronique', icon: '💻' },
+  { name: 'Mode', icon: '👗' },
+  { name: 'Maison', icon: '🏠' },
+  { name: 'Agriculture', icon: '🌾' },
+  { name: 'Beauté', icon: '💄' },
+  { name: 'Sports', icon: '⚽' },
+];
+
+const frequentSearches = [
+  'téléphones portables',
+  'vêtements en gros',
+  'équipement agricole',
+  'matériel informatique',
+];
+
 const Home = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTab, setSearchTab] = useState('products');
+  const navigate = useNavigate();
+
   // Fetch popular products
   const { data: products } = useQuery({
     queryKey: ['products', 'popular'],
@@ -16,6 +39,7 @@ const Home = () => {
         .from('products')
         .select('*')
         .eq('statut', 'actif')
+        .order('created_at', { ascending: false })
         .limit(8);
 
       if (error) throw error;
@@ -23,111 +47,235 @@ const Home = () => {
     },
   });
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/produits?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-primary/10 to-background py-20">
+      {/* Hero Section with Search */}
+      <section className="bg-gradient-to-br from-primary via-primary/90 to-accent text-primary-foreground py-12">
         <div className="container">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              La marketplace B2B en Afrique
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4">
+              BokaTrade - Votre marketplace B2B en Afrique
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Achetez et vendez en toute sécurité avec notre système d'escrow
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/produits">
-                <Button size="lg" className="w-full sm:w-auto">
-                  <Search className="mr-2 h-4 w-4" />
-                  Trouver des produits
+            
+            {/* Search Tabs */}
+            <Tabs value={searchTab} onValueChange={setSearchTab} className="mb-4">
+              <TabsList className="bg-background/20 backdrop-blur-sm border border-primary-foreground/20">
+                <TabsTrigger value="products" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
+                  Produits
+                </TabsTrigger>
+                <TabsTrigger value="suppliers" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
+                  Fournisseurs
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
+                  Catégories
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="relative max-w-3xl mx-auto">
+              <div className="bg-background rounded-full shadow-xl flex items-center overflow-hidden">
+                <Input
+                  type="text"
+                  placeholder="Rechercher des produits, fournisseurs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border-0 rounded-l-full pl-6 text-lg h-14 focus-visible:ring-0"
+                />
+                <Button type="submit" size="lg" className="rounded-r-full h-14 px-8">
+                  <Search className="mr-2 h-5 w-5" />
+                  Rechercher
                 </Button>
-              </Link>
-              <Link to="/inscription">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Devenir vendeur
-                </Button>
-              </Link>
+              </div>
+            </form>
+
+            {/* Frequent Searches */}
+            <div className="mt-4 flex flex-wrap gap-2 justify-center">
+              <span className="text-sm opacity-90">Recherches fréquentes:</span>
+              {frequentSearches.map((search) => (
+                <button
+                  key={search}
+                  onClick={() => navigate(`/produits?q=${encodeURIComponent(search)}`)}
+                  className="text-sm px-3 py-1 bg-background/20 backdrop-blur-sm rounded-full hover:bg-background/30 transition-colors"
+                >
+                  {search}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 border-b">
+      {/* Welcome & Trust Badges */}
+      <section className="border-b py-4 bg-muted/30">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="pt-6">
-                <Shield className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Paiement sécurisé</h3>
-                <p className="text-muted-foreground">
-                  Vos fonds sont bloqués jusqu'à la validation de la livraison
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <TruckIcon className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Livraison suivie</h3>
-                <p className="text-muted-foreground">
-                  Suivez votre commande en temps réel avec nos livreurs
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <Package className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Triple validation</h3>
-                <p className="text-muted-foreground">
-                  Acheteur, vendeur et livreur valident la transaction
-                </p>
-              </CardContent>
-            </Card>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="font-medium">Paiement sécurisé</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <span className="font-medium">Protection des commandes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TruckIcon className="h-5 w-5 text-primary" />
+              <span className="font-medium">Livraison suivie</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Popular Products */}
-      <section className="py-16">
+      {/* Main Content with Sidebar */}
+      <section className="py-8">
         <div className="container">
-          <h2 className="text-3xl font-bold mb-8">Produits populaires</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {products?.map((product) => (
-              <Link key={product.id} to={`/produit/${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="aspect-square bg-muted rounded-lg mb-4" />
-                    <h3 className="font-semibold mb-2">{product.nom}</h3>
-                    <p className="text-xl font-bold text-primary">
-                      {product.prix.toLocaleString()} FCFA
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar Categories */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-4">Catégories populaires</h3>
+                  <div className="space-y-2">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.name}
+                        to={`/produits?categorie=${cat.name}`}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{cat.icon}</span>
+                          <span className="text-sm font-medium">{cat.name}</span>
+                        </div>
+                        <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Features */}
+              <Card className="mt-4">
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <Shield className="h-8 w-8 text-primary mb-2" />
+                    <h4 className="font-semibold text-sm mb-1">Escrow sécurisé</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Fonds bloqués jusqu'à validation
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Stock: {product.stock}
+                  </div>
+                  <div>
+                    <Package className="h-8 w-8 text-primary mb-2" />
+                    <h4 className="font-semibold text-sm mb-1">Triple validation</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Sécurité maximale garantie
                     </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              {/* Featured Products */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold">Produits populaires</h2>
+                  <Link to="/produits">
+                    <Button variant="ghost" className="gap-2">
+                      Voir tout
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+                
+                {products && products.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {products.map((product) => (
+                      <Link key={product.id} to={`/produit/${product.id}`}>
+                        <Card className="hover:shadow-lg transition-all hover:-translate-y-1">
+                          <CardContent className="p-3">
+                            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
+                              <Package className="h-12 w-12 text-muted-foreground" />
+                            </div>
+                            <h3 className="font-semibold text-sm mb-2 line-clamp-2">{product.nom}</h3>
+                            <p className="text-lg font-bold text-primary">
+                              {product.prix.toLocaleString()} FCFA
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Stock: {product.stock}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Aucun produit disponible</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Les produits seront bientôt disponibles
+                      </p>
+                      <Link to="/inscription">
+                        <Button>Devenir vendeur</Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Categories Grid */}
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Explorer par catégorie</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {categories.map((cat) => (
+                    <Link key={cat.name} to={`/produits?categorie=${cat.name}`}>
+                      <Card className="hover:shadow-md transition-shadow hover:border-primary">
+                        <CardContent className="p-6 text-center">
+                          <div className="text-4xl mb-2">{cat.icon}</div>
+                          <h3 className="font-semibold">{cat.name}</h3>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-primary text-primary-foreground py-16">
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-16">
         <div className="container text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Prêt à commencer ?
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Prêt à développer votre activité ?
           </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Rejoignez des milliers de vendeurs et acheteurs
+          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+            Rejoignez des milliers d'entreprises qui font confiance à BokaTrade pour leurs transactions B2B
           </p>
-          <Link to="/inscription">
-            <Button size="lg" variant="secondary">
-              S'inscrire gratuitement
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/inscription">
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                S'inscrire gratuitement
+              </Button>
+            </Link>
+            <Link to="/produits">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                Explorer les produits
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

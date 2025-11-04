@@ -23,6 +23,8 @@ import MyOrders from "./pages/Orders/MyOrders";
 import SellerOrders from "./pages/Orders/SellerOrders";
 import MyDeliveries from "./pages/Deliveries/MyDeliveries";
 import NotificationPage from "./pages/Notifications/NotificationPage";
+import ShopsList from "./pages/Admin/ShopsList";
+import ShopDetail from "./pages/Admin/ShopDetail";
 import About from "./pages/Legal/About";
 import Contact from "./pages/Legal/Contact";
 import Terms from "./pages/Legal/Terms";
@@ -138,6 +140,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/boutiques"
+              element={
+                <ProtectedRoute requireRole="admin">
+                  <ShopsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/boutique/:id"
+              element={
+                <ProtectedRoute requireRole="admin">
+                  <ShopDetail />
                 </ProtectedRoute>
               }
             />

@@ -23,6 +23,7 @@ import MyOrders from "./pages/Orders/MyOrders";
 import SellerOrders from "./pages/Orders/SellerOrders";
 import MyDeliveries from "./pages/Deliveries/MyDeliveries";
 import NotificationPage from "./pages/Notifications/NotificationPage";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ShopsList from "./pages/Admin/ShopsList";
 import ShopDetail from "./pages/Admin/ShopDetail";
 import About from "./pages/Legal/About";
@@ -140,6 +141,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute requireRole="admin">
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

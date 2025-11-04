@@ -57,31 +57,38 @@ const UserProfile = () => {
 
     setLoading(true);
     try {
-      // Upsert: insert or update if exists
-      const { error } = await supabase
+      console.log('🔄 Tentative d\'enregistrement du rôle:', newRole, 'pour user:', user.id);
+      
+      // Insérer le nouveau rôle
+      const { data, error } = await supabase
         .from('user_roles')
-        .upsert({
+        .insert({
           user_id: user.id,
           role: newRole as any
-        }, {
-          onConflict: 'user_id,role'
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw error;
+      }
 
+      console.log('✅ Rôle enregistré avec succès:', data);
       toast.success('Rôle mis à jour avec succès !');
       setSelectedRole(newRole);
       await refetch();
 
       // Redirect to appropriate dashboard
       setTimeout(() => {
+        console.log('🔀 Redirection vers le dashboard...');
         if (newRole === 'acheteur') navigate('/dashboard-acheteur');
         if (newRole === 'vendeur') navigate('/ma-boutique');
         if (newRole === 'livreur') navigate('/dashboard-livreur');
       }, 1000);
     } catch (error: any) {
-      console.error('Error updating role:', error);
-      toast.error('Erreur lors de la mise à jour du rôle');
+      console.error('❌ Erreur complète:', error);
+      toast.error(`Erreur: ${error.message || 'Impossible d\'enregistrer le rôle'}`);
     } finally {
       setLoading(false);
     }

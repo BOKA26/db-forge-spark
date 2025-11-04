@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { AlertCircle } from 'lucide-react';
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -139,6 +141,15 @@ const UserProfile = () => {
 
               <div className="border-t pt-6">
                 <div className="space-y-4">
+                  {!selectedRole && (
+                    <Alert variant="destructive" className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-500 dark:border-yellow-700">
+                      <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                      <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                        <strong>⚠️ Action requise :</strong> Vous devez sélectionner un rôle ci-dessous pour accéder aux fonctionnalités de la plateforme.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Choisissez votre rôle</h3>
                     <p className="text-sm text-muted-foreground mb-4">

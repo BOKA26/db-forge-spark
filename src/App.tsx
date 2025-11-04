@@ -17,6 +17,10 @@ import CourierDashboard from "./pages/Dashboard/CourierDashboard";
 import CreateShop from "./pages/Shop/CreateShop";
 import MyShop from "./pages/Shop/MyShop";
 import PublicShop from "./pages/Shop/PublicShop";
+import MyOrders from "./pages/Orders/MyOrders";
+import SellerOrders from "./pages/Orders/SellerOrders";
+import MyDeliveries from "./pages/Deliveries/MyDeliveries";
+import NotificationPage from "./pages/Notifications/NotificationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +78,38 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="vendeur">
                   <MyShop />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mes-commandes"
+              element={
+                <ProtectedRoute requireRole="acheteur">
+                  <MyOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/commandes"
+              element={
+                <ProtectedRoute requireRole="vendeur">
+                  <SellerOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mes-livraisons"
+              element={
+                <ProtectedRoute requireRole="livreur">
+                  <MyDeliveries />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationPage />
                 </ProtectedRoute>
               }
             />

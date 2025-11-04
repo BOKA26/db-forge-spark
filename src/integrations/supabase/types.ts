@@ -44,6 +44,262 @@ export type Database = {
         }
         Relationships: []
       }
+      deliveries: {
+        Row: {
+          acheteur_id: string | null
+          created_at: string | null
+          date_assignation: string | null
+          date_livraison: string | null
+          id: string
+          livreur_id: string | null
+          order_id: string | null
+          statut: string
+          tracking_code: string | null
+          vendeur_id: string | null
+        }
+        Insert: {
+          acheteur_id?: string | null
+          created_at?: string | null
+          date_assignation?: string | null
+          date_livraison?: string | null
+          id?: string
+          livreur_id?: string | null
+          order_id?: string | null
+          statut?: string
+          tracking_code?: string | null
+          vendeur_id?: string | null
+        }
+        Update: {
+          acheteur_id?: string | null
+          created_at?: string | null
+          date_assignation?: string | null
+          date_livraison?: string | null
+          id?: string
+          livreur_id?: string | null
+          order_id?: string | null
+          statut?: string
+          tracking_code?: string | null
+          vendeur_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          canal: string | null
+          created_at: string | null
+          id: string
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          canal?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          canal?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          acheteur_id: string | null
+          created_at: string | null
+          id: string
+          livreur_id: string | null
+          montant: number
+          produit_id: string | null
+          quantite: number
+          reference_gateway: string | null
+          statut: string
+          vendeur_id: string | null
+        }
+        Insert: {
+          acheteur_id?: string | null
+          created_at?: string | null
+          id?: string
+          livreur_id?: string | null
+          montant: number
+          produit_id?: string | null
+          quantite?: number
+          reference_gateway?: string | null
+          statut?: string
+          vendeur_id?: string | null
+        }
+        Update: {
+          acheteur_id?: string | null
+          created_at?: string | null
+          id?: string
+          livreur_id?: string | null
+          montant?: number
+          produit_id?: string | null
+          quantite?: number
+          reference_gateway?: string | null
+          statut?: string
+          vendeur_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_produit_id_fkey"
+            columns: ["produit_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          created_at: string | null
+          debloque_at: string | null
+          id: string
+          mode: string | null
+          montant: number
+          order_id: string | null
+          reference_gateway: string | null
+          statut: string
+        }
+        Insert: {
+          created_at?: string | null
+          debloque_at?: string | null
+          id?: string
+          mode?: string | null
+          montant: number
+          order_id?: string | null
+          reference_gateway?: string | null
+          statut?: string
+        }
+        Update: {
+          created_at?: string | null
+          debloque_at?: string | null
+          id?: string
+          mode?: string | null
+          montant?: number
+          order_id?: string | null
+          reference_gateway?: string | null
+          statut?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          categorie: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          nom: string
+          prix: number
+          statut: string | null
+          stock: number | null
+          vendeur_id: string | null
+        }
+        Insert: {
+          categorie?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          nom: string
+          prix: number
+          statut?: string | null
+          stock?: number | null
+          vendeur_id?: string | null
+        }
+        Update: {
+          categorie?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          nom?: string
+          prix?: number
+          statut?: string | null
+          stock?: number | null
+          vendeur_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
@@ -94,6 +350,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          entreprise: string | null
+          id: string
+          nom: string
+          pays: string | null
+          statut: string | null
+          telephone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          entreprise?: string | null
+          id: string
+          nom: string
+          pays?: string | null
+          statut?: string | null
+          telephone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          entreprise?: string | null
+          id?: string
+          nom?: string
+          pays?: string | null
+          statut?: string | null
+          telephone?: string | null
+        }
+        Relationships: []
+      }
+      validations: {
+        Row: {
+          acheteur_ok: boolean | null
+          id: string
+          livreur_ok: boolean | null
+          order_id: string | null
+          updated_at: string | null
+          vendeur_ok: boolean | null
+        }
+        Insert: {
+          acheteur_ok?: boolean | null
+          id?: string
+          livreur_ok?: boolean | null
+          order_id?: string | null
+          updated_at?: string | null
+          vendeur_ok?: boolean | null
+        }
+        Update: {
+          acheteur_ok?: boolean | null
+          id?: string
+          livreur_ok?: boolean | null
+          order_id?: string | null
+          updated_at?: string | null
+          vendeur_ok?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

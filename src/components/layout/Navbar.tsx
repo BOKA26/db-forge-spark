@@ -49,6 +49,9 @@ export const Navbar = () => {
 
         {/* Navigation - Desktop */}
         <nav className="hidden md:flex items-center space-x-4">
+          <Link to="/">
+            <Button variant="ghost">Accueil</Button>
+          </Link>
           <Link to="/produits">
             <Button variant="ghost">Produits</Button>
           </Link>
@@ -104,6 +107,11 @@ export const Navbar = () => {
           </SheetTrigger>
           <SheetContent>
             <nav className="flex flex-col space-y-4 mt-8">
+              <Link to="/">
+                <Button variant="ghost" className="w-full justify-start">
+                  Accueil
+                </Button>
+              </Link>
               <Link to="/produits">
                 <Button variant="ghost" className="w-full justify-start">
                   Produits

@@ -21,6 +21,11 @@ import MyOrders from "./pages/Orders/MyOrders";
 import SellerOrders from "./pages/Orders/SellerOrders";
 import MyDeliveries from "./pages/Deliveries/MyDeliveries";
 import NotificationPage from "./pages/Notifications/NotificationPage";
+import About from "./pages/Legal/About";
+import Contact from "./pages/Legal/Contact";
+import Terms from "./pages/Legal/Terms";
+import Privacy from "./pages/Legal/Privacy";
+import LegalNotice from "./pages/Legal/LegalNotice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +44,11 @@ const App = () => (
             <Route path="/inscription" element={<Register />} />
             <Route path="/produits" element={<ProductList />} />
             <Route path="/boutique/:id" element={<PublicShop />} />
+            <Route path="/a-propos" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/mentions-legales" element={<LegalNotice />} />
+            <Route path="/cgu" element={<Terms />} />
+            <Route path="/politique-confidentialite" element={<Privacy />} />
 
             {/* Protected routes */}
             <Route

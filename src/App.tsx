@@ -16,6 +16,7 @@ import SellerDashboard from "./pages/Dashboard/SellerDashboard";
 import CourierDashboard from "./pages/Dashboard/CourierDashboard";
 import CreateShop from "./pages/Shop/CreateShop";
 import MyShop from "./pages/Shop/MyShop";
+import PublicShop from "./pages/Shop/PublicShop";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />
             <Route path="/produits" element={<ProductList />} />
+            <Route path="/boutique/:id" element={<PublicShop />} />
 
             {/* Protected routes */}
             <Route

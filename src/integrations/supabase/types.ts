@@ -262,6 +262,7 @@ export type Database = {
           images: Json | null
           nom: string
           prix: number
+          shop_id: string | null
           statut: string | null
           stock: number | null
           vendeur_id: string | null
@@ -274,6 +275,7 @@ export type Database = {
           images?: Json | null
           nom: string
           prix: number
+          shop_id?: string | null
           statut?: string | null
           stock?: number | null
           vendeur_id?: string | null
@@ -286,11 +288,19 @@ export type Database = {
           images?: Json | null
           nom?: string
           prix?: number
+          shop_id?: string | null
           statut?: string | null
           stock?: number | null
           vendeur_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_vendeur_id_fkey"
             columns: ["vendeur_id"]
@@ -327,6 +337,51 @@ export type Database = {
           link?: string
           tags?: string[]
           title?: string
+        }
+        Relationships: []
+      }
+      shops: {
+        Row: {
+          adresse: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          id: string
+          logo_url: string | null
+          nom_boutique: string
+          site_web: string | null
+          statut: string
+          telephone: string | null
+          updated_at: string | null
+          vendeur_id: string
+        }
+        Insert: {
+          adresse?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          nom_boutique: string
+          site_web?: string | null
+          statut?: string
+          telephone?: string | null
+          updated_at?: string | null
+          vendeur_id: string
+        }
+        Update: {
+          adresse?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          nom_boutique?: string
+          site_web?: string | null
+          statut?: string
+          telephone?: string | null
+          updated_at?: string | null
+          vendeur_id?: string
         }
         Relationships: []
       }

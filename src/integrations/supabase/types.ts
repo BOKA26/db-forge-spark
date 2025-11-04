@@ -117,6 +117,7 @@ export type Database = {
           canal: string | null
           created_at: string | null
           id: string
+          lue: boolean
           message: string
           user_id: string | null
         }
@@ -124,6 +125,7 @@ export type Database = {
           canal?: string | null
           created_at?: string | null
           id?: string
+          lue?: boolean
           message: string
           user_id?: string | null
         }
@@ -131,6 +133,7 @@ export type Database = {
           canal?: string | null
           created_at?: string | null
           id?: string
+          lue?: boolean
           message?: string
           user_id?: string | null
         }

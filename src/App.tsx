@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import UserProfile from "./pages/Profile/UserProfile";
 import ProductList from "./pages/Products/ProductList";
 import AddProduct from "./pages/Products/AddProduct";
 import BuyerDashboard from "./pages/Dashboard/BuyerDashboard";
@@ -52,6 +53,14 @@ const App = () => (
             <Route path="/politique-confidentialite" element={<Privacy />} />
 
             {/* Protected routes */}
+            <Route
+              path="/profil"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard-acheteur"
               element={

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { useAuth } from '@/hooks/useAuth';
 
 const Register = () => {
@@ -12,7 +12,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nom, setNom] = useState('');
-  const [role, setRole] = useState<string>('acheteur');
+  const [telephone, setTelephone] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (user) {
@@ -23,7 +23,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await signUp(email, password, nom, role);
+      await signUp(email, password, nom, telephone);
     } catch (error) {
       // Error is handled in useAuth
     } finally {
@@ -74,17 +74,14 @@ const Register = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Je suis...</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un rôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="acheteur">Acheteur</SelectItem>
-                  <SelectItem value="vendeur">Vendeur</SelectItem>
-                  <SelectItem value="livreur">Livreur</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="telephone">Téléphone</Label>
+              <Input
+                id="telephone"
+                type="tel"
+                value={telephone}
+                onChange={(e) => setTelephone(e.target.value)}
+                placeholder="+225 XX XX XX XX"
+              />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Inscription...' : 'S\'inscrire'}

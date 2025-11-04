@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, nom: string, role: string) => Promise<void>;
+  signUp: (email: string, password: string, nom: string, telephone?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -45,15 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           const role = roleData?.role;
           
-          // Only redirect if not already on a dashboard page
+          // Only redirect if not already on a dashboard page or profile
           const currentPath = window.location.pathname;
-          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique')) {
+          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique') && !currentPath.includes('/profil')) {
             if (role === 'acheteur') {
               navigate('/dashboard-acheteur');
             } else if (role === 'vendeur') {
               navigate('/ma-boutique');
             } else if (role === 'livreur') {
               navigate('/dashboard-livreur');
+            } else {
+              // No role selected yet, redirect to profile
+              navigate('/profil');
             }
           }
         }
@@ -99,10 +102,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else if (role === 'livreur') {
           navigate('/dashboard-livreur');
         } else {
-          navigate('/');
+          // No role selected yet, redirect to profile
+          navigate('/profil');
         }
       } else {
-        navigate('/');
+        navigate('/profil');
       }
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la connexion');
@@ -110,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, nom: string, role: string) => {
+  const signUp = async (email: string, password: string, nom: string, telephone?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -121,22 +125,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           emailRedirectTo: redirectUrl,
           data: {
             nom,
+            telephone,
           }
         }
       });
 
       if (error) throw error;
 
-      // Add user role
-      if (data.user) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert([{ user_id: data.user.id, role: role as any }]);
-
-        if (roleError) throw roleError;
-      }
-
-      toast.success('Inscription réussie ! Vérifiez votre email.');
+      toast.success('Inscription réussie ! Veuillez vous connecter et compléter votre profil.');
       navigate('/connexion');
     } catch (error: any) {
       if (error.message.includes('already registered')) {

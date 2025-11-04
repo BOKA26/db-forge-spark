@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon } from 'lucide-react';
+import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon, ShoppingCart, ClipboardList } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -274,6 +274,21 @@ const SellerDashboard = () => {
     if (statut === 'brouillon') return <Badge variant="secondary">Brouillon</Badge>;
     if (statut === 'supprimé') return <Badge variant="destructive">Supprimé</Badge>;
     return <Badge variant="outline">{statut}</Badge>;
+  };
+
+  const getOrderStatusBadge = (statut: string) => {
+    switch(statut) {
+      case 'terminé':
+        return <Badge className="bg-green-500">Terminé</Badge>;
+      case 'en_livraison':
+        return <Badge className="bg-blue-500">En livraison</Badge>;
+      case 'fonds_bloques':
+        return <Badge className="bg-yellow-500">Fonds bloqués</Badge>;
+      case 'en_attente_paiement':
+        return <Badge variant="outline">En attente</Badge>;
+      default:
+        return <Badge variant="secondary">{statut}</Badge>;
+    }
   };
 
   // Calculate additional statistics
@@ -807,88 +822,91 @@ const SellerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">
-            {orders?.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Commande #{order.id.slice(0, 8)}
-                    </div>
-                    <Badge 
-                      variant={
-                        order.statut === 'terminé' ? 'default' : 
-                        order.statut === 'en_livraison' ? 'secondary' : 
-                        'outline'
-                      }
-                      className={
-                        order.statut === 'en_livraison' ? 'bg-green-500 text-white' :
-                        order.statut === 'terminé' ? 'bg-blue-500 text-white' : ''
-                      }
-                    >
-                      {order.statut.replace(/_/g, ' ')}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-1 text-sm">Produit</h4>
-                        <p>{order.products?.nom}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1 text-sm">Quantité</h4>
-                        <p>{order.quantite}</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-1 text-sm">Montant</h4>
-                      <p className="text-xl font-bold text-primary">
-                        {order.montant.toLocaleString()} FCFA
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-1 text-sm">Date de commande</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </p>
-                    </div>
-
-                    {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok && (
-                      <Button
-                        onClick={() => markAsShipped.mutate(order.id)}
-                        disabled={markAsShipped.isPending}
-                        className="w-full"
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Marquer comme expédié
-                      </Button>
-                    )}
-
-                    {order.validations?.vendeur_ok && (
-                      <div className="flex items-center gap-2 text-green-600">
-                        <CheckCircle className="h-5 w-5" />
-                        <span>Expédié - En livraison</span>
-                      </div>
-                    )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Commandes Reçues
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {orders && orders.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID Commande</TableHead>
+                          <TableHead>Produit</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Statut</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {orders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-xs">
+                              #{order.id.slice(0, 8).toUpperCase()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">{order.products?.nom}</div>
+                              <div className="text-xs text-muted-foreground">Qté: {order.quantite}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm text-muted-foreground">ID: {order.acheteur_id?.slice(0, 8)}</div>
+                            </TableCell>
+                            <TableCell>
+                              {getOrderStatusBadge(order.statut)}
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              {Number(order.montant).toLocaleString()} FCFA
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => markAsShipped.mutate(order.id)}
+                                    disabled={markAsShipped.isPending}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Expédier
+                                  </Button>
+                                ) : order.validations?.vendeur_ok ? (
+                                  <div className="flex items-center gap-1 text-xs text-green-600">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Expédié
+                                  </div>
+                                ) : (
+                                  <Button variant="outline" size="sm">
+                                    Détails
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {orders?.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune commande reçue</p>
-              </div>
-            )}
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg mb-2">Aucune commande</p>
+                    <p className="text-sm">Vos commandes apparaîtront ici</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
@@ -901,25 +919,46 @@ const SellerDashboard = () => {
               </CardHeader>
               <CardContent>
                 {notifications && notifications.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {notifications.map((notif) => (
-                      <div key={notif.id} className="border-b pb-3 last:border-b-0">
-                        <p className="text-sm">{notif.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(notif.created_at).toLocaleDateString('fr-FR', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                      <div 
+                        key={notif.id} 
+                        className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="mt-1">
+                          <Bell className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{notif.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(notif.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        {!notif.lue && (
+                          <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                        )}
                       </div>
                     ))}
+                    <div className="pt-4 border-t">
+                      <Link to="/notifications">
+                        <Button variant="outline" className="w-full">
+                          Voir toutes les notifications
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-center py-8 text-muted-foreground">
-                    Aucune notification
-                  </p>
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg mb-2">Aucune notification</p>
+                    <p className="text-sm">Vous serez notifié des nouvelles commandes et messages</p>
+                  </div>
                 )}
               </CardContent>
             </Card>

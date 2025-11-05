@@ -43,6 +43,7 @@ const UserProfile = () => {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | "">("");
   const [loading, setLoading] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -83,6 +84,29 @@ const UserProfile = () => {
   );
 
   const goToRoleDashboard = (role: Role) => navigate(redirectMap[role]);
+
+  const handleSaveProfile = async () => {
+    if (!user?.id) return;
+    setSavingProfile(true);
+
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({
+          nom: profile?.nom || "",
+          telephone: profile?.telephone || "",
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+      toast.success("Profil mis à jour avec succès !");
+    } catch (e: any) {
+      console.error("Erreur sauvegarde profil:", e);
+      toast.error("Impossible de sauvegarder le profil");
+    } finally {
+      if (mounted.current) setSavingProfile(false);
+    }
+  };
 
   const handleRoleSubmit = async () => {
     if (!user?.id || !selectedRole) {
@@ -157,7 +181,12 @@ const UserProfile = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="nom">Nom complet</Label>
-                  <Input id="nom" value={displayName} placeholder="Non renseigné" disabled className="bg-muted/50" />
+                  <Input 
+                    id="nom" 
+                    value={profile?.nom || ""} 
+                    onChange={(e) => setProfile({ ...profile, nom: e.target.value } as ProfileRow)}
+                    placeholder="Entrez votre nom complet" 
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -167,8 +196,21 @@ const UserProfile = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="telephone">Téléphone</Label>
-                  <Input id="telephone" value={displayPhone} placeholder="Non renseigné" disabled className="bg-muted/50" />
+                  <Input 
+                    id="telephone" 
+                    value={profile?.telephone || ""} 
+                    onChange={(e) => setProfile({ ...profile, telephone: e.target.value } as ProfileRow)}
+                    placeholder="Entrez votre téléphone" 
+                  />
                 </div>
+
+                <Button 
+                  onClick={handleSaveProfile} 
+                  disabled={savingProfile}
+                  className="w-full"
+                >
+                  {savingProfile ? "⏳ Enregistrement..." : "💾 Enregistrer le profil"}
+                </Button>
               </div>
 
               <div className="border-t pt-6">

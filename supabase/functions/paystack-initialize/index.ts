@@ -21,8 +21,13 @@ serve(async (req) => {
       throw new Error('PAYSTACK_SECRET_KEY not configured');
     }
 
-    // Nettoyer le secret key (supprimer espaces et sauts de ligne)
-    const cleanSecretKey = paystackSecretKey.trim();
+    // Nettoyer le secret : supprimer espaces, sauts de ligne ET caractères non-ASCII
+    // Les headers HTTP doivent contenir uniquement des caractères ASCII (0x20-0x7E)
+    const cleanSecretKey = paystackSecretKey
+      .trim()
+      .replace(/[^\x20-\x7E]/g, ''); // Garde uniquement les caractères ASCII imprimables
+
+    console.log('Secret key length after cleaning:', cleanSecretKey.length);
 
     // Initialiser la transaction Paystack
     const response = await fetch('https://api.paystack.co/transaction/initialize', {

@@ -1,45 +1,43 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 
 export const useUserRole = () => {
-  const { user } = useAuth();
-
   return useQuery({
-    queryKey: ['userRole', user?.id],
+    queryKey: ['userRole'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return null;
 
-      const { data, error } = await supabase
+      const { data, error }: any = await supabase
         .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .select('role, is_active')
+        .eq('user_id', user.id);
 
       if (error) throw error;
-      return data?.role || null;
+      
+      const activeRole = data?.find((r: any) => r.is_active === true);
+      return activeRole?.role || null;
     },
-    enabled: !!user?.id,
   });
 };
 
 export const useUserRoles = () => {
-  const { user } = useAuth();
-
   return useQuery({
-    queryKey: ['userRoles', user?.id],
+    queryKey: ['userRoles'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
+      const { data, error }: any = await supabase
         .from('user_roles')
-        .select('role')
+        .select('role, is_active')
         .eq('user_id', user.id);
 
       if (error) throw error;
-      return data?.map(r => r.role) || [];
+      
+      const activeRoles = data?.filter((r: any) => r.is_active === true);
+      return activeRoles?.map((r: any) => r.role) || [];
     },
-    enabled: !!user?.id,
   });
 };
 

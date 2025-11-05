@@ -69,7 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       toast.success('Connexion réussie');
-      navigate('/');
+      // Redirection vers /dashboard qui redirigera automatiquement vers le bon rôle
+      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la connexion');
       throw error;

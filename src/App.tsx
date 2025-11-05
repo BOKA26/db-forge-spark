@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 
 // Pages
 import Home from "./pages/Home";
@@ -35,6 +36,8 @@ import Terms from "./pages/Legal/Terms";
 import Privacy from "./pages/Legal/Privacy";
 import LegalNotice from "./pages/Legal/LegalNotice";
 import NotFound from "./pages/NotFound";
+import Messages from "./pages/Messages/Messages";
+import Cart from "./pages/Cart/Cart";
 
 const queryClient = new QueryClient();
 
@@ -60,8 +63,18 @@ const App = () => (
             <Route path="/mentions-legales" element={<LegalNotice />} />
             <Route path="/cgu" element={<Terms />} />
             <Route path="/politique-confidentialite" element={<Privacy />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/panier" element={<Cart />} />
 
             {/* Protected routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <RoleBasedDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/profil"
               element={

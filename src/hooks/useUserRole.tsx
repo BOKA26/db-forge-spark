@@ -44,6 +44,7 @@ export const useUserRoles = () => {
 };
 
 export const useHasRole = (role: string) => {
-  const { data: userRole } = useUserRole();
-  return userRole === role || userRole === 'admin';
+  const { data: roles } = useUserRoles();
+  const hasRole = roles?.some((r) => r === role || r === 'admin') ?? false;
+  return hasRole;
 };

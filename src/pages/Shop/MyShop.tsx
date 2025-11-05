@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,6 +78,37 @@ const MyShop = () => {
     },
     enabled: !!shop?.id,
   });
+
+  // Auto-activate shop if it's pending
+  const activateShopMutation = useMutation({
+    mutationFn: async () => {
+      if (!shop?.id) throw new Error('Shop not found');
+      
+      const { data, error } = await supabase
+        .from('shops')
+        .update({ statut: 'actif' })
+        .eq('id', shop.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shop'] });
+      toast({
+        title: '✅ Boutique activée',
+        description: 'Votre boutique est maintenant visible publiquement.',
+      });
+    },
+  });
+
+  // Automatically activate shop on load if it's pending
+  useEffect(() => {
+    if (shop && shop.statut === 'en_attente') {
+      activateShopMutation.mutate();
+    }
+  }, [shop?.id, shop?.statut]);
 
   // Update shop mutation
   const updateShopMutation = useMutation({

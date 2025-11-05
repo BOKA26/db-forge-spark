@@ -115,6 +115,22 @@ const UserProfile = () => {
     
     setAddingRole(role);
     try {
+      // Si on ajoute "acheteur" ou "vendeur", on doit d'abord supprimer l'autre
+      if (role === "acheteur" || role === "vendeur") {
+        const oppositeRole = role === "acheteur" ? "vendeur" : "acheteur";
+        
+        // Supprimer le rôle opposé s'il existe
+        if (userRoles.includes(oppositeRole)) {
+          await supabase
+            .from("user_roles")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("role", oppositeRole);
+          
+          toast.info(`Rôle ${roleLabels[oppositeRole].label} désactivé`);
+        }
+      }
+
       const { error } = await supabase
         .from("user_roles")
         .insert({

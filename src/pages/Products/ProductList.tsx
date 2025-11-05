@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Search, Package } from 'lucide-react';
 
 const ProductList = () => {
@@ -104,18 +105,30 @@ const ProductList = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <Link key={product.id} to={`/produit/${product.id}`}>
-                <Card className="hover:shadow-lg transition-all hover:-translate-y-1 h-full">
-                  <CardContent className="p-4">
-                    <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2">{product.nom}</h3>
-                    <p className="text-xl font-bold text-primary mb-2">
-                      {product.prix.toLocaleString()} FCFA
-                    </p>
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Stock: {product.stock}</span>
-                      <span>{product.categorie}</span>
+                <Card className="hover:shadow-lg transition-all hover:-translate-y-1 h-full overflow-hidden">
+                  <CardContent className="p-0">
+                    <AspectRatio ratio={1}>
+                      {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+                        <img
+                          src={product.images[0] as string}
+                          alt={product.nom}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Package className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                    </AspectRatio>
+                    <div className="p-4">
+                      <h3 className="font-semibold mb-2 line-clamp-2">{product.nom}</h3>
+                      <p className="text-xl font-bold text-primary mb-2">
+                        {product.prix.toLocaleString()} FCFA
+                      </p>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Stock: {product.stock}</span>
+                        <span>{product.categorie}</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

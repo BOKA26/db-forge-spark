@@ -1,27 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRoles } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { AlertCircle } from "lucide-react";
+import { ShoppingCart, Store, Truck } from "lucide-react";
 import { toast } from "sonner";
 
-/* ---------- Types ---------- */
 type Role = "acheteur" | "vendeur" | "livreur";
 
 interface ProfileRow {
   id: string;
-  // on accepte tes deux conventions de colonnes
   full_name?: string | null;
   nom?: string | null;
   email?: string | null;
@@ -29,21 +26,14 @@ interface ProfileRow {
   telephone?: string | null;
 }
 
-interface UserRoleRow {
-  user_id: string;
-  role: Role;
-}
-
-/* ---------- Composant ---------- */
 const UserProfile = () => {
   const { user } = useAuth();
-  const { data: currentRole, refetch } = useUserRole();
+  const { data: userRoles = [], refetch } = useUserRoles();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [selectedRole, setSelectedRole] = useState<Role | "">("");
-  const [loading, setLoading] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [addingRole, setAddingRole] = useState<Role | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -51,7 +41,6 @@ const UserProfile = () => {
     return () => { mounted.current = false; };
   }, []);
 
-  // charge/maj du profil
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
@@ -69,11 +58,6 @@ const UserProfile = () => {
     })();
   }, [user?.id]);
 
-  // role affiché par défaut
-  useEffect(() => {
-    if (currentRole && mounted.current) setSelectedRole(currentRole as Role);
-  }, [currentRole]);
-
   const redirectMap = useMemo<Record<Role, string>>(
     () => ({
       acheteur: "/dashboard-acheteur",
@@ -83,7 +67,23 @@ const UserProfile = () => {
     []
   );
 
-  const goToRoleDashboard = (role: Role) => navigate(redirectMap[role]);
+  const roleLabels: Record<Role, { icon: any; label: string; description: string }> = {
+    acheteur: {
+      icon: ShoppingCart,
+      label: "Acheteur",
+      description: "Acheter des produits sur la plateforme"
+    },
+    vendeur: {
+      icon: Store,
+      label: "Vendeur",
+      description: "Créer une boutique et vendre vos produits"
+    },
+    livreur: {
+      icon: Truck,
+      label: "Livreur",
+      description: "Livrer les commandes des clients"
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!user?.id) return;
@@ -110,163 +110,157 @@ const UserProfile = () => {
     }
   };
 
-  const handleRoleSubmit = async () => {
-    if (!user?.id || !selectedRole) {
-      toast.error("Utilisateur ou rôle manquant.");
-      return;
-    }
-
-    setLoading(true);
+  const handleAddRole = async (role: Role) => {
+    if (!user?.id) return;
+    
+    setAddingRole(role);
     try {
-      // Vérifie si l'utilisateur a déjà ce rôle
-      const { data: existing, error: checkErr } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .eq("user_id", user.id)
-        .eq("role", selectedRole);
-
-      if (checkErr) {
-        console.error("Erreur check roles:", checkErr);
-        throw checkErr;
-      }
-
-      if (existing && existing.length > 0) {
-        toast.success("Rôle confirmé ! Redirection…");
-        goToRoleDashboard(selectedRole);
-        return;
-      }
-
-      // Insertion (si tu as une contrainte UNIQUE (user_id, role), on est safe)
-      const { error: insertErr } = await supabase
+      const { error } = await supabase
         .from("user_roles")
         .insert({
           user_id: user.id,
-          role: selectedRole,
+          role: role,
         });
 
-      if (insertErr) {
-        console.error("Erreur insertion rôle:", insertErr);
-        throw insertErr;
+      if (error) {
+        if (error.code === '23505') {
+          toast.info("Vous avez déjà ce rôle !");
+        } else {
+          throw error;
+        }
+      } else {
+        await refetch();
+        toast.success(`Rôle ${roleLabels[role].label} ajouté avec succès !`);
       }
-
-      await refetch();
-      toast.success("Rôle enregistré ! Redirection…");
-      goToRoleDashboard(selectedRole);
     } catch (e: any) {
-      console.error("Erreur rôle:", e);
-      toast.error(e?.message ?? "Impossible d'enregistrer le rôle.");
+      console.error("Erreur ajout rôle:", e);
+      toast.error("Impossible d'ajouter le rôle");
     } finally {
-      if (mounted.current) setLoading(false);
+      setAddingRole(null);
     }
+  };
+
+  const handleGoToRole = (role: Role) => {
+    navigate(redirectMap[role]);
   };
 
   if (!user) return null;
 
-  const displayName = profile?.full_name || profile?.nom || "";
   const displayEmail = profile?.email || user.email || "";
-  const displayPhone = profile?.phone || profile?.telephone || "";
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-muted/40 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Profil Card */}
           <Card>
             <CardHeader>
               <CardTitle>Mon Profil</CardTitle>
               <CardDescription>
-                Gérez vos informations personnelles et choisissez votre rôle
+                Gérez vos informations personnelles
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nom">Nom complet</Label>
+                <Input 
+                  id="nom" 
+                  value={profile?.nom || ""} 
+                  onChange={(e) => setProfile({ ...profile, nom: e.target.value } as ProfileRow)}
+                  placeholder="Entrez votre nom complet" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={displayEmail} disabled className="bg-muted/50" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                <Input 
+                  id="telephone" 
+                  value={profile?.telephone || ""} 
+                  onChange={(e) => setProfile({ ...profile, telephone: e.target.value } as ProfileRow)}
+                  placeholder="Entrez votre téléphone" 
+                />
+              </div>
+
+              <Button 
+                onClick={handleSaveProfile} 
+                disabled={savingProfile}
+                className="w-full"
+              >
+                {savingProfile ? "Enregistrement..." : "Enregistrer le profil"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Rôles Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Mes Rôles</CardTitle>
+              <CardDescription>
+                Gérez vos rôles sur la plateforme. Vous commencez en tant qu'acheteur et pouvez ajouter d'autres rôles.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nom">Nom complet</Label>
-                  <Input 
-                    id="nom" 
-                    value={profile?.nom || ""} 
-                    onChange={(e) => setProfile({ ...profile, nom: e.target.value } as ProfileRow)}
-                    placeholder="Entrez votre nom complet" 
-                  />
-                </div>
+              {/* Liste des rôles disponibles */}
+              <div className="grid gap-4 md:grid-cols-3">
+                {(Object.keys(roleLabels) as Role[]).map((role) => {
+                  const hasRole = userRoles.includes(role);
+                  const RoleIcon = roleLabels[role].icon;
+                  
+                  return (
+                    <Card key={role} className={hasRole ? "border-primary" : ""}>
+                      <CardContent className="pt-6 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <RoleIcon className="h-5 w-5" />
+                            <h3 className="font-semibold">{roleLabels[role].label}</h3>
+                          </div>
+                          {hasRole && (
+                            <Badge variant="default">Actif</Badge>
+                          )}
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground">
+                          {roleLabels[role].description}
+                        </p>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" value={displayEmail} placeholder="Non renseigné" disabled className="bg-muted/50" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="telephone">Téléphone</Label>
-                  <Input 
-                    id="telephone" 
-                    value={profile?.telephone || ""} 
-                    onChange={(e) => setProfile({ ...profile, telephone: e.target.value } as ProfileRow)}
-                    placeholder="Entrez votre téléphone" 
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleSaveProfile} 
-                  disabled={savingProfile}
-                  className="w-full"
-                >
-                  {savingProfile ? "⏳ Enregistrement..." : "💾 Enregistrer le profil"}
-                </Button>
+                        {hasRole ? (
+                          <Button 
+                            onClick={() => handleGoToRole(role)}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            Accéder
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleAddRole(role)}
+                            disabled={addingRole === role}
+                            className="w-full"
+                          >
+                            {addingRole === role ? "Ajout..." : "Ajouter ce rôle"}
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
-              <div className="border-t pt-6">
-                <div className="space-y-4">
-                  {!selectedRole && (
-                    <Alert variant="destructive" className="bg-yellow-50 dark:bg-yellow-950/20 border-yellow-500 dark:border-yellow-700">
-                      <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
-                      <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-                        <strong>⚠️ Action requise :</strong> Vous devez sélectionner un rôle ci-dessous pour accéder aux fonctionnalités de la plateforme.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Choisissez votre rôle</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Sélectionnez votre rôle. Vous serez redirigé automatiquement.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Votre rôle</Label>
-                    <Select
-                      value={selectedRole}
-                      onValueChange={(v: Role) => setSelectedRole(v)}
-                      disabled={loading || !!currentRole}
-                    >
-                      <SelectTrigger><SelectValue placeholder="-- Sélectionnez un rôle --" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="acheteur">🛒 Acheteur</SelectItem>
-                        <SelectItem value="vendeur">🏪 Vendeur</SelectItem>
-                        <SelectItem value="livreur">🚚 Livreur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedRole && !currentRole && (
-                    <Button onClick={handleRoleSubmit} disabled={loading} className="w-full" size="lg">
-                      {loading ? "⏳ Enregistrement..." : "✅ Valider mon rôle et accéder au dashboard"}
-                    </Button>
-                  )}
-
-                  {currentRole && (
-                    <div className="p-4 bg-primary/10 rounded-lg">
-                      <p className="text-sm">
-                        <strong>Rôle actuel :</strong>{" "}
-                        {currentRole === "acheteur" && "🛒 Acheteur"}
-                        {currentRole === "vendeur" && "🏪 Vendeur"}
-                        {currentRole === "livreur" && "🚚 Livreur"}
-                      </p>
-                    </div>
-                  )}
+              {userRoles.length === 0 && (
+                <div className="text-center p-8 bg-muted/50 rounded-lg">
+                  <p className="text-muted-foreground">
+                    Aucun rôle actif. Commencez par ajouter un rôle ci-dessus.
+                  </p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

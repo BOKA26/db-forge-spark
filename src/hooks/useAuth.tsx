@@ -35,29 +35,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Redirect to appropriate dashboard after email confirmation or sign in
+        // Redirect to home page after sign in (users start as buyers)
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          const role = roleData?.role;
-          
-          // Only redirect if not already on a dashboard page or profile
           const currentPath = window.location.pathname;
-          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique') && !currentPath.includes('/profil')) {
-            if (role === 'acheteur') {
-              navigate('/dashboard-acheteur');
-            } else if (role === 'vendeur') {
-              navigate('/ma-boutique');
-            } else if (role === 'livreur') {
-              navigate('/dashboard-livreur');
-            } else {
-              // No role selected yet, redirect to profile
-              navigate('/profil');
-            }
+          // Only redirect to home if not already on a specific page
+          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique') && !currentPath.includes('/profil') && currentPath !== '/') {
+            navigate('/');
           }
         }
       }
@@ -75,39 +58,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
-
-      // Get user role and redirect to appropriate dashboard
-      if (data.user) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        const role = roleData?.role;
-        
-        toast.success('Connexion réussie');
-        
-        // Redirect based on role
-        if (role === 'acheteur') {
-          navigate('/dashboard-acheteur');
-        } else if (role === 'vendeur') {
-          navigate('/ma-boutique');
-        } else if (role === 'livreur') {
-          navigate('/dashboard-livreur');
-        } else {
-          // No role selected yet, redirect to profile
-          navigate('/profil');
-        }
-      } else {
-        navigate('/profil');
-      }
+      
+      toast.success('Connexion réussie');
+      navigate('/');
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de la connexion');
       throw error;

@@ -23,6 +23,26 @@ export const useUserRole = () => {
   });
 };
 
+export const useUserRoles = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['userRoles', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data?.map(r => r.role) || [];
+    },
+    enabled: !!user?.id,
+  });
+};
+
 export const useHasRole = (role: string) => {
   const { data: userRole } = useUserRole();
   return userRole === role || userRole === 'admin';

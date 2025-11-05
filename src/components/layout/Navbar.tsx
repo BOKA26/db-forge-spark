@@ -40,7 +40,7 @@ export const Navbar = () => {
   });
 
   const getDashboardLink = () => {
-    if (userRole === 'admin') return '/admin';
+    if (userRole === 'admin') return '/admin/dashboard';
     if (userRole === 'acheteur') return '/dashboard-acheteur';
     if (userRole === 'vendeur') return '/ma-boutique';
     if (userRole === 'livreur') return '/dashboard-livreur';
@@ -136,6 +136,11 @@ export const Navbar = () => {
                       <Link to="/mes-livraisons" className="cursor-pointer">Mes Livraisons</Link>
                     </DropdownMenuItem>
                   )}
+                  {userRole === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" className="cursor-pointer">Dashboard Admin</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/messages" className="cursor-pointer">Messages</Link>
                   </DropdownMenuItem>
@@ -224,6 +229,13 @@ export const Navbar = () => {
                     <Link to="/mes-livraisons">
                       <Button variant="ghost" className="w-full justify-start">
                         Mes Livraisons
+                      </Button>
+                    </Link>
+                  )}
+                  {userRole === 'admin' && (
+                    <Link to="/admin/dashboard">
+                      <Button variant="ghost" className="w-full justify-start">
+                        🔧 Dashboard Admin
                       </Button>
                     </Link>
                   )}

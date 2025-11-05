@@ -21,12 +21,13 @@ import CourierDashboard from "./pages/Dashboard/CourierDashboard";
 import CreateShop from "./pages/Shop/CreateShop";
 import MyShop from "./pages/Shop/MyShop";
 import PublicShop from "./pages/Shop/PublicShop";
+import ShopsList from "./pages/Shop/ShopsList";
 import MyOrders from "./pages/Orders/MyOrders";
 import SellerOrders from "./pages/Orders/SellerOrders";
 import MyDeliveries from "./pages/Deliveries/MyDeliveries";
 import NotificationPage from "./pages/Notifications/NotificationPage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import ShopsList from "./pages/Admin/ShopsList";
+import AdminShopsList from "./pages/Admin/ShopsList";
 import ShopDetail from "./pages/Admin/ShopDetail";
 import About from "./pages/Legal/About";
 import Contact from "./pages/Legal/Contact";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
             <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
             <Route path="/produits" element={<ProductList />} />
+            <Route path="/boutiques" element={<ShopsList />} />
             <Route path="/boutique/:id" element={<PublicShop />} />
             <Route path="/a-propos" element={<About />} />
             <Route path="/contact" element={<Contact />} />
@@ -160,7 +162,7 @@ const App = () => (
               path="/admin/boutiques"
               element={
                 <ProtectedRoute requireRole="admin">
-                  <ShopsList />
+                  <AdminShopsList />
                 </ProtectedRoute>
               }
             />

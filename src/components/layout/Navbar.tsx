@@ -75,8 +75,8 @@ export const Navbar = () => {
           <Link to="/produits">
             <Button variant="ghost">Produits</Button>
           </Link>
-          <Link to="/produits">
-            <Button variant="ghost">Catégories</Button>
+          <Link to="/boutiques">
+            <Button variant="ghost">Boutiques</Button>
           </Link>
           
           {user ? (
@@ -174,9 +174,9 @@ export const Navbar = () => {
                   Produits
                 </Button>
               </Link>
-              <Link to="/produits">
+              <Link to="/boutiques">
                 <Button variant="ghost" className="w-full justify-start">
-                  Catégories
+                  🏪 Boutiques
                 </Button>
               </Link>
               {user ? (

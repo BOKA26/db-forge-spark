@@ -11,6 +11,7 @@ import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import AdminRegister from "./pages/Auth/AdminRegister";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import UpdatePassword from "./pages/Auth/UpdatePassword";
 import UserProfile from "./pages/Profile/UserProfile";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />
+            <Route path="/Admin" element={<AdminRegister />} />
             <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
             <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
             <Route path="/produits" element={<ProductList />} />

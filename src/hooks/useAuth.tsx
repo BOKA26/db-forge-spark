@@ -35,9 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Redirect to buyer dashboard after sign in (users start as buyers)
+        // Redirect after sign in will be handled by useRoleBasedRedirect hook
         if (event === 'SIGNED_IN' && session?.user) {
-          navigate('/dashboard-acheteur');
+          // Give time for user_roles to be created by trigger
+          setTimeout(() => {
+            const currentPath = window.location.pathname;
+            // Only redirect if not on a specific protected page
+            if (currentPath === '/connexion' || currentPath === '/inscription' || currentPath === '/') {
+              navigate('/dashboard-acheteur'); // Default to buyer dashboard
+            }
+          }, 300);
         }
       }
     );

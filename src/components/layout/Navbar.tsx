@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, User, Search, Menu, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +82,8 @@ export const Navbar = () => {
           
           {user ? (
             <>
+              <RoleSwitcher />
+              
               <Link to="/panier">
                 <Button variant="ghost" size="icon" title="Panier">
                   <ShoppingCart className="h-5 w-5" />

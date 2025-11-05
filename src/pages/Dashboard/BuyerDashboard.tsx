@@ -5,14 +5,57 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, AlertTriangle, User, Mail, Phone, Bell } from 'lucide-react';
+import { Package, CheckCircle, AlertTriangle, User, Mail, Phone, Bell, Store, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { useUserRoles } from '@/hooks/useUserRole';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { data: userRoles } = useUserRoles();
+
+  const addRoleMutation = useMutation({
+    mutationFn: async (newRole: 'vendeur' | 'livreur') => {
+      if (!user) throw new Error('User not authenticated');
+
+      // Désactiver tous les rôles actuels
+      await supabase
+        .from('user_roles')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
+
+      // Ajouter et activer le nouveau rôle
+      const { error } = await supabase
+        .from('user_roles')
+        .insert([{
+          user_id: user.id,
+          role: newRole,
+          is_active: true,
+        }]);
+
+      if (error) throw error;
+      return newRole;
+    },
+    onSuccess: (newRole) => {
+      queryClient.invalidateQueries({ queryKey: ['userRole'] });
+      queryClient.invalidateQueries({ queryKey: ['userRoles'] });
+      
+      if (newRole === 'vendeur') {
+        toast.success('Rôle vendeur activé ! Créez votre boutique.');
+        navigate('/creer-boutique');
+      } else if (newRole === 'livreur') {
+        toast.success('Rôle livreur activé !');
+        navigate('/dashboard-livreur');
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de l\'ajout du rôle');
+    },
+  });
 
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -157,40 +200,84 @@ const BuyerDashboard = () => {
       <main className="container py-8 flex-1">
         <h1 className="text-4xl font-bold mb-8">Dashboard Acheteur</h1>
 
-        {/* Section Profil */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Mon Profil
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Nom</p>
-                  <p className="font-semibold">{userProfile?.nom || 'Non renseigné'}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Section Profil */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Mon Profil
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nom</p>
+                    <p className="font-semibold">{userProfile?.nom || 'Non renseigné'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-semibold">{userProfile?.email || 'Non renseigné'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Téléphone</p>
+                    <p className="font-semibold">{userProfile?.telephone || 'Non renseigné'}</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+
+          {/* Devenir Vendeur ou Livreur */}
+          <Card className="border-primary/50">
+            <CardHeader>
+              <CardTitle className="text-lg">Développez votre activité</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!userRoles?.some(r => r.role === 'vendeur') && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-semibold">{userProfile?.email || 'Non renseigné'}</p>
+                  <Button 
+                    onClick={() => addRoleMutation.mutate('vendeur')} 
+                    className="w-full gap-2"
+                    variant="default"
+                    disabled={addRoleMutation.isPending}
+                  >
+                    <Store className="h-4 w-4" />
+                    Créer ma boutique
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Devenez vendeur et développez votre business
+                  </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
+              )}
+              
+              {!userRoles?.some(r => r.role === 'livreur') && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Téléphone</p>
-                  <p className="font-semibold">{userProfile?.telephone || 'Non renseigné'}</p>
+                  <Button 
+                    onClick={() => addRoleMutation.mutate('livreur')} 
+                    className="w-full gap-2"
+                    variant="outline"
+                    disabled={addRoleMutation.isPending}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Devenir livreur
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Effectuez des livraisons et gagnez de l'argent
+                  </p>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Section Mes Commandes */}
         <Card className="mb-8">

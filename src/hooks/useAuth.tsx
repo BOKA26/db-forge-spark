@@ -35,13 +35,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Redirect to home page after sign in (users start as buyers)
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          const currentPath = window.location.pathname;
-          // Only redirect to home if not already on a specific page
-          if (!currentPath.includes('/dashboard-') && !currentPath.includes('/ma-boutique') && !currentPath.includes('/profil') && currentPath !== '/') {
-            navigate('/');
-          }
+        // Redirect to buyer dashboard after sign in (users start as buyers)
+        if (event === 'SIGNED_IN' && session?.user) {
+          navigate('/dashboard-acheteur');
         }
       }
     );
@@ -91,8 +87,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Inscription réussie ! Veuillez vous connecter et compléter votre profil.');
-      navigate('/connexion');
+      toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
+      // L'utilisateur sera redirigé vers /dashboard-acheteur après confirmation
     } catch (error: any) {
       if (error.message.includes('already registered')) {
         toast.error('Cet email est déjà utilisé');

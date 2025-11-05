@@ -7,17 +7,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, MessageCircle, Store, Package, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Heart, MessageCircle, Store, Package, ChevronLeft, ChevronRight, Loader2, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { InquiryDialog } from "@/components/products/InquiryDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<number>(0);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+
+  const addToCartMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) {
+        toast.error("Vous devez être connecté pour ajouter au panier");
+        navigate("/login");
+        return;
+      }
+
+      if (!product) return;
+
+      const { error } = await supabase
+        .from("orders")
+        .insert({
+          acheteur_id: user.id,
+          vendeur_id: product.vendeur_id,
+          produit_id: product.id,
+          quantite: 1,
+          montant: product.prix,
+          statut: "en_attente_paiement",
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Produit ajouté au panier !");
+      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+    },
+    onError: () => {
+      toast.error("Erreur lors de l'ajout au panier");
+    },
+  });
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", id],
@@ -379,10 +416,11 @@ const ProductDetail = () => {
                   size="lg" 
                   variant="outline" 
                   className="flex-1 h-12 text-base font-semibold border-2"
-                  disabled={!inStock}
+                  disabled={!inStock || addToCartMutation.isPending}
+                  onClick={() => addToCartMutation.mutate()}
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Chat maintenant
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  Ajouter au panier
                 </Button>
               </div>
 

@@ -44,6 +44,50 @@ export type Database = {
         }
         Relationships: []
       }
+      courier_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          delivery_id: string
+          heading: number | null
+          id: string
+          latitude: number
+          livreur_id: string
+          longitude: number
+          speed: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          delivery_id: string
+          heading?: number | null
+          id?: string
+          latitude: number
+          livreur_id: string
+          longitude: number
+          speed?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          delivery_id?: string
+          heading?: number | null
+          id?: string
+          latitude?: number
+          livreur_id?: string
+          longitude?: number
+          speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_locations_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: true
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deliveries: {
         Row: {
           acheteur_id: string | null

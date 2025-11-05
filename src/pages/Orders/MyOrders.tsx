@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Package, CheckCircle, AlertTriangle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const MyOrders = () => {
   const { user } = useAuth();
@@ -165,6 +166,17 @@ const MyOrders = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
+                            {/* Bouton de suivi pour les commandes en livraison */}
+                            {(order.statut === 'en_livraison' || order.statut === 'livré') && 
+                             Array.isArray(order.deliveries) && order.deliveries.length > 0 && (
+                              <Link to={`/suivi-livraison/${order.deliveries[0].id}`}>
+                                <Button size="sm" variant="outline" className="gap-2">
+                                  <MapPin className="h-4 w-4" />
+                                  Suivre
+                                </Button>
+                              </Link>
+                            )}
+                            
                             {order.statut === 'livré' && !order.validations?.acheteur_ok && (
                               <>
                                 <Button

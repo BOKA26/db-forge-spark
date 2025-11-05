@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { TruckIcon, CheckCircle } from 'lucide-react';
+import { TruckIcon, CheckCircle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { CourierLocationSharing } from '@/components/tracking/CourierLocationSharing';
 
 const MyDeliveries = () => {
   const { user } = useAuth();
@@ -159,11 +160,21 @@ const MyDeliveries = () => {
           </TabsList>
 
           <TabsContent value="active">
-            <Card>
-              <CardHeader>
-                <CardTitle>Livraisons en cours</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="space-y-6">
+              {/* Partage de position pour les livraisons en cours */}
+              {activeDeliveries.length > 0 && (
+                <div className="space-y-4">
+                  {activeDeliveries.map((delivery) => (
+                    <CourierLocationSharing key={delivery.id} deliveryId={delivery.id} />
+                  ))}
+                </div>
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Livraisons en cours</CardTitle>
+                </CardHeader>
+                <CardContent>
                 {isLoading ? (
                   <div className="text-center py-12">Chargement...</div>
                 ) : (
@@ -229,6 +240,7 @@ const MyDeliveries = () => {
                 )}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="completed">

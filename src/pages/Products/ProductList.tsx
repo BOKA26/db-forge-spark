@@ -142,10 +142,9 @@ const ProductList = () => {
                       <p className="text-xl font-bold text-primary mb-2">
                         {product.prix.toLocaleString()} FCFA
                       </p>
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Stock: {product.stock}</span>
-                        <span>{product.categorie}</span>
-                      </div>
+                      {product.categorie && (
+                        <p className="text-sm text-muted-foreground">{product.categorie}</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

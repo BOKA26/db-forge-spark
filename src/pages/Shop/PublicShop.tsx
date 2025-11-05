@@ -204,11 +204,6 @@ const PublicShop = () => {
                           <p className="text-2xl font-bold text-primary">
                             {product.prix} FCFA
                           </p>
-                          {product.stock !== null && product.stock !== undefined && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Stock: {product.stock}
-                            </p>
-                          )}
                         </CardContent>
                         <CardFooter>
                           <Button 

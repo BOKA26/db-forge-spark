@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, ShoppingCart, Store, Package, Tag, Minus, Plus, Image as ImageIcon } from 'lucide-react';
+import { Loader2, ArrowLeft, ShoppingCart, Store, Tag, Minus, Plus, Image as ImageIcon } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -117,7 +117,7 @@ const ProductDetail = () => {
           <Card className="max-w-2xl mx-auto">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground" />
+                <Store className="h-12 w-12 mx-auto text-muted-foreground" />
                 <h2 className="text-2xl font-semibold">Produit non trouvé</h2>
                 <Button onClick={() => navigate('/boutiques')}>
                   Retour aux boutiques
@@ -251,14 +251,6 @@ const ProductDetail = () => {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Stock */}
-              <div className="flex items-center gap-2 text-sm">
-                <Package className="h-4 w-4 text-muted-foreground" />
-                <span className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                  {product.stock > 0 ? `${product.stock} en stock` : 'Rupture de stock'}
-                </span>
-              </div>
 
               {/* Quantity selector */}
               {product.stock > 0 && (

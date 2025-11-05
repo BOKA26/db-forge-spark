@@ -32,7 +32,6 @@ import NotificationPage from "./pages/Notifications/NotificationPage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminShopsList from "./pages/Admin/ShopsList";
 import ShopDetail from "./pages/Admin/ShopDetail";
-import SimulatePayment from "./pages/Admin/SimulatePayment";
 import About from "./pages/Legal/About";
 import Contact from "./pages/Legal/Contact";
 import Terms from "./pages/Legal/Terms";
@@ -193,14 +192,6 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="admin">
                   <ShopDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/simuler-paiements"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <SimulatePayment />
                 </ProtectedRoute>
               }
             />

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Store, CheckCircle, Clock, Package, Eye } from 'lucide-react';
+import { Store, CheckCircle, Clock, Package, Eye, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -48,6 +50,91 @@ export default function AdminDashboard() {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: pendingOrders, isLoading: ordersLoading } = useQuery({
+    queryKey: ['pending-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          products(*),
+          users!orders_acheteur_id_fkey(nom, email)
+        `)
+        .eq('statut', 'en_attente_paiement')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const simulatePayment = useMutation({
+    mutationFn: async (orderId: string) => {
+      const order = pendingOrders?.find(o => o.id === orderId);
+      if (!order) throw new Error('Order not found');
+
+      // Update order status to fonds_bloques
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ 
+          statut: 'fonds_bloques',
+          reference_gateway: `TEST-${Date.now()}`
+        })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      // Create payment record
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          order_id: orderId,
+          montant: order.montant,
+          mode: 'Test',
+          statut: 'bloqué',
+          reference_gateway: `TEST-${Date.now()}`,
+        });
+
+      if (paymentError) throw paymentError;
+
+      // Create delivery record
+      const { error: deliveryError } = await supabase
+        .from('deliveries')
+        .insert({
+          order_id: orderId,
+          vendeur_id: order.vendeur_id,
+          acheteur_id: order.acheteur_id,
+          statut: 'en_attente',
+        });
+
+      if (deliveryError && deliveryError.code !== '23505') {
+        throw deliveryError;
+      }
+
+      // Send notifications
+      await supabase.from('notifications').insert([
+        {
+          user_id: order.acheteur_id,
+          message: '✅ Votre paiement a été sécurisé avec succès (TEST).',
+          canal: 'app',
+        },
+        {
+          user_id: order.vendeur_id,
+          message: '🎉 Nouvelle commande payée. Préparez l\'expédition.',
+          canal: 'app',
+        },
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-orders'] });
+      toast.success('💳 Paiement simulé avec succès !');
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error.message}`);
     },
   });
 
@@ -124,6 +211,81 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* Payment Simulation Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Simuler des Paiements (Test)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Commandes en attente de paiement
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {ordersLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          ) : pendingOrders && pendingOrders.length > 0 ? (
+            <>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Référence</TableHead>
+                      <TableHead>Acheteur</TableHead>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          #{order.id.slice(0, 8)}
+                        </TableCell>
+                        <TableCell>{order.users?.nom || 'N/A'}</TableCell>
+                        <TableCell>{order.products?.nom || 'N/A'}</TableCell>
+                        <TableCell className="font-semibold">
+                          {order.montant.toLocaleString()} FCFA
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            onClick={() => simulatePayment.mutate(order.id)}
+                            disabled={simulatePayment.isPending}
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Simuler paiement
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ <strong>Outil de test uniquement</strong> : Cet outil simule des paiements réussis 
+                  pour tester le flow complet sans passer par Paystack.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Aucune commande en attente de paiement</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Shops Table */}
       <Card>

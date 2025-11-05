@@ -131,11 +131,6 @@ const UserProfile = () => {
       } else {
         await refetch();
         toast.success(`Rôle ${roleLabels[role].label} ajouté avec succès !`);
-        
-        // Rediriger vers la page appropriée après l'ajout du rôle
-        setTimeout(() => {
-          navigate(redirectMap[role]);
-        }, 500);
       }
     } catch (e: any) {
       console.error("Erreur ajout rôle:", e);
@@ -239,10 +234,10 @@ const UserProfile = () => {
                         {hasRole ? (
                           <Button 
                             onClick={() => handleGoToRole(role)}
-                            variant="outline"
+                            variant="default"
                             className="w-full"
                           >
-                            Accéder
+                            {role === 'vendeur' ? 'Créer maintenant ma boutique' : 'Accéder'}
                           </Button>
                         ) : (
                           <Button 

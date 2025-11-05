@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus } from 'lucide-react';
+import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus, Package, Image as ImageIcon } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
@@ -463,26 +463,65 @@ const MyShop = () => {
                   Aucun produit dans votre boutique
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Produit</TableHead>
-                      <TableHead>Prix</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Statut</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.nom}</TableCell>
-                        <TableCell>{product.prix} €</TableCell>
-                        <TableCell>{product.stock}</TableCell>
-                        <TableCell>{getStatusBadge(product.statut)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map((product) => {
+                    const images = Array.isArray(product.images) ? product.images : [];
+                    const firstImage = images.length > 0 ? String(images[0]) : null;
+                    
+                    return (
+                      <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                        <div className="aspect-square relative bg-muted">
+                          {firstImage ? (
+                            <img 
+                              src={firstImage} 
+                              alt={product.nom}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="h-16 w-16 text-muted-foreground/30" />
+                            </div>
+                          )}
+                          {images.length > 1 && (
+                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                              <ImageIcon className="h-3 w-3" />
+                              {images.length}
+                            </div>
+                          )}
+                          <div className="absolute top-2 left-2">
+                            {getStatusBadge(product.statut)}
+                          </div>
+                        </div>
+                        <CardContent className="p-4 space-y-3">
+                          <div>
+                            <h3 className="font-semibold text-lg line-clamp-1">{product.nom}</h3>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                                {product.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t">
+                            <div>
+                              <p className="text-2xl font-bold text-primary">{product.prix} €</p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Package className="h-3 w-3" />
+                                Stock: {product.stock}
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/produit/${product.id}`)}
+                            >
+                              Voir
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               )}
             </CardContent>
           </Card>

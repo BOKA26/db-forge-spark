@@ -31,16 +31,23 @@ const Home = () => {
   const [searchTab, setSearchTab] = useState('products');
   const navigate = useNavigate();
 
-  // Fetch popular products
+  // Fetch popular products with shop info
   const { data: products } = useQuery({
     queryKey: ['products', 'popular'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          shops:shop_id (
+            id,
+            nom_boutique,
+            logo_url
+          )
+        `)
         .eq('statut', 'actif')
         .order('created_at', { ascending: false })
-        .limit(8);
+        .limit(12);
 
       if (error) throw error;
       return data;
@@ -203,9 +210,22 @@ const Home = () => {
                       <Link key={product.id} to={`/produit/${product.id}`}>
                         <Card className="hover:shadow-lg transition-all hover:-translate-y-1">
                           <CardContent className="p-3">
-                            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-                              <Package className="h-12 w-12 text-muted-foreground" />
+                            {/* Product Image */}
+                            <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden">
+                              {product.images && product.images[0] ? (
+                                <img 
+                                  src={product.images[0]} 
+                                  alt={product.nom}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="h-12 w-12 text-muted-foreground" />
+                                </div>
+                              )}
                             </div>
+                            
+                            {/* Product Info */}
                             <h3 className="font-semibold text-sm mb-2 line-clamp-2">{product.nom}</h3>
                             <p className="text-lg font-bold text-primary">
                               {product.prix.toLocaleString()} FCFA
@@ -213,6 +233,26 @@ const Home = () => {
                             <p className="text-xs text-muted-foreground mt-1">
                               Stock: {product.stock}
                             </p>
+                            
+                            {/* Shop Info */}
+                            {product.shops && (
+                              <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                                {product.shops.logo_url ? (
+                                  <img 
+                                    src={product.shops.logo_url} 
+                                    alt={product.shops.nom_boutique}
+                                    className="w-5 h-5 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <span className="text-xs">🏪</span>
+                                  </div>
+                                )}
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {product.shops.nom_boutique}
+                                </span>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       </Link>

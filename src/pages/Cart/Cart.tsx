@@ -84,27 +84,32 @@ const Cart = () => {
     },
   });
 
-  // Mutation pour valider la commande (passer au statut payé)
+  // Mutation pour initialiser le paiement Paystack
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      if (!cartItems.length) return;
+      if (!cartItems.length || !user?.email) return;
 
-      // Mettre à jour toutes les commandes du panier
       const orderIds = cartItems.map(item => item.id);
-      const { error } = await supabase
-        .from('orders')
-        .update({ statut: 'fonds_bloques' })
-        .in('id', orderIds);
+      const totalAmount = cartItems.reduce((sum, item) => sum + Number(item.montant), 0);
+
+      // Appeler l'edge function pour initialiser Paystack
+      const { data, error } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          orderIds,
+          email: user.email,
+          amount: totalAmount
+        }
+      });
 
       if (error) throw error;
+      if (!data?.authorization_url) throw new Error('No authorization URL returned');
+
+      // Rediriger vers la page de paiement Paystack
+      window.location.href = data.authorization_url;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart-items'] });
-      toast.success('Commande validée avec succès !');
-      navigate('/mes-commandes');
-    },
-    onError: () => {
-      toast.error('Erreur lors de la validation de la commande');
+    onError: (error) => {
+      console.error('Payment initialization error:', error);
+      toast.error('Erreur lors de l\'initialisation du paiement');
     },
   });
 
@@ -284,7 +289,7 @@ const Cart = () => {
                     disabled={checkoutMutation.isPending}
                   >
                     <CreditCard className="mr-2 h-5 w-5" />
-                    {checkoutMutation.isPending ? 'Validation...' : 'Valider la commande'}
+                    {checkoutMutation.isPending ? 'Redirection...' : 'Procéder au paiement'}
                   </Button>
 
                   <Link to="/produits">

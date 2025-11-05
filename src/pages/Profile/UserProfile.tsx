@@ -61,7 +61,7 @@ const UserProfile = () => {
   const redirectMap = useMemo<Record<Role, string>>(
     () => ({
       acheteur: "/dashboard-acheteur",
-      vendeur: "/ma-boutique",
+      vendeur: "/creer-boutique",
       livreur: "/dashboard-livreur",
     }),
     []

@@ -27,6 +27,7 @@ const MyOrders = () => {
           deliveries(*)
         `)
         .eq('acheteur_id', user?.id)
+        .neq('statut', 'en_attente_paiement')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -107,6 +107,10 @@ const Cart = () => {
       // Rediriger vers la page de paiement Paystack
       window.location.href = data.authorization_url;
     },
+    onSuccess: () => {
+      // Invalider le cache du panier après redirection
+      queryClient.invalidateQueries({ queryKey: ['cart-items'] });
+    },
     onError: (error) => {
       console.error('Payment initialization error:', error);
       toast.error('Erreur lors de l\'initialisation du paiement');

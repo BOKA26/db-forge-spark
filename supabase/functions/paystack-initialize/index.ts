@@ -21,11 +21,14 @@ serve(async (req) => {
       throw new Error('PAYSTACK_SECRET_KEY not configured');
     }
 
+    // Nettoyer le secret key (supprimer espaces et sauts de ligne)
+    const cleanSecretKey = paystackSecretKey.trim();
+
     // Initialiser la transaction Paystack
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
+        'Authorization': `Bearer ${cleanSecretKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

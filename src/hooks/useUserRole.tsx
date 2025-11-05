@@ -1,29 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+type UserRoleData = {
+  id: string;
+  user_id: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+};
+
 /**
  * 🔹 useUserRole — récupère le rôle actif unique de l'utilisateur
- * (ex : 'vendeur', 'acheteur', 'livreur')
  */
 export const useUserRole = () => {
-  return useQuery({
+  return useQuery<string | null>({
     queryKey: ["userRole"],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return null;
+      const authResponse = await supabase.auth.getUser();
+      const userId = authResponse.data.user?.id;
+      if (!userId) return null;
 
-      // 🔍 On sélectionne uniquement les rôles actifs
-      const { data, error } = await supabase
+      const dbResponse: any = await supabase
         .from("user_roles")
-        .select("role, is_active")
-        .eq("user_id", user.id)
-        .eq("is_active", true) // ✅ seulement le rôle actif
-        .single();
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error; // ignore "no rows found"
-      return data?.role || null;
+      if (dbResponse.error) throw dbResponse.error;
+      return dbResponse.data?.role || null;
     },
   });
 };
@@ -32,19 +37,20 @@ export const useUserRole = () => {
  * 🔹 useUserRoles — récupère tous les rôles de l'utilisateur
  */
 export const useUserRoles = () => {
-  return useQuery({
+  return useQuery<UserRoleData[]>({
     queryKey: ["userRoles"],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return [];
+      const authResponse = await supabase.auth.getUser();
+      const userId = authResponse.data.user?.id;
+      if (!userId) return [];
 
-      const { data, error } = await supabase.from("user_roles").select("role, is_active").eq("user_id", user.id);
+      const dbResponse: any = await supabase
+        .from("user_roles")
+        .select("*")
+        .eq("user_id", userId);
 
-      if (error) throw error;
-
-      return data || [];
+      if (dbResponse.error) throw dbResponse.error;
+      return dbResponse.data || [];
     },
   });
 };
@@ -55,8 +61,7 @@ export const useUserRoles = () => {
 export const useHasRole = (role: string) => {
   const { data: userRoles, isLoading } = useUserRoles();
 
-  // Vérifie si le rôle demandé est actif ou si l'utilisateur est admin
-  const hasRole = userRoles?.some((r: any) => (r.role === role && r.is_active === true) || r.role === "admin") ?? false;
+  const hasRole = userRoles?.some((r) => (r.role === role && r.is_active === true) || r.role === "admin") ?? false;
 
   return { hasRole, isLoading };
 };

@@ -115,28 +115,13 @@ const UserProfile = () => {
     
     setAddingRole(role);
     try {
-      // Si on ajoute "acheteur" ou "vendeur", on doit d'abord supprimer l'autre
-      if (role === "acheteur" || role === "vendeur") {
-        const oppositeRole = role === "acheteur" ? "vendeur" : "acheteur";
-        
-        // Supprimer le rôle opposé s'il existe
-        if (userRoles.includes(oppositeRole)) {
-          await supabase
-            .from("user_roles")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("role", oppositeRole);
-          
-          toast.info(`Rôle ${roleLabels[oppositeRole].label} désactivé`);
-        }
-      }
-
-      // Désactiver tous les autres rôles avant d'en ajouter un nouveau
+      // Désactiver tous les autres rôles
       await supabase
         .from("user_roles")
         .update({ is_active: false } as any)
         .eq("user_id", user.id);
 
+      // Activer le rôle sélectionné
       const { error } = await supabase
         .from("user_roles")
         .upsert({
@@ -147,19 +132,18 @@ const UserProfile = () => {
           onConflict: 'user_id,role'
         });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast.info("Vous avez déjà ce rôle !");
-        } else {
-          throw error;
-        }
-      } else {
-        await refetch();
-        toast.success(`Rôle ${roleLabels[role].label} ajouté avec succès !`);
-      }
+      if (error) throw error;
+
+      await refetch();
+      toast.success(`Rôle ${roleLabels[role].label} activé avec succès !`);
+      
+      // Rediriger vers la page appropriée
+      setTimeout(() => {
+        navigate(redirectMap[role]);
+      }, 500);
     } catch (e: any) {
-      console.error("Erreur ajout rôle:", e);
-      toast.error("Impossible d'ajouter le rôle");
+      console.error("Erreur activation rôle:", e);
+      toast.error("Impossible d'activer le rôle");
     } finally {
       setAddingRole(null);
     }
@@ -236,19 +220,24 @@ const UserProfile = () => {
               {/* Liste des rôles disponibles */}
               <div className="grid gap-4 md:grid-cols-3">
                 {(Object.keys(roleLabels) as Role[]).map((role) => {
-                  const hasRole = userRoles.includes(role);
+                  const roleData = userRoles.find((r: any) => r.role === role);
+                  const hasRole = !!roleData;
+                  const isActive = (roleData as any)?.is_active || false;
                   const RoleIcon = roleLabels[role].icon;
                   
                   return (
-                    <Card key={role} className={hasRole ? "border-primary" : ""}>
+                    <Card key={role} className={isActive ? "border-primary" : ""}>
                       <CardContent className="pt-6 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <RoleIcon className="h-5 w-5" />
                             <h3 className="font-semibold">{roleLabels[role].label}</h3>
                           </div>
-                          {hasRole && (
+                          {isActive && (
                             <Badge variant="default">Actif</Badge>
+                          )}
+                          {hasRole && !isActive && (
+                            <Badge variant="secondary">Inactif</Badge>
                           )}
                         </div>
                         
@@ -256,21 +245,22 @@ const UserProfile = () => {
                           {roleLabels[role].description}
                         </p>
 
-                        {hasRole ? (
+                        {isActive ? (
                           <Button 
                             onClick={() => handleGoToRole(role)}
                             variant="default"
                             className="w-full"
                           >
-                            {role === 'vendeur' ? 'Créer maintenant ma boutique' : 'Accéder'}
+                            Accéder
                           </Button>
                         ) : (
                           <Button 
                             onClick={() => handleAddRole(role)}
                             disabled={addingRole === role}
+                            variant={hasRole ? "secondary" : "default"}
                             className="w-full"
                           >
-                            {addingRole === role ? "Ajout..." : "Ajouter ce rôle"}
+                            {addingRole === role ? "Activation..." : hasRole ? "Activer ce rôle" : "Ajouter ce rôle"}
                           </Button>
                         )}
                       </CardContent>

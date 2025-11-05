@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AdminNavbar } from '@/components/layout/AdminNavbar';
 import {
   Table,
   TableBody,
@@ -92,11 +93,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Tableau de bord Admin</h1>
-        <p className="text-muted-foreground">Vue d'ensemble du système e-commerce</p>
-      </div>
+    <>
+      <AdminNavbar />
+      <div className="container mx-auto py-8 px-4 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Tableau de bord Admin</h1>
+          <p className="text-muted-foreground">Vue d'ensemble du système e-commerce</p>
+        </div>
 
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -175,5 +178,6 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

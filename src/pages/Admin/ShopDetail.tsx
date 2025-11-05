@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { AdminNavbar } from '@/components/layout/AdminNavbar';
 import {
   Table,
   TableBody,
@@ -134,11 +135,13 @@ export default function ShopDetail() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-6">
-      <Button variant="ghost" onClick={() => navigate('/admin/boutiques')}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Retour à la liste
-      </Button>
+    <>
+      <AdminNavbar />
+      <div className="container mx-auto py-8 px-4 space-y-6">
+        <Button variant="ghost" onClick={() => navigate('/admin/boutiques')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour à la liste
+        </Button>
 
       <Card>
         <CardHeader>
@@ -293,5 +296,6 @@ export default function ShopDetail() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

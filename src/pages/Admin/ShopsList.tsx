@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { AdminNavbar } from '@/components/layout/AdminNavbar';
 import {
   Table,
   TableBody,
@@ -52,8 +53,10 @@ export default function ShopsList() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card>
+    <>
+      <AdminNavbar />
+      <div className="container mx-auto py-8 px-4">
+        <Card>
         <CardHeader>
           <CardTitle>Gestion des boutiques</CardTitle>
           <CardDescription>Liste de toutes les boutiques enregistrées par les vendeurs</CardDescription>
@@ -144,5 +147,6 @@ export default function ShopsList() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

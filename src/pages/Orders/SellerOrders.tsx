@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle } from 'lucide-react';
+import { Package, CheckCircle, TruckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SellerOrders = () => {
@@ -22,7 +22,8 @@ const SellerOrders = () => {
         .select(`
           *,
           products(*),
-          validations(*)
+          validations(*),
+          deliveries(*)
         `)
         .eq('vendeur_id', user?.id)
         .order('created_at', { ascending: false });
@@ -31,6 +32,24 @@ const SellerOrders = () => {
       return data;
     },
     enabled: !!user?.id,
+  });
+
+  const assignCourier = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.functions.invoke('assign-courier', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+      toast.success('🚚 Livreur assigné avec succès !');
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error.message || 'Impossible d\'assigner un livreur'}`);
+    },
   });
 
   const markAsShipped = useMutation({
@@ -135,21 +154,40 @@ const SellerOrders = () => {
                           {new Date(order.created_at).toLocaleDateString('fr-FR')}
                         </TableCell>
                         <TableCell>
-                          {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (
-                            <Button
-                              size="sm"
-                              onClick={() => markAsShipped.mutate(order.id)}
-                              disabled={markAsShipped.isPending}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Expédier
-                            </Button>
-                          ) : order.validations?.vendeur_ok ? (
-                            <Badge variant="secondary" className="gap-1">
-                              <CheckCircle className="h-3 w-3" />
-                              Expédié
-                            </Badge>
-                          ) : null}
+                          <div className="flex gap-2">
+                            {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (
+                              <>
+                                {!Array.isArray(order.deliveries) || order.deliveries.length === 0 || !order.deliveries[0]?.livreur_id ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => assignCourier.mutate(order.id)}
+                                    disabled={assignCourier.isPending}
+                                  >
+                                    <TruckIcon className="mr-2 h-4 w-4" />
+                                    Demander un livreur
+                                  </Button>
+                                ) : (
+                                  <Badge variant="secondary" className="mr-2">
+                                    Livreur assigné
+                                  </Badge>
+                                )}
+                                <Button
+                                  size="sm"
+                                  onClick={() => markAsShipped.mutate(order.id)}
+                                  disabled={markAsShipped.isPending || (!Array.isArray(order.deliveries) || !order.deliveries[0]?.livreur_id)}
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Expédier
+                                </Button>
+                              </>
+                            ) : order.validations?.vendeur_ok ? (
+                              <Badge variant="secondary" className="gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Expédié
+                              </Badge>
+                            ) : null}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

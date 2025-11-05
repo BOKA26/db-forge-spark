@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon, ShoppingCart, ClipboardList } from 'lucide-react';
+import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon, ShoppingCart, ClipboardList, TruckIcon } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -81,7 +81,8 @@ const SellerDashboard = () => {
         .select(`
           *,
           products(*),
-          validations(*)
+          validations(*),
+          deliveries(*)
         `)
         .eq('vendeur_id', user?.id)
         .order('created_at', { ascending: false });
@@ -146,6 +147,24 @@ const SellerDashboard = () => {
   const totalSales = payments?.reduce((sum, p) => sum + Number(p.montant), 0) || 0;
   const unlockedPayments = payments?.filter(p => p.statut === 'débloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
   const pendingSales = orders?.filter(o => o.statut === 'fonds_bloques' || o.statut === 'en_livraison').length || 0;
+
+  const assignCourier = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.functions.invoke('assign-courier', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+      toast.success('🚚 Livreur assigné avec succès !');
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error.message || 'Impossible d\'assigner un livreur'}`);
+    },
+  });
 
   const markAsShipped = useMutation({
     mutationFn: async (orderId: string) => {
@@ -873,14 +892,31 @@ const SellerDashboard = () => {
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
                                 {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => markAsShipped.mutate(order.id)}
-                                    disabled={markAsShipped.isPending}
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Expédier
-                                  </Button>
+                                  <>
+                                    {!Array.isArray(order.deliveries) || order.deliveries.length === 0 || !order.deliveries[0]?.livreur_id ? (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => assignCourier.mutate(order.id)}
+                                        disabled={assignCourier.isPending}
+                                      >
+                                        <TruckIcon className="h-4 w-4 mr-1" />
+                                        Demander un livreur
+                                      </Button>
+                                    ) : (
+                                      <Badge variant="secondary" className="mr-2">
+                                        Livreur assigné
+                                      </Badge>
+                                    )}
+                                    <Button
+                                      size="sm"
+                                      onClick={() => markAsShipped.mutate(order.id)}
+                                      disabled={markAsShipped.isPending || (!Array.isArray(order.deliveries) || !order.deliveries[0]?.livreur_id)}
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Expédier
+                                    </Button>
+                                  </>
                                 ) : order.validations?.vendeur_ok ? (
                                   <div className="flex items-center gap-1 text-xs text-green-600">
                                     <CheckCircle className="h-4 w-4" />

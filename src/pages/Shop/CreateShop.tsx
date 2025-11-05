@@ -108,7 +108,7 @@ const CreateShop = () => {
           telephone: values.telephone || null,
           email: values.email || null,
           site_web: values.site_web || null,
-          statut: 'en_attente',
+          statut: 'actif',
         })
         .select()
         .single();
@@ -120,7 +120,7 @@ const CreateShop = () => {
       queryClient.invalidateQueries({ queryKey: ['shop'] });
       toast({
         title: '🎉 Boutique créée avec succès !',
-        description: 'En attente de validation admin.',
+        description: 'Votre boutique est maintenant active.',
       });
       navigate('/ma-boutique');
     },

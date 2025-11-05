@@ -149,10 +149,34 @@ const ProductDetail = () => {
             Retour
           </Button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Image Gallery */}
-            <div className="space-y-4">
-              <Card className="overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8">
+            {/* Image Gallery - Left Side */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Thumbnail List - Vertical on desktop */}
+              {images.length > 1 && (
+                <div className="flex lg:flex-col gap-2 order-2 lg:order-1 overflow-x-auto lg:overflow-y-auto max-h-[500px]">
+                  {images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedImage === index
+                          ? 'border-primary ring-2 ring-primary'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.nom} ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* Main Image */}
+              <Card className="overflow-hidden order-1 lg:order-2 w-full lg:w-[500px]">
                 <CardContent className="p-0">
                   {hasImages ? (
                     <div className="aspect-square relative bg-muted">
@@ -169,117 +193,70 @@ const ProductDetail = () => {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Thumbnail carousel */}
-              {images.length > 1 && (
-                <div className="px-12">
-                  <Carousel>
-                    <CarouselContent>
-                      {images.map((image, index) => (
-                        <CarouselItem key={index} className="basis-1/4">
-                          <button
-                            onClick={() => setSelectedImage(index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                              selectedImage === index
-                                ? 'border-primary ring-2 ring-primary'
-                                : 'border-muted hover:border-primary/50'
-                            }`}
-                          >
-                            <img
-                              src={image}
-                              alt={`${product.nom} ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </button>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                  </Carousel>
-                </div>
-              )}
             </div>
 
-            {/* Product Info */}
+            {/* Product Info - Right Side */}
             <div className="space-y-6">
-              <div>
-                <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-3xl font-bold">{product.nom}</h1>
-                  <Badge variant={product.statut === 'actif' ? 'default' : 'secondary'}>
-                    {product.statut}
-                  </Badge>
-                </div>
+              {/* Title and Category */}
+              <div className="space-y-2">
+                <h1 className="text-2xl lg:text-3xl font-bold leading-tight">{product.nom}</h1>
                 {product.categorie && (
-                  <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Tag className="h-4 w-4" />
                     <span className="text-sm">{product.categorie}</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-primary">
-                  {parseFloat(String(product.prix)).toFixed(2)} €
-                </span>
-              </div>
-
-              {/* Shop info */}
-              {product.shops && (
-                <Card className="bg-muted/50">
-                  <CardContent className="p-4">
-                    <div 
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => navigate(`/boutique/${product.shops.id}`)}
-                    >
-                      {product.shops.logo_url ? (
-                        <img
-                          src={product.shops.logo_url}
-                          alt={product.shops.nom_boutique}
-                          className="w-12 h-12 rounded-full object-cover border"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Store className="h-6 w-6 text-primary" />
+              {/* Price Section */}
+              <Card className="border-2">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-4xl font-bold text-primary">
+                        {parseFloat(String(product.prix)).toLocaleString()} FCFA
+                      </span>
+                      <Badge variant={product.statut === 'actif' ? 'default' : 'secondary'}>
+                        {product.statut}
+                      </Badge>
+                    </div>
+                    
+                    {/* Quantity selector */}
+                    {product.stock > 0 && (
+                      <div className="flex items-center gap-4 pt-4 border-t">
+                        <span className="text-sm font-medium min-w-fit">Quantité:</span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={() => handleQuantityChange(-1)}
+                            disabled={quantity <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-16 text-center font-semibold text-lg">{quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={() => handleQuantityChange(1)}
+                            disabled={quantity >= product.stock}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-muted-foreground">Vendu par</p>
-                        <p className="font-semibold">{product.shops.nom_boutique}</p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Quantity selector */}
-              {product.stock > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium">Quantité:</span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(-1)}
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-12 text-center font-semibold">{quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(1)}
-                        disabled={quantity >= product.stock}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    )}
                   </div>
+                </CardContent>
+              </Card>
 
+              {/* Action Buttons */}
+              {product.stock > 0 && (
+                <div className="flex gap-3">
                   <Button
-                    className="w-full"
+                    className="flex-1"
                     size="lg"
                     onClick={() => addToCartMutation.mutate()}
                     disabled={addToCartMutation.isPending || product.stock === 0}
@@ -292,21 +269,62 @@ const ProductDetail = () => {
                     ) : (
                       <>
                         <ShoppingCart className="mr-2 h-5 w-5" />
-                        Ajouter au panier - {(parseFloat(String(product.prix)) * quantity).toFixed(2)} €
+                        Ajouter au panier
                       </>
                     )}
                   </Button>
                 </div>
               )}
 
+              {product.stock === 0 && (
+                <Card className="border-destructive/50 bg-destructive/5">
+                  <CardContent className="p-4">
+                    <p className="text-center text-destructive font-medium">
+                      Produit en rupture de stock
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Shop info */}
+              {product.shops && (
+                <Card className="bg-muted/50 border-2">
+                  <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground mb-2">Vendu par</p>
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/boutique/${product.shops.id}`)}
+                    >
+                      {product.shops.logo_url ? (
+                        <img
+                          src={product.shops.logo_url}
+                          alt={product.shops.nom_boutique}
+                          className="w-12 h-12 rounded-full object-cover border-2"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2">
+                          <Store className="h-6 w-6 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg">{product.shops.nom_boutique}</p>
+                        <p className="text-sm text-muted-foreground">Voir la boutique →</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Description */}
               {product.description && (
-                <div className="pt-6 border-t space-y-3">
-                  <h2 className="text-xl font-semibold">Description</h2>
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {product.description}
-                  </p>
-                </div>
+                <Card>
+                  <CardContent className="p-6 space-y-3">
+                    <h2 className="text-xl font-semibold">Description du produit</h2>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {product.description}
+                    </p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>

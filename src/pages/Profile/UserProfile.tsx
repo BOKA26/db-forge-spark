@@ -131,6 +131,11 @@ const UserProfile = () => {
       } else {
         await refetch();
         toast.success(`Rôle ${roleLabels[role].label} ajouté avec succès !`);
+        
+        // Rediriger vers la page appropriée après l'ajout du rôle
+        setTimeout(() => {
+          navigate(redirectMap[role]);
+        }, 500);
       }
     } catch (e: any) {
       console.error("Erreur ajout rôle:", e);

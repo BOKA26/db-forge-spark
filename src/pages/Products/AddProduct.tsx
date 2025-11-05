@@ -13,16 +13,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, Package, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Loader2, ArrowLeft, Package, X, Upload, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const productSchema = z.object({
   nom: z.string().min(1, 'Le nom du produit est requis'),
   description: z.string().optional(),
-  prix: z.string().min(1, 'Le prix est requis'),
+  prix: z.string().min(1, 'Le prix de base est requis'),
   stock: z.string().min(0, 'Le stock doit être positif'),
   categorie: z.string().optional(),
+  price_tier_1: z.string().optional(),
+  price_tier_2: z.string().optional(),
+  price_tier_3: z.string().optional(),
+  price_tier_4: z.string().optional(),
+  sample_price: z.string().optional(),
+  origin_country: z.string().min(1, 'Le pays d\'origine est requis'),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -48,6 +56,9 @@ const AddProduct = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
+  const [customOptions, setCustomOptions] = useState<Array<{ type: string; minQty: number }>>([]);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -57,6 +68,12 @@ const AddProduct = () => {
       prix: '',
       stock: '0',
       categorie: '',
+      price_tier_1: '',
+      price_tier_2: '',
+      price_tier_3: '',
+      price_tier_4: '',
+      sample_price: '',
+      origin_country: 'CI',
     },
   });
 
@@ -100,6 +117,15 @@ const AddProduct = () => {
           vendeur_id: user.id,
           images: imageUrls,
           statut: 'actif',
+          price_tier_1: values.price_tier_1 ? parseFloat(values.price_tier_1) : null,
+          price_tier_2: values.price_tier_2 ? parseFloat(values.price_tier_2) : null,
+          price_tier_3: values.price_tier_3 ? parseFloat(values.price_tier_3) : null,
+          price_tier_4: values.price_tier_4 ? parseFloat(values.price_tier_4) : null,
+          sample_price: values.sample_price ? parseFloat(values.sample_price) : null,
+          origin_country: values.origin_country,
+          sizes: sizes,
+          colors: colors,
+          customization_options: customOptions,
         })
         .select()
         .single();
@@ -273,6 +299,252 @@ const AddProduct = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="origin_country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pays d'origine *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez un pays" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="CI">🇨🇮 Côte d'Ivoire</SelectItem>
+                            <SelectItem value="CN">🇨🇳 Chine</SelectItem>
+                            <SelectItem value="FR">🇫🇷 France</SelectItem>
+                            <SelectItem value="US">🇺🇸 États-Unis</SelectItem>
+                            <SelectItem value="GB">🇬🇧 Royaume-Uni</SelectItem>
+                            <SelectItem value="DE">🇩🇪 Allemagne</SelectItem>
+                            <SelectItem value="IT">🇮🇹 Italie</SelectItem>
+                            <SelectItem value="ES">🇪🇸 Espagne</SelectItem>
+                            <SelectItem value="TR">🇹🇷 Turquie</SelectItem>
+                            <SelectItem value="IN">🇮🇳 Inde</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Prix en gros */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Prix de gros (wholesale)</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Définissez les prix par tranche de quantité
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="price_tier_1"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>5-49 pièces (FCFA)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.01"
+                                placeholder="Ex: 5000"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="price_tier_2"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>50-299 pièces (FCFA)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.01"
+                                placeholder="Ex: 4500"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="price_tier_3"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>300-99999 pièces (FCFA)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.01"
+                                placeholder="Ex: 4000"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="price_tier_4"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>100000+ pièces (FCFA)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.01"
+                                placeholder="Ex: 3500"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="sample_price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prix de l'échantillon (FCFA)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              placeholder="Ex: 6000"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Tailles */}
+                  <div className="space-y-4">
+                    <FormLabel>Tailles disponibles</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                      {['S', 'M', 'L', 'XL', '2XL', '3XL'].map((size) => (
+                        <Badge
+                          key={size}
+                          variant={sizes.includes(size) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSizes(prev =>
+                              prev.includes(size)
+                                ? prev.filter(s => s !== size)
+                                : [...prev, size]
+                            );
+                          }}
+                        >
+                          {size}
+                        </Badge>
+                      ))}
+                    </div>
+                    {sizes.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Sélectionnées: {sizes.join(', ')}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Couleurs */}
+                  <div className="space-y-4">
+                    <FormLabel>Couleurs disponibles</FormLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Ex: Rouge, Bleu, Vert..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = e.currentTarget.value.trim();
+                            if (value && !colors.includes(value)) {
+                              setColors([...colors, value]);
+                              e.currentTarget.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                          const value = input.value.trim();
+                          if (value && !colors.includes(value)) {
+                            setColors([...colors, value]);
+                            input.value = '';
+                          }
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {colors.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {colors.map((color, idx) => (
+                          <Badge key={idx} variant="secondary" className="gap-1">
+                            {color}
+                            <X
+                              className="h-3 w-3 cursor-pointer"
+                              onClick={() => setColors(colors.filter((_, i) => i !== idx))}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Options de personnalisation */}
+                  <div className="space-y-4">
+                    <FormLabel>Options de personnalisation</FormLabel>
+                    <div className="space-y-2">
+                      {[
+                        { type: 'Logo personnalisé', minQty: 100 },
+                        { type: 'Emballage personnalisé', minQty: 300 },
+                        { type: 'Graphique personnalisé', minQty: 100 },
+                      ].map((option) => (
+                        <div key={option.type} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={option.type}
+                            checked={customOptions.some(o => o.type === option.type)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setCustomOptions([...customOptions, option]);
+                              } else {
+                                setCustomOptions(customOptions.filter(o => o.type !== option.type));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={option.type}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {option.type} <span className="text-muted-foreground">(min. {option.minQty} pcs)</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="space-y-4">
                     <FormLabel>Images du produit</FormLabel>

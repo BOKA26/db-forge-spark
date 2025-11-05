@@ -40,6 +40,7 @@ import LegalNotice from "./pages/Legal/LegalNotice";
 import NotFound from "./pages/NotFound";
 import Messages from "./pages/Messages/Messages";
 import Cart from "./pages/Cart/Cart";
+import PaymentConfirmation from "./pages/Orders/PaymentConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/politique-confidentialite" element={<Privacy />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/panier" element={<Cart />} />
+            <Route path="/confirmation-paiement" element={<PaymentConfirmation />} />
 
             {/* Protected routes */}
             <Route

@@ -42,7 +42,7 @@ serve(async (req) => {
             }
           ]
         },
-        callback_url: `${req.headers.get('origin')}/mes-commandes`
+        callback_url: `${req.headers.get('origin')}/confirmation-paiement`
       }),
     });
 

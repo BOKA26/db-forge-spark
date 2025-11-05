@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, Package } from 'lucide-react';
+import { Loader2, ArrowLeft, Package, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
@@ -46,6 +46,7 @@ const AddProduct = () => {
   const [searchParams] = useSearchParams();
   const shopId = searchParams.get('shop_id');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const form = useForm<ProductFormData>({
@@ -273,21 +274,89 @@ const AddProduct = () => {
                     )}
                   />
 
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <FormLabel>Images du produit</FormLabel>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        setImageFiles(files);
-                      }}
-                    />
-                    {imageFiles.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {imageFiles.length} image(s) sélectionnée(s)
-                      </p>
+                    
+                    {/* Zone de dépôt de fichiers */}
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        id="product-images"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            const newFiles = [...imageFiles, ...files];
+                            setImageFiles(newFiles);
+                            
+                            // Créer les aperçus
+                            files.forEach(file => {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setImagePreviews(prev => [...prev, reader.result as string]);
+                              };
+                              reader.readAsDataURL(file);
+                            });
+                          }
+                        }}
+                      />
+                      <label htmlFor="product-images" className="cursor-pointer">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="p-3 rounded-full bg-primary/10">
+                            <Upload className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Cliquez pour ajouter des images</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, WEBP jusqu'à 10MB</p>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Galerie d'aperçu */}
+                    {imagePreviews.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">
+                          {imagePreviews.length} image(s) sélectionnée(s)
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative group">
+                              <div className="aspect-square rounded-lg overflow-hidden border-2 border-muted">
+                                <img
+                                  src={preview}
+                                  alt={`Aperçu ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setImageFiles(files => files.filter((_, i) => i !== index));
+                                  setImagePreviews(previews => previews.filter((_, i) => i !== index));
+                                }}
+                                className="absolute -top-2 -right-2 p-1 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-xs text-white truncate">
+                                  {imageFiles[index]?.name}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {imagePreviews.length === 0 && (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <ImageIcon className="h-4 w-4" />
+                        <span>Aucune image ajoutée</span>
+                      </div>
                     )}
                   </div>
 

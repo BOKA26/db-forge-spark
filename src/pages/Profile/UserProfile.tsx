@@ -131,11 +131,20 @@ const UserProfile = () => {
         }
       }
 
+      // Désactiver tous les autres rôles avant d'en ajouter un nouveau
+      await supabase
+        .from("user_roles")
+        .update({ is_active: false } as any)
+        .eq("user_id", user.id);
+
       const { error } = await supabase
         .from("user_roles")
-        .insert({
+        .upsert({
           user_id: user.id,
           role: role,
+          is_active: true,
+        } as any, {
+          onConflict: 'user_id,role'
         });
 
       if (error) {

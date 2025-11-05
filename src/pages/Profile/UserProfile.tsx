@@ -92,7 +92,9 @@ const UserProfile = () => {
     try {
       const { error } = await supabase
         .from("users")
-        .update({
+        .upsert({
+          id: user.id,
+          email: user.email || "",
           nom: profile?.nom || "",
           telephone: profile?.telephone || "",
         })
@@ -104,7 +106,7 @@ const UserProfile = () => {
       console.error("Erreur sauvegarde profil:", e);
       toast.error("Impossible de sauvegarder le profil");
     } finally {
-      if (mounted.current) setSavingProfile(false);
+      setSavingProfile(false);
     }
   };
 

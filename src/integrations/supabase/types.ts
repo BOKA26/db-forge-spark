@@ -156,6 +156,47 @@ export type Database = {
           },
         ]
       }
+      inquiries: {
+        Row: {
+          buyer_email: string
+          buyer_name: string
+          buyer_phone: string | null
+          created_at: string | null
+          id: string
+          message: string
+          product_id: string | null
+          quantity: number
+        }
+        Insert: {
+          buyer_email: string
+          buyer_name: string
+          buyer_phone?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          product_id?: string | null
+          quantity: number
+        }
+        Update: {
+          buyer_email?: string
+          buyer_name?: string
+          buyer_phone?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          product_id?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inquiries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           canal: string | null
@@ -303,39 +344,66 @@ export type Database = {
       products: {
         Row: {
           categorie: string | null
+          colors: Json | null
           created_at: string | null
+          customization_options: Json | null
           description: string | null
           id: string
           images: Json | null
           nom: string
+          origin_country: string | null
+          price_tier_1: number | null
+          price_tier_2: number | null
+          price_tier_3: number | null
+          price_tier_4: number | null
           prix: number
+          sample_price: number | null
           shop_id: string | null
+          sizes: Json | null
           statut: string | null
           stock: number | null
           vendeur_id: string | null
         }
         Insert: {
           categorie?: string | null
+          colors?: Json | null
           created_at?: string | null
+          customization_options?: Json | null
           description?: string | null
           id?: string
           images?: Json | null
           nom: string
+          origin_country?: string | null
+          price_tier_1?: number | null
+          price_tier_2?: number | null
+          price_tier_3?: number | null
+          price_tier_4?: number | null
           prix: number
+          sample_price?: number | null
           shop_id?: string | null
+          sizes?: Json | null
           statut?: string | null
           stock?: number | null
           vendeur_id?: string | null
         }
         Update: {
           categorie?: string | null
+          colors?: Json | null
           created_at?: string | null
+          customization_options?: Json | null
           description?: string | null
           id?: string
           images?: Json | null
           nom?: string
+          origin_country?: string | null
+          price_tier_1?: number | null
+          price_tier_2?: number | null
+          price_tier_3?: number | null
+          price_tier_4?: number | null
           prix?: number
+          sample_price?: number | null
           shop_id?: string | null
+          sizes?: Json | null
           statut?: string | null
           stock?: number | null
           vendeur_id?: string | null

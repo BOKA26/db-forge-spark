@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Search, TruckIcon, Package, ChevronRight, Headphones, CreditCard, Clock } from 'lucide-react';
+import { Search, TruckIcon, Package, ChevronRight, Headphones, CreditCard, Clock, Image as ImageIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +22,21 @@ const categories = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTab, setSearchTab] = useState('produits');
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/produits?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const frequentSearches = [
+    'sacs à main pour femmes',
+    'chaussures pour hommes',
+    'chaussures femme',
+    'vêtements pour hommes'
+  ];
 
   // Fetch latest products
   const { data: latestProducts } = useQuery({
@@ -57,29 +74,83 @@ const Home = () => {
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      {/* Hero Banner Section */}
-      <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-background">
-        <div className="container py-12">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <Badge className="bg-primary/20 text-primary hover:bg-primary/30">Offre Spéciale 40% de réduction</Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Découvrez nos produits<br />de qualité premium
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                À partir de <span className="text-3xl font-bold text-primary">5,000 FCFA</span>
-              </p>
-              <Link to="/produits">
-                <Button size="lg" className="gap-2">
-                  <Search className="h-5 w-5" />
-                  Acheter maintenant
+      {/* Hero Search Section - Alibaba Style */}
+      <section className="bg-primary text-primary-foreground">
+        <div className="container py-8 md:py-12">
+          {/* Tabs Navigation */}
+          <div className="flex justify-center mb-8">
+            <Tabs value={searchTab} onValueChange={setSearchTab} className="w-full max-w-2xl">
+              <TabsList className="grid w-full grid-cols-3 bg-primary-foreground/10 border-none h-12">
+                <TabsTrigger 
+                  value="produits" 
+                  className="text-primary-foreground data-[state=active]:bg-background data-[state=active]:text-primary font-semibold text-base"
+                >
+                  Produits
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="fabricants" 
+                  className="text-primary-foreground data-[state=active]:bg-background data-[state=active]:text-primary font-semibold text-base"
+                >
+                  Fabricants
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="mondial" 
+                  className="text-primary-foreground data-[state=active]:bg-background data-[state=active]:text-primary font-semibold text-base"
+                >
+                  Mondial
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Search Bar */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-background rounded-lg shadow-xl p-2">
+              <div className="flex gap-2 items-center">
+                <div className="flex-1 flex items-center gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Rechercher des produits..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    className="border-none text-base h-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearch}
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 h-12 px-8"
+                >
+                  <Search className="h-5 w-5 mr-2" />
+                  Rechercher
                 </Button>
-              </Link>
-            </div>
-            <div className="relative">
-              <div className="aspect-[4/3] bg-gradient-to-br from-muted to-background rounded-2xl flex items-center justify-center">
-                <Package className="h-32 w-32 text-muted-foreground/30" />
               </div>
+
+              {/* Advanced Search Options */}
+              <div className="flex items-center gap-4 px-4 py-2 border-t mt-2">
+                <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <ImageIcon className="h-4 w-4" />
+                  Recherche par image
+                </button>
+              </div>
+            </div>
+
+            {/* Frequent Searches */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-primary-foreground/80 text-sm">Recherches fréquentes:</span>
+              {frequentSearches.map((search, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSearchQuery(search);
+                    navigate(`/produits?q=${encodeURIComponent(search)}`);
+                  }}
+                  className="text-sm text-primary-foreground hover:text-primary-foreground/80 hover:underline transition-colors"
+                >
+                  {search}
+                </button>
+              ))}
             </div>
           </div>
         </div>

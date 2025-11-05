@@ -93,7 +93,7 @@ const Cart = () => {
       const orderIds = cartItems.map(item => item.id);
       const { error } = await supabase
         .from('orders')
-        .update({ statut: 'payé' })
+        .update({ statut: 'fonds_bloques' })
         .in('id', orderIds);
 
       if (error) throw error;

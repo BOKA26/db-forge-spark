@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Search, Shield, TruckIcon, Package, ChevronRight, Sparkles } from 'lucide-react';
+import { Search, Shield, TruckIcon, Package, ChevronRight, Sparkles, ArrowRight, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,26 +31,42 @@ const Home = () => {
   const [searchTab, setSearchTab] = useState('products');
   const navigate = useNavigate();
 
-  // Fetch popular products with shop info
-  const { data: products } = useQuery({
-    queryKey: ['products', 'popular'],
+  // Fetch popular products (Top ranking)
+  const { data: topProducts } = useQuery({
+    queryKey: ['products', 'top'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          shops:shop_id (
-            id,
-            nom_boutique,
-            logo_url
-          )
-        `)
+        .select('*')
         .eq('statut', 'actif')
         .order('created_at', { ascending: false })
-        .limit(12);
+        .limit(6);
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Fetch products by categories for curated selections
+  const { data: categoryProducts } = useQuery({
+    queryKey: ['products', 'by-category'],
+    queryFn: async () => {
+      const categoriesList = ['Électronique', 'Mode', 'Maison', 'Agriculture'];
+      const results = await Promise.all(
+        categoriesList.map(async (cat) => {
+          const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('statut', 'actif')
+            .eq('categorie', cat)
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+          if (error) throw error;
+          return { category: cat, products: data };
+        })
+      );
+      return results;
     },
   });
 
@@ -191,68 +207,61 @@ const Home = () => {
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">
-              {/* Featured Products */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Produits populaires</h2>
+            <div className="lg:col-span-3 space-y-12">
+              {/* Top Ranking Section - Meilleur classement */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold">Meilleur classement</h2>
+                    <p className="text-muted-foreground text-sm">Suivez les tendances grâce aux classements basés sur les données</p>
+                  </div>
                   <Link to="/produits">
                     <Button variant="ghost" className="gap-2">
-                      Voir tout
+                      Voir plus
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
                 
-                {products && products.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {products.map((product) => (
+                {topProducts && topProducts.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                    {topProducts.map((product, index) => (
                       <Link key={product.id} to={`/produit/${product.id}`}>
-                        <Card className="hover:shadow-lg transition-all hover:-translate-y-1">
-                          <CardContent className="p-3">
-                            {/* Product Image */}
-                            <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden">
-                              {product.images && product.images[0] ? (
+                        <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden group">
+                          <CardContent className="p-0">
+                            {/* Product Image with TOP Badge */}
+                            <div className="relative aspect-square bg-muted overflow-hidden">
+                              {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
                                 <img 
-                                  src={product.images[0]} 
+                                  src={product.images[0] as string} 
                                   alt={product.nom}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                   <Package className="h-12 w-12 text-muted-foreground" />
                                 </div>
                               )}
+                              
+                              {/* TOP Badge for first 3 */}
+                              {index < 3 && (
+                                <div className="absolute bottom-2 left-2 bg-gradient-to-br from-amber-600 to-amber-800 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                                  <Star className="h-3 w-3 fill-current" />
+                                  TOP
+                                </div>
+                              )}
                             </div>
                             
                             {/* Product Info */}
-                            <h3 className="font-semibold text-sm mb-2 line-clamp-2">{product.nom}</h3>
-                            <p className="text-lg font-bold text-primary">
-                              {product.prix.toLocaleString()} FCFA
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Stock: {product.stock}
-                            </p>
-                            
-                            {/* Shop Info */}
-                            {product.shops && (
-                              <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-                                {product.shops.logo_url ? (
-                                  <img 
-                                    src={product.shops.logo_url} 
-                                    alt={product.shops.nom_boutique}
-                                    className="w-5 h-5 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <span className="text-xs">🏪</span>
-                                  </div>
-                                )}
-                                <span className="text-xs text-muted-foreground truncate">
-                                  {product.shops.nom_boutique}
-                                </span>
-                              </div>
-                            )}
+                            <div className="p-4">
+                              <h3 className="font-semibold text-sm mb-2 line-clamp-2 min-h-[2.5rem]">{product.nom}</h3>
+                              <p className="text-xl font-bold text-primary">
+                                {parseFloat(String(product.prix)).toLocaleString()} FCFA
+                              </p>
+                              {product.categorie && (
+                                <p className="text-xs text-muted-foreground mt-1">{product.categorie}</p>
+                              )}
+                            </div>
                           </CardContent>
                         </Card>
                       </Link>
@@ -262,27 +271,77 @@ const Home = () => {
                   <Card>
                     <CardContent className="p-8 text-center">
                       <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Aucun produit disponible</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Les produits seront bientôt disponibles
-                      </p>
-                      <Link to="/inscription">
-                        <Button>Devenir vendeur</Button>
-                      </Link>
+                      <p className="text-muted-foreground">Aucun produit disponible</p>
                     </CardContent>
                   </Card>
                 )}
               </div>
 
+              {/* Curated Selections - Sélections sur mesure */}
+              {categoryProducts && categoryProducts.map((categoryData, idx) => (
+                categoryData.products && categoryData.products.length > 0 && (
+                  <div key={idx}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-xl font-bold">{categoryData.category}</h2>
+                        <p className="text-muted-foreground text-sm">Meilleures ventes</p>
+                      </div>
+                      <Link to={`/produits?categorie=${categoryData.category}`}>
+                        <Button variant="ghost" size="sm" className="gap-2">
+                          Voir plus
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                    
+                    {/* Horizontal Scrollable Grid */}
+                    <div className="overflow-x-auto pb-4 -mx-2 px-2">
+                      <div className="flex gap-4 w-max">
+                        {categoryData.products.slice(0, 6).map((product) => (
+                          <Link key={product.id} to={`/produit/${product.id}`}>
+                            <Card className="hover:shadow-lg transition-all hover:-translate-y-1 w-[200px] overflow-hidden">
+                              <CardContent className="p-0">
+                                {/* Product Image */}
+                                <div className="aspect-square bg-muted overflow-hidden">
+                                  {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+                                    <img 
+                                      src={product.images[0] as string} 
+                                      alt={product.nom}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Package className="h-12 w-12 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Product Info */}
+                                <div className="p-3">
+                                  <h3 className="font-medium text-sm mb-2 line-clamp-2 min-h-[2.5rem]">{product.nom}</h3>
+                                  <p className="text-lg font-bold text-primary">
+                                    {parseFloat(String(product.prix)).toLocaleString()} FCFA
+                                  </p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              ))}
+
               {/* Categories Grid */}
               <div>
-                <h2 className="text-2xl font-bold mb-4">Explorer par catégorie</h2>
+                <h2 className="text-2xl font-bold mb-6">Explorer par catégorie</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {categories.map((cat) => (
                     <Link key={cat.name} to={`/produits?categorie=${cat.name}`}>
-                      <Card className="hover:shadow-md transition-shadow hover:border-primary">
+                      <Card className="hover:shadow-md transition-all hover:border-primary group">
                         <CardContent className="p-6 text-center">
-                          <div className="text-4xl mb-2">{cat.icon}</div>
+                          <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">{cat.icon}</div>
                           <h3 className="font-semibold">{cat.name}</h3>
                         </CardContent>
                       </Card>

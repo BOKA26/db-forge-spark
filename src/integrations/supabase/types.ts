@@ -382,6 +382,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nom_boutique: string
+          owner_id: string | null
           site_web: string | null
           statut: string
           telephone: string | null
@@ -396,6 +397,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nom_boutique: string
+          owner_id?: string | null
           site_web?: string | null
           statut?: string
           telephone?: string | null
@@ -410,30 +412,42 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nom_boutique?: string
+          owner_id?: string | null
           site_web?: string | null
           statut?: string
           telephone?: string | null
           updated_at?: string | null
           vendeur_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shops_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
           created_at: string | null
           id: string
+          is_active: boolean | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }

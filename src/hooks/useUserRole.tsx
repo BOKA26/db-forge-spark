@@ -1,34 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Enums"]["app_role"];
 
 type UserRoleData = {
   id: string;
   user_id: string;
-  role: string;
+  role: UserRole;
   is_active: boolean;
-  created_at: string;
+  created_at: string | null;
 };
 
 /**
  * 🔹 useUserRole — récupère le rôle actif unique de l'utilisateur
  */
 export const useUserRole = () => {
-  return useQuery<string | null>({
+  return useQuery<UserRole | null>({
     queryKey: ["userRole"],
     queryFn: async () => {
-      const authResponse = await supabase.auth.getUser();
-      const userId = authResponse.data.user?.id;
-      if (!userId) return null;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return null;
 
-      const dbResponse: any = await supabase
+      const { data, error }: { data: UserRoleData | null, error: any } = await supabase
         .from("user_roles")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .eq("is_active", true)
-        .maybeSingle();
+        .maybeSingle() as any;
 
-      if (dbResponse.error) throw dbResponse.error;
-      return dbResponse.data?.role || null;
+      if (error) throw error;
+      return data?.role || null;
     },
   });
 };
@@ -40,17 +42,16 @@ export const useUserRoles = () => {
   return useQuery<UserRoleData[]>({
     queryKey: ["userRoles"],
     queryFn: async () => {
-      const authResponse = await supabase.auth.getUser();
-      const userId = authResponse.data.user?.id;
-      if (!userId) return [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return [];
 
-      const dbResponse: any = await supabase
+      const { data, error }: { data: UserRoleData[] | null, error: any } = await supabase
         .from("user_roles")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", user.id) as any;
 
-      if (dbResponse.error) throw dbResponse.error;
-      return dbResponse.data || [];
+      if (error) throw error;
+      return data || [];
     },
   });
 };

@@ -17,6 +17,7 @@ import UpdatePassword from "./pages/Auth/UpdatePassword";
 import UserProfile from "./pages/Profile/UserProfile";
 import ProductList from "./pages/Products/ProductList";
 import AddProduct from "./pages/Products/AddProduct";
+import ProductDetail from "./pages/Products/ProductDetail";
 import BuyerDashboard from "./pages/Dashboard/BuyerDashboard";
 import SellerDashboard from "./pages/Dashboard/SellerDashboard";
 import CourierDashboard from "./pages/Dashboard/CourierDashboard";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
             <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
             <Route path="/produits" element={<ProductList />} />
+            <Route path="/produit/:id" element={<ProductDetail />} />
             <Route path="/boutiques" element={<ShopsList />} />
             <Route path="/boutique/:id" element={<PublicShop />} />
             <Route path="/a-propos" element={<About />} />

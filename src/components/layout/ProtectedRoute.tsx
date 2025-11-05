@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useHasRole } from '@/hooks/useUserRole';
+import { useHasRole, useUserRoles } from '@/hooks/useUserRole';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -23,8 +23,10 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, requireRole }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const hasRole = useHasRole(requireRole || '');
+  const { isLoading: rolesLoading } = useUserRoles();
 
-  if (loading) {
+  // Wait for auth AND roles to be ready before deciding
+  if (loading || (requireRole && rolesLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />

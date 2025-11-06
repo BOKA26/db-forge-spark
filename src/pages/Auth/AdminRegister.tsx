@@ -39,20 +39,6 @@ export default function AdminRegister() {
   const onSubmit = async (data: AdminRegisterForm) => {
     setLoading(true);
     try {
-      // Valider le code d'accès
-      const { data: validation, error: validationError } = await supabase.functions.invoke(
-        'validate-admin-code',
-        {
-          body: { code: data.accessCode },
-        }
-      );
-
-      if (validationError || !validation?.valid) {
-        toast.error(validation?.message || 'Code d\'accès incorrect');
-        setLoading(false);
-        return;
-      }
-
       // Créer le compte
       const redirectUrl = `${window.location.origin}/admin/dashboard`;
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -91,16 +77,20 @@ export default function AdminRegister() {
         console.error('Erreur création utilisateur:', userError);
       }
 
-      // Ajouter le rôle admin
-      const { error: roleError } = await supabase.from('user_roles').insert({
-        user_id: authData.user.id,
-        role: 'admin',
-        is_active: true,
-      });
+      // Valider le code et attribuer le rôle admin via edge function sécurisée
+      const { data: roleResult, error: roleError } = await supabase.functions.invoke(
+        'secure-admin-register',
+        {
+          body: { 
+            accessCode: data.accessCode,
+            userId: authData.user.id 
+          },
+        }
+      );
 
-      if (roleError) {
+      if (roleError || !roleResult?.success) {
         console.error('Erreur attribution rôle admin:', roleError);
-        toast.error('Compte créé mais erreur lors de l\'attribution du rôle admin');
+        toast.error(roleResult?.message || 'Code d\'accès incorrect ou erreur lors de l\'attribution du rôle admin');
         setLoading(false);
         return;
       }

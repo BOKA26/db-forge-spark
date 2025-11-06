@@ -1,1 +1,7 @@
 project_id = "psvxciccmshwdbuifkje"
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+[functions.secure-admin-register]
+verify_jwt = false

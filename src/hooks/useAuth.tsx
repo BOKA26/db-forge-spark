@@ -35,14 +35,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Redirect after sign in will be handled by useRoleBasedRedirect hook
+        // Redirect after sign in will be handled by RoleBasedDashboard
         if (event === 'SIGNED_IN' && session?.user) {
           // Give time for user_roles to be created by trigger
           setTimeout(() => {
             const currentPath = window.location.pathname;
-            // Only redirect if not on a specific protected page
-            if (currentPath === '/connexion' || currentPath === '/inscription' || currentPath === '/') {
-              navigate('/dashboard-acheteur'); // Default to buyer dashboard
+            // Only redirect if on login/register pages
+            if (currentPath === '/connexion' || currentPath === '/inscription') {
+              navigate('/dashboard'); // Will redirect to appropriate role dashboard
             }
           }, 300);
         }

@@ -94,6 +94,16 @@ serve(async (req) => {
       if (deliveryError) throw deliveryError;
     }
 
+    // Mettre à jour la commande avec le livreur sélectionné
+    const { error: orderUpdateError } = await supabase
+      .from('orders')
+      .update({ livreur_id: courierId })
+      .eq('id', orderId);
+
+    if (orderUpdateError) {
+      console.error('Erreur lors de la mise à jour de la commande avec le livreur:', orderUpdateError);
+    }
+
     // Envoyer une notification au livreur
     const { error: notifError } = await supabase
       .from('notifications')

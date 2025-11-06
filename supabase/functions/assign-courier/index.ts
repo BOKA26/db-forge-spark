@@ -97,7 +97,10 @@ serve(async (req) => {
     // Mettre à jour la commande avec le livreur sélectionné
     const { error: orderUpdateError } = await supabase
       .from('orders')
-      .update({ livreur_id: courierId })
+      .update({ 
+        livreur_id: courierId,
+        statut: 'en_attente_livreur'
+      })
       .eq('id', orderId);
 
     if (orderUpdateError) {

@@ -44,6 +44,10 @@ const MyDeliveries = () => {
 
   const acceptDelivery = useMutation({
     mutationFn: async (deliveryId: string) => {
+      const delivery = deliveries?.find(d => d.id === deliveryId);
+      if (!delivery) throw new Error('Delivery not found');
+
+      // 1. Mettre à jour la livraison
       const { error } = await supabase
         .from('deliveries')
         .update({ 
@@ -53,6 +57,26 @@ const MyDeliveries = () => {
         .eq('id', deliveryId);
 
       if (error) throw error;
+
+      // 2. Mettre à jour la commande
+      await supabase
+        .from('orders')
+        .update({ statut: 'en_livraison' })
+        .eq('id', delivery.order_id);
+
+      // 3. Notifier le vendeur et l'acheteur
+      await supabase.from('notifications').insert([
+        {
+          user_id: delivery.vendeur_id,
+          message: `🚚 Le livreur a accepté la livraison de votre commande.`,
+          canal: 'app',
+        },
+        {
+          user_id: delivery.acheteur_id,
+          message: `📦 Votre colis est en route ! Suivez votre livraison en temps réel.`,
+          canal: 'app',
+        }
+      ]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courier-deliveries'] });

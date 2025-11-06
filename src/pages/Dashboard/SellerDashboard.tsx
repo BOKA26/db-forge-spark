@@ -145,7 +145,8 @@ const SellerDashboard = () => {
 
   // Calculate statistics
   const totalSales = payments?.reduce((sum, p) => sum + Number(p.montant), 0) || 0;
-  const unlockedPayments = payments?.filter(p => p.statut === 'débloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
+  const revenuLibere = payments?.filter(p => p.statut === 'débloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
+  const revenuEnAttente = payments?.filter(p => p.statut === 'bloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
   const pendingSales = orders?.filter(o => o.statut === 'fonds_bloques' || o.statut === 'en_livraison').length || 0;
 
   const assignCourier = useMutation({
@@ -459,11 +460,24 @@ const SellerDashboard = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Revenu total</p>
-                  <p className="text-3xl font-bold mt-2">{unlockedPayments.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground mt-1">FCFA</p>
+                  <p className="text-sm font-medium text-muted-foreground">💰 Revenu Libéré</p>
+                  <p className="text-3xl font-bold mt-2 text-green-600">{revenuLibere.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">FCFA débloqués</p>
                 </div>
                 <DollarSign className="h-10 w-10 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">⏳ Revenu En Attente</p>
+                  <p className="text-3xl font-bold mt-2 text-orange-500">{revenuEnAttente.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">FCFA bloqués</p>
+                </div>
+                <Clock className="h-10 w-10 text-orange-500" />
               </div>
             </CardContent>
           </Card>

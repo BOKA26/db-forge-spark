@@ -54,6 +54,7 @@ const SellerOrders = () => {
 
   const markAsShipped = useMutation({
     mutationFn: async (orderId: string) => {
+      // 1. Marquer que le vendeur a validé l'expédition
       const { error: validationError } = await supabase
         .from('validations')
         .update({ vendeur_ok: true })
@@ -61,28 +62,39 @@ const SellerOrders = () => {
 
       if (validationError) throw validationError;
 
+      // 2. Mettre à jour le statut de la livraison (le livreur doit encore accepter)
       const { error: deliveryError } = await supabase
         .from('deliveries')
         .update({ 
-          statut: 'en_livraison',
-          date_assignation: new Date().toISOString()
+          statut: 'en_attente'
         })
         .eq('order_id', orderId);
 
       if (deliveryError) throw deliveryError;
 
+      // 3. Récupérer les infos pour les notifications
       const { data: order } = await supabase
         .from('orders')
-        .select('acheteur_id')
+        .select('acheteur_id, livreur_id, products(nom)')
         .eq('id', orderId)
         .single();
 
       if (order) {
+        // Notifier l'acheteur
         await supabase.from('notifications').insert({
           user_id: order.acheteur_id,
-          message: 'Votre commande est en cours de livraison.',
+          message: '📦 Votre commande a été expédiée et sera bientôt en route.',
           canal: 'app',
         });
+
+        // Notifier le livreur
+        if (order.livreur_id) {
+          await supabase.from('notifications').insert({
+            user_id: order.livreur_id,
+            message: `🚚 Nouvelle livraison disponible pour "${order.products?.nom}". Acceptez-la pour commencer !`,
+            canal: 'app',
+          });
+        }
       }
     },
     onSuccess: () => {

@@ -38,6 +38,7 @@ const MyOrders = () => {
 
   const validateOrder = useMutation({
     mutationFn: async (orderId: string) => {
+      // 1. Marquer l'acheteur comme OK
       const { error } = await supabase
         .from('validations')
         .update({ acheteur_ok: true })
@@ -45,23 +46,32 @@ const MyOrders = () => {
 
       if (error) throw error;
 
-      await supabase
-        .from('orders')
-        .update({ statut: 'livré' })
-        .eq('id', orderId);
+      // 2. Le trigger unlock_payment_on_full_validation se déclenchera automatiquement
+      // et libérera le paiement si toutes les validations sont OK
 
+      // 3. Récupérer les infos de la commande pour les notifications
       const { data: order } = await supabase
         .from('orders')
-        .select('vendeur_id')
+        .select('vendeur_id, livreur_id, montant')
         .eq('id', orderId)
         .single();
 
       if (order) {
+        // Notifier le vendeur
         await supabase.from('notifications').insert({
           user_id: order.vendeur_id,
-          message: 'Le paiement a été libéré suite à la confirmation de réception.',
+          message: `💰 Paiement de ${order.montant.toLocaleString()} FCFA libéré suite à la confirmation de réception par l'acheteur.`,
           canal: 'app',
         });
+
+        // Notifier le livreur
+        if (order.livreur_id) {
+          await supabase.from('notifications').insert({
+            user_id: order.livreur_id,
+            message: '✅ Livraison validée par le client. Merci pour votre service !',
+            canal: 'app',
+          });
+        }
       }
     },
     onSuccess: () => {

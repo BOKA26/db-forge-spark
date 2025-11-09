@@ -94,6 +94,34 @@ All colors MUST be HSL.
   }
 }
 
+/* Animations pour la page vendeurs */
+@keyframes progress-bar {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes pulse-success {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.escrow-timeline {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.escrow-step {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.escrow-step:nth-child(1) { animation-delay: 0.2s; }
+.escrow-step:nth-child(2) { animation-delay: 0.4s; }
+.escrow-step:nth-child(3) { animation-delay: 0.6s; }
+
+.progress-bar-animated {
+  animation: progress-bar 2s ease-in-out;
+}
+
 @layer base {
   * {
     @apply border-border;

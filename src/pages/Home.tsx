@@ -401,6 +401,11 @@ const Home = () => {
                 S'inscrire gratuitement
               </Button>
             </Link>
+            <Link to="/pour-vendeurs">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                Devenir vendeur
+              </Button>
+            </Link>
             <Link to="/produits">
               <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
                 Explorer les produits

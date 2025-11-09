@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      beta_sellers: {
+        Row: {
+          admin_notes: string | null
+          ca_mensuel_range: string
+          created_at: string
+          date_acceptation: string | null
+          date_contact: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          message: string | null
+          nom_complet: string
+          nom_entreprise: string
+          nombre_produits: number | null
+          secteur_activite: string
+          source: string | null
+          statut: string
+          telephone: string
+          user_agent: string | null
+          ville: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          ca_mensuel_range: string
+          created_at?: string
+          date_acceptation?: string | null
+          date_contact?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          message?: string | null
+          nom_complet: string
+          nom_entreprise: string
+          nombre_produits?: number | null
+          secteur_activite: string
+          source?: string | null
+          statut?: string
+          telephone: string
+          user_agent?: string | null
+          ville: string
+        }
+        Update: {
+          admin_notes?: string | null
+          ca_mensuel_range?: string
+          created_at?: string
+          date_acceptation?: string | null
+          date_contact?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          message?: string | null
+          nom_complet?: string
+          nom_entreprise?: string
+          nombre_produits?: number | null
+          secteur_activite?: string
+          source?: string | null
+          statut?: string
+          telephone?: string
+          user_agent?: string | null
+          ville?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string

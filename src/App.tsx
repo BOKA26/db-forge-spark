@@ -9,6 +9,7 @@ import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 
 // Pages
 import Home from "./pages/Home";
+import ForSellers from "./pages/Sellers/ForSellers";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import AdminRegister from "./pages/Auth/AdminRegister";
@@ -54,9 +55,10 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/connexion" element={<Login />} />
-            <Route path="/inscription" element={<Register />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/pour-vendeurs" element={<ForSellers />} />
+          <Route path="/connexion" element={<Login />} />
+          <Route path="/inscription" element={<Register />} />
             <Route path="/inscription/admin" element={<AdminRegister />} />
             <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
             <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />

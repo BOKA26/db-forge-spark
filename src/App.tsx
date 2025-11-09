@@ -10,6 +10,7 @@ import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 // Pages
 import Home from "./pages/Home";
 import ForSellers from "./pages/Sellers/ForSellers";
+import SmartLadder from "./pages/Admin/SmartLadder";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import AdminRegister from "./pages/Auth/AdminRegister";
@@ -57,6 +58,7 @@ const App = () => (
             {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/pour-vendeurs" element={<ForSellers />} />
+          <Route path="/smart-ladder" element={<SmartLadder />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
             <Route path="/inscription/admin" element={<AdminRegister />} />

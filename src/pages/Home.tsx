@@ -75,14 +75,23 @@ const Home = () => {
         <div className="container px-2 md:px-4 py-3 md:py-4 space-y-3">
           {/* Tabs Navigation */}
           <Tabs value={searchTab} onValueChange={setSearchTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-10 bg-muted">
-              <TabsTrigger value="produits" className="text-xs md:text-sm">
+            <TabsList className="grid w-full grid-cols-3 h-10 bg-transparent border-b rounded-none p-0">
+              <TabsTrigger 
+                value="produits" 
+                className="text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none data-[state=active]:bg-transparent"
+              >
                 Produits
               </TabsTrigger>
-              <TabsTrigger value="fabricants" className="text-xs md:text-sm">
+              <TabsTrigger 
+                value="fabricants" 
+                className="text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none data-[state=active]:bg-transparent"
+              >
                 Fabricants
               </TabsTrigger>
-              <TabsTrigger value="mondial" className="text-xs md:text-sm">
+              <TabsTrigger 
+                value="mondial" 
+                className="text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none data-[state=active]:bg-transparent"
+              >
                 Mondial
               </TabsTrigger>
             </TabsList>
@@ -134,22 +143,22 @@ const Home = () => {
               <CardContent className="p-3 md:p-4 space-y-3">
                 {/* Shop Header */}
                 <div className="flex gap-3">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                     {shop.logo_url ? (
                       <img src={shop.logo_url} alt={shop.nom_boutique} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-lg md:text-2xl font-bold">{shop.nom_boutique[0]}</span>
+                      <span className="text-lg font-bold">{shop.nom_boutique[0]}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm md:text-base line-clamp-1">{shop.nom_boutique}</h3>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <Badge variant="secondary" className="text-xs h-5">
-                        <ShieldCheck className="h-3 w-3 mr-1 text-blue-500" />
+                    <h3 className="font-bold text-base line-clamp-1">{shop.nom_boutique}</h3>
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                      <Badge variant="secondary" className="text-xs h-5 bg-blue-50 text-blue-600 border-0">
+                        <ShieldCheck className="h-3 w-3 mr-1" />
                         Verified
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {Math.floor(Math.random() * 10) + 1} ans · {Math.floor(Math.random() * 100) + 10}+ personnel
+                        {Math.floor(Math.random() * 10) + 1} ans · {Math.floor(Math.random() * 100) + 10}+ personnel · {Math.floor(Math.random() * 5000) + 1000}+ m² · US${Math.floor(Math.random() * 100000) + 10000}+
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
@@ -158,38 +167,35 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Shop Products - Horizontal Scroll */}
+                {/* Shop Products - Grid */}
                 {shop.products && shop.products.length > 0 && (
-                  <ScrollArea className="w-full whitespace-nowrap">
-                    <div className="flex gap-3 pb-2">
-                      {shop.products.map((product: any) => (
-                        <Link key={product.id} to={`/produit/${product.id}`} className="inline-block">
-                          <div className="w-32 md:w-40 space-y-1">
-                            <div className="aspect-square rounded-lg overflow-hidden bg-muted relative">
-                              {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
-                                <img 
-                                  src={product.images[0]} 
-                                  alt={product.nom}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Camera className="h-8 w-8 text-muted-foreground" />
-                                </div>
-                              )}
-                            </div>
-                            <p className="font-bold text-sm line-clamp-1">
-                              {product.prix.toLocaleString()} FCFA
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {Math.floor(Math.random() * 5) + 2} jeux (MOQ)
-                            </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {shop.products.map((product: any) => (
+                      <Link key={product.id} to={`/produit/${product.id}`}>
+                        <div className="space-y-1">
+                          <div className="aspect-square rounded-lg overflow-hidden bg-muted relative">
+                            {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+                              <img 
+                                src={product.images[0]} 
+                                alt={product.nom}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Camera className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
                           </div>
-                        </Link>
-                      ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
+                          <p className="font-bold text-sm line-clamp-1">
+                            {product.prix.toLocaleString('fr-FR')} F CFA
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.floor(Math.random() * 5) + 2} pièces (MOQ)
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>

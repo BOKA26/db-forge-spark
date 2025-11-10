@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { Search, Camera, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,7 +68,7 @@ const Home = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pb-16">
       <Navbar />
 
       {/* Tabs and Search Section - Mobile Optimized */}
@@ -210,6 +211,7 @@ const Home = () => {
       </div>
 
       <Footer />
+      <BottomNav />
     </div>
   );
 };

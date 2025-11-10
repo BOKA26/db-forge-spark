@@ -33,7 +33,7 @@ export const BottomNav = () => {
     },
     {
       path: '/profile',
-      label: 'Mon Alibaba',
+      label: 'Mon Trade',
       icon: User,
       activeColor: 'text-foreground',
     },

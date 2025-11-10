@@ -11,6 +11,7 @@ import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 import Home from "./pages/Home";
 import ForSellers from "./pages/Sellers/ForSellers";
 import SmartLadder from "./pages/Admin/SmartLadder";
+import DataRoom from "./pages/Investors/DataRoom";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import AdminRegister from "./pages/Auth/AdminRegister";
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/pour-vendeurs" element={<ForSellers />} />
           <Route path="/smart-ladder" element={<SmartLadder />} />
+          <Route path="/data-room" element={<DataRoom />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
             <Route path="/inscription/admin" element={<AdminRegister />} />

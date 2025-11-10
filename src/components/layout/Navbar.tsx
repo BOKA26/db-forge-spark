@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, Search, Menu, MessageSquare, Home, Store, Package } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, MessageSquare, Home, Store, Package, LayoutGrid } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
@@ -218,16 +218,16 @@ export const Navbar = () => {
             </Button>
           </Link>
 
-          <Link to="/boutiques" className="flex-1">
+          <Link to="/categories" className="flex-1">
             <Button 
               variant="ghost" 
               className={cn(
                 "w-full h-12 flex flex-col items-center justify-center gap-1 rounded-none",
-                isActive('/boutiques') && "text-primary"
+                isActive('/categories') && "text-primary"
               )}
             >
-              <Store className="h-5 w-5" />
-              <span className="text-[10px]">Boutiques</span>
+              <LayoutGrid className="h-5 w-5" />
+              <span className="text-[10px]">Catégories</span>
             </Button>
           </Link>
 

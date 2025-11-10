@@ -61,7 +61,7 @@ export const Navbar = () => {
             <span className="text-lg md:text-xl font-bold hidden sm:inline">BokaTrade</span>
           </Link>
 
-          {/* Search Bar - Desktop & Tablet */}
+          {/* Search Bar - Desktop Only */}
           <div className="hidden md:flex flex-1 max-w-xl mx-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -71,22 +71,6 @@ export const Navbar = () => {
                 className="pl-10"
               />
             </div>
-          </div>
-
-          {/* Mobile Icons Right */}
-          <div className="flex md:hidden items-center gap-2">
-            <Link to="/produits">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Search className="h-5 w-5" />
-              </Button>
-            </Link>
-            {user && (
-              <Link to="/messages">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-              </Link>
-            )}
           </div>
 
           {/* Navigation - Desktop */}

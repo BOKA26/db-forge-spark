@@ -55,7 +55,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <div className="pb-14 md:pb-0">
+            <Routes>
             {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/pour-vendeurs" element={<ForSellers />} />
@@ -213,6 +214,7 @@ const App = () => (
             {/* Catch all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

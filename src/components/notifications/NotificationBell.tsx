@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bell } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -12,7 +13,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export const NotificationBell = () => {
+interface NotificationBellProps {
+  iconClassName?: string;
+  className?: string;
+  showLabel?: boolean;
+}
+
+export const NotificationBell = ({ iconClassName = "h-5 w-5", className, showLabel }: NotificationBellProps = {}) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -38,13 +45,18 @@ export const NotificationBell = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
+        <Button variant="ghost" size="icon" className={cn("relative", className)}>
+          <div className={cn("flex flex-col items-center justify-center gap-1", showLabel && "w-full")}>
+            <div className="relative">
+              <Bell className={iconClassName} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </div>
+            {showLabel && <span className="text-[10px]">Notifs</span>}
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">

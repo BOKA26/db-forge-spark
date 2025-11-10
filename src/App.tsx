@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 // Pages
 import Home from "./pages/Home";
@@ -58,7 +59,7 @@ const App = () => (
         <AuthProvider>
           <div className="pb-14 md:pb-0">
             <Routes>
-            {/* Public routes */}
+              {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/pour-vendeurs" element={<ForSellers />} />
           <Route path="/smart-ladder" element={<SmartLadder />} />
@@ -213,9 +214,10 @@ const App = () => (
               }
             />
 
-            {/* Catch all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Catch all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <BottomNav />
           </div>
         </AuthProvider>
       </BrowserRouter>

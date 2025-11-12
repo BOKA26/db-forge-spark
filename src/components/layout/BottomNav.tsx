@@ -51,6 +51,20 @@ export const BottomNav = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch cart items count
+  const { data: cartCount = 0 } = useQuery({
+    queryKey: ['cart-count', user?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('acheteur_id', user?.id)
+        .eq('statut', 'en_attente_paiement');
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
   const navItems = [
     {
       path: '/',
@@ -77,6 +91,7 @@ export const BottomNav = () => {
       icon: ShoppingCart,
       activeColor: 'text-foreground',
       requireAuth: true,
+      badge: user ? cartCount : 0,
     },
   ];
 

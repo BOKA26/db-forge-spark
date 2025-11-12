@@ -284,6 +284,103 @@ export type Database = {
           },
         ]
       }
+      live_streams: {
+        Row: {
+          agora_channel_id: string | null
+          agora_token: string | null
+          created_at: string | null
+          description: string | null
+          ended_at: string | null
+          id: string
+          recorded_url: string | null
+          shop_id: string | null
+          started_at: string | null
+          statut: string
+          thumbnail_url: string | null
+          titre: string
+          updated_at: string | null
+          vendeur_id: string
+          viewers_count: number | null
+        }
+        Insert: {
+          agora_channel_id?: string | null
+          agora_token?: string | null
+          created_at?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          recorded_url?: string | null
+          shop_id?: string | null
+          started_at?: string | null
+          statut?: string
+          thumbnail_url?: string | null
+          titre: string
+          updated_at?: string | null
+          vendeur_id: string
+          viewers_count?: number | null
+        }
+        Update: {
+          agora_channel_id?: string | null
+          agora_token?: string | null
+          created_at?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          recorded_url?: string | null
+          shop_id?: string | null
+          started_at?: string | null
+          statut?: string
+          thumbnail_url?: string | null
+          titre?: string
+          updated_at?: string | null
+          vendeur_id?: string
+          viewers_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_streams_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_viewers: {
+        Row: {
+          created_at: string | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          live_stream_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          live_stream_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          live_stream_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_viewers_live_stream_id_fkey"
+            columns: ["live_stream_id"]
+            isOneToOne: false
+            referencedRelation: "live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string

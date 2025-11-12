@@ -37,12 +37,16 @@ export const BottomNav = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch unread messages count (placeholder - will be replaced with real data later)
+  // Fetch unread messages count
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unread-messages', user?.id],
     queryFn: async () => {
-      // TODO: Replace with real message count from database
-      return 57;
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', user?.id)
+        .eq('is_read', false);
+      return count || 0;
     },
     enabled: !!user?.id,
   });

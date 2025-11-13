@@ -157,7 +157,10 @@ export default function StartLive() {
   };
 
   useEffect(() => {
-    startPreview();
+    // Wait for user to be loaded before starting preview
+    if (user && shop) {
+      startPreview();
+    }
 
     return () => {
       liveStreamService.current.leaveChannel();
@@ -165,7 +168,7 @@ export default function StartLive() {
         clearInterval(durationInterval.current);
       }
     };
-  }, []);
+  }, [user, shop]);
 
   const toggleCamera = () => {
     liveStreamService.current.toggleCamera(!isCameraOn);

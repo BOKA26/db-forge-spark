@@ -63,7 +63,12 @@ export default function StartLive() {
         videoTrack.play(videoPreviewRef.current);
       }
 
-      // Create live stream record
+      // Ensure authenticated request to Edge Function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session) throw new Error('Vous devez être connecté pour démarrer un live');
+
+      // Create live stream record via Edge Function (with explicit Authorization header)
       const { data, error } = await supabase.functions.invoke('manage-live-stream', {
         body: {
           action: 'start',
@@ -72,6 +77,9 @@ export default function StartLive() {
             description,
             shopId: shop.id,
           },
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -118,10 +126,18 @@ export default function StartLive() {
 
       await liveStreamService.current.leaveChannel();
 
+      // Ensure authenticated request to Edge Function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session) throw new Error('Vous devez être connecté pour terminer le live');
+
       const { error } = await supabase.functions.invoke('manage-live-stream', {
         body: {
           action: 'end',
           liveStreamId,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 

@@ -26,11 +26,21 @@ export class LiveStreamService {
    */
   async initialize(role: 'publisher' | 'subscriber', channelName: string) {
     try {
-      // Get Agora token from backend
+      // Ensure we have a valid session and forward the JWT explicitly (some environments don't auto-attach it)
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session) {
+        throw new Error('Veuillez vous connecter pour démarrer un live');
+      }
+
+      // Get Agora token from backend (pass Authorization header explicitly)
       const { data, error } = await supabase.functions.invoke('generate-agora-token', {
         body: {
           channelName,
           role,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 

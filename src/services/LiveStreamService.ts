@@ -51,6 +51,13 @@ export class LiveStreamService {
       this.token = data.token;
       this.uid = data.uid;
 
+      console.log('Agora config received:', {
+        appId: this.appId,
+        channelName: this.channelName,
+        uid: this.uid,
+        hasToken: !!this.token
+      });
+
       // Create Agora client
       this.client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
 

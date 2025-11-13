@@ -97,6 +97,13 @@ serve(async (req) => {
     const appId = Deno.env.get('AGORA_APP_ID');
     const appCertificate = Deno.env.get('AGORA_APP_CERTIFICATE');
 
+    console.log('Agora credentials check:', {
+      hasAppId: !!appId,
+      appIdLength: appId?.length || 0,
+      hasCertificate: !!appCertificate,
+      certLength: appCertificate?.length || 0
+    });
+
     if (!appId || !appCertificate) {
       throw new Error('Agora credentials not configured');
     }

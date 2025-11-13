@@ -62,168 +62,168 @@ const App = () => (
           <div className="pb-14 md:pb-0">
             <Routes>
               {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/pour-vendeurs" element={<ForSellers />} />
-          <Route path="/smart-ladder" element={<SmartLadder />} />
-          <Route path="/data-room" element={<DataRoom />} />
-          <Route path="/connexion" element={<Login />} />
-          <Route path="/inscription" element={<Register />} />
-            <Route path="/inscription/admin" element={<AdminRegister />} />
-            <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
-            <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
-            <Route path="/produits" element={<ProductList />} />
-            <Route path="/produit/:id" element={<ProductDetail />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/boutiques" element={<ShopsList />} />
-            <Route path="/boutique/:id" element={<PublicShop />} />
-            <Route path="/a-propos" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/mentions-legales" element={<LegalNotice />} />
-            <Route path="/cgu" element={<Terms />} />
-            <Route path="/politique-confidentialite" element={<Privacy />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/panier" element={<Cart />} />
-            <Route path="/confirmation-paiement" element={<PaymentConfirmation />} />
-            <Route path="/suivi-livraison/:id" element={<TrackDelivery />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/pour-vendeurs" element={<ForSellers />} />
+              <Route path="/smart-ladder" element={<SmartLadder />} />
+              <Route path="/data-room" element={<DataRoom />} />
+              <Route path="/connexion" element={<Login />} />
+              <Route path="/inscription" element={<Register />} />
+              <Route path="/inscription/admin" element={<AdminRegister />} />
+              <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
+              <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
+              <Route path="/produits" element={<ProductList />} />
+              <Route path="/produit/:id" element={<ProductDetail />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/boutiques" element={<ShopsList />} />
+              <Route path="/boutique/:id" element={<PublicShop />} />
+              <Route path="/a-propos" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/mentions-legales" element={<LegalNotice />} />
+              <Route path="/cgu" element={<Terms />} />
+              <Route path="/politique-confidentialite" element={<Privacy />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/panier" element={<Cart />} />
+              <Route path="/confirmation-paiement" element={<PaymentConfirmation />} />
+              <Route path="/suivi-livraison/:id" element={<TrackDelivery />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <RoleBasedDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profil"
-              element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard-acheteur"
-              element={
-                <ProtectedRoute requireRole="acheteur">
-                  <BuyerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard-vendeur"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <SellerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard-livreur"
-              element={
-                <ProtectedRoute requireRole="livreur">
-                  <CourierDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creer-boutique"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <CreateShop />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ma-boutique"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <MyShop />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ajouter-produit"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <AddProduct />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mes-commandes"
-              element={
-                <ProtectedRoute requireRole="acheteur">
-                  <MyOrders />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/commandes"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <SellerOrders />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mes-livraisons"
-              element={
-                <ProtectedRoute requireRole="livreur">
-                  <MyDeliveries />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <NotificationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/boutiques"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <AdminShopsList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/boutique/:id"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <ShopDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/lancer-live"
-              element={
-                <ProtectedRoute requireRole="vendeur">
-                  <StartLive />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/live/:id" element={<WatchLive />} />
+              {/* Protected routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profil"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard-acheteur"
+                element={
+                  <ProtectedRoute requireRole="acheteur">
+                    <BuyerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard-vendeur"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <SellerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard-livreur"
+                element={
+                  <ProtectedRoute requireRole="livreur">
+                    <CourierDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/creer-boutique"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <CreateShop />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ma-boutique"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <MyShop />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ajouter-produit"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <AddProduct />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mes-commandes"
+                element={
+                  <ProtectedRoute requireRole="acheteur">
+                    <MyOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/commandes"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <SellerOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mes-livraisons"
+                element={
+                  <ProtectedRoute requireRole="livreur">
+                    <MyDeliveries />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/boutiques"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminShopsList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/boutique/:id"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <ShopDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lancer-live"
+                element={
+                  <ProtectedRoute requireRole="vendeur">
+                    <StartLive />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/live/:id" element={<WatchLive />} />
 
               {/* Catch all */}
               <Route path="*" element={<NotFound />} />

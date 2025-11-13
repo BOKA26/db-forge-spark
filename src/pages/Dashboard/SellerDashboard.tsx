@@ -365,6 +365,11 @@ const SellerDashboard = () => {
                         Voir ma boutique publique
                       </Button>
                     </Link>
+                    <Link to="/lancer-live">
+                      <Button variant="default" className="bg-red-600 hover:bg-red-700">
+                        📹 Lancer un Live
+                      </Button>
+                    </Link>
                     <Link to="/ajouter-produit">
                       <Button>
                         <Plus className="mr-2 h-4 w-4" />

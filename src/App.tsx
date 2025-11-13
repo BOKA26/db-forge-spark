@@ -47,6 +47,8 @@ import Messages from "./pages/Messages/Messages";
 import Cart from "./pages/Cart/Cart";
 import PaymentConfirmation from "./pages/Orders/PaymentConfirmation";
 import TrackDelivery from "./pages/Tracking/TrackDelivery";
+import StartLive from "./pages/Live/StartLive";
+import WatchLive from "./pages/Live/WatchLive";
 
 const queryClient = new QueryClient();
 
@@ -213,6 +215,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/lancer-live"
+              element={
+                <ProtectedRoute requireRole="vendeur">
+                  <StartLive />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/live/:id" element={<WatchLive />} />
 
               {/* Catch all */}
               <Route path="*" element={<NotFound />} />

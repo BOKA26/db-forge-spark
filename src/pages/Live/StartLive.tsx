@@ -159,6 +159,15 @@ export default function StartLive() {
   // Preview camera before starting live
   const startPreview = async () => {
     try {
+      // Ensure we have auth before trying to get token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error('Veuillez vous reconnecter pour lancer un live');
+        navigate('/login');
+        return;
+      }
+
+      console.log('Starting preview with authenticated session');
       await liveStreamService.current.initialize('publisher', 'preview_channel');
       const { videoTrack } = await liveStreamService.current.startBroadcast();
       
@@ -166,9 +175,9 @@ export default function StartLive() {
         videoTrack.play(videoPreviewRef.current);
         setIsPreviewing(true);
       }
-    } catch (error) {
-      toast.error('Impossible d\'accéder à la caméra');
-      console.error(error);
+    } catch (error: any) {
+      console.error('Preview error:', error);
+      toast.error(`Impossible d'accéder à la caméra: ${error.message}`);
     }
   };
 

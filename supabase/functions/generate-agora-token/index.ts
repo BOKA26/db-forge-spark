@@ -55,23 +55,35 @@ serve(async (req) => {
   }
 
   try {
+    // Log incoming auth header for debugging
+    const authHeader = req.headers.get('Authorization');
+    console.log('Received Authorization header:', authHeader ? 'present' : 'missing');
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader || '' },
         },
       }
     );
 
     // Verify user authentication
+    console.log('Attempting to verify user...');
     const {
       data: { user },
       error: authError,
     } = await supabaseClient.auth.getUser();
 
+    console.log('Auth result:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      authError: authError?.message 
+    });
+
     if (authError || !user) {
+      console.error('Authentication failed:', authError?.message || 'No user found');
       throw new Error('Unauthorized');
     }
 
@@ -120,8 +132,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error generating Agora token:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

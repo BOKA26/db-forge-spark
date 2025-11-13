@@ -69,12 +69,13 @@ serve(async (req) => {
       }
     );
 
-    // Verify user authentication
-    console.log('Attempting to verify user...');
+    // Verify user authentication using the access token directly
+    const accessToken = (authHeader || '').replace(/^Bearer\s+/i, '').trim();
+    console.log('Attempting to verify user with explicit token:', accessToken ? 'present' : 'missing');
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(accessToken);
 
     console.log('Auth result:', { 
       hasUser: !!user, 

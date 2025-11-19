@@ -1,8 +1,63 @@
-# Welcome to your Lovable project
-
-## Project info
+# BokaTrade - Plateforme B2B Afrique
 
 **URL**: https://lovable.dev/projects/b5c8f428-3d9a-48b2-9f4a-f0274233046b
+
+Plateforme B2B pour la vente en gros et l'import-export en Afrique de l'Ouest.
+
+## 🚀 Optimisations de Performance Implémentées
+
+### Images
+- ✅ Lazy loading automatique (`loading="lazy"`)
+- ✅ Décodage asynchrone (`decoding="async"`)
+- ✅ Composant OptimizedImage avec intersection observer
+- 📝 Format WebP recommandé (compression 80%)
+
+### Mise en cache
+- ✅ Assets statiques : 1 an (`public/_headers`)
+- ✅ Images : 1 mois de cache
+- ✅ Fonts : 1 an de cache immutable
+- ✅ HTML : pas de cache pour contenu dynamique
+
+### Code Splitting & Build
+- ✅ Lazy loading des routes non-critiques (React.lazy)
+- ✅ Chunks vendor séparés (React, UI, Query, Supabase)
+- ✅ Minification Terser avec suppression console.log en prod
+- ✅ Source maps uniquement en dev
+- ✅ Preconnect aux domaines Supabase critiques
+
+### Mobile First
+- ✅ Responsive design complet
+- ✅ Zones tactiles 48px minimum
+- ✅ Safe area pour encoche mobile
+- ✅ Menu hamburger optimisé
+- ✅ BottomNav 64px avec badges
+
+### Sécurité & SEO
+- ✅ Headers de sécurité (X-Frame-Options, CSP)
+- ✅ Meta tags SEO complets
+- ✅ Open Graph & Twitter Cards
+- ✅ Thème mobile PWA-ready
+
+## 🌍 Recommandations Hébergement Afrique
+
+Pour performances optimales en Afrique de l'Ouest :
+1. **Cloudflare** - Datacenter Lagos (Nigeria) ⭐ Recommandé
+2. **Bunny CDN** - Point de présence Johannesburg
+3. **AWS CloudFront** - Région Cape Town (af-south-1)
+4. **Azure CDN** - South Africa North
+
+### Configuration Cloudflare recommandée :
+- Brotli compression activé
+- Auto Minify (JS, CSS, HTML)
+- Rocket Loader pour JS non-critique
+- Mirage pour optimisation images mobile
+- Argo Smart Routing pour latence réduite
+
+## 📊 Performance Metrics Cible
+- First Contentful Paint (FCP): < 1.8s
+- Largest Contentful Paint (LCP): < 2.5s
+- Time to Interactive (TTI): < 3.8s
+- Total Bundle Size: < 500KB (gzipped)
 
 ## How can I edit this code?
 

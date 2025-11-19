@@ -147,7 +147,13 @@ const Home = () => {
                 <div className="flex gap-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                     {shop.logo_url ? (
-                      <img src={shop.logo_url} alt={shop.nom_boutique} className="w-full h-full object-cover" />
+                      <img 
+                        src={shop.logo_url} 
+                        alt={shop.nom_boutique} 
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <span className="text-lg font-bold">{shop.nom_boutique[0]}</span>
                     )}
@@ -181,6 +187,8 @@ const Home = () => {
                                 src={product.images[0]} 
                                 alt={product.nom}
                                 className="w-full h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

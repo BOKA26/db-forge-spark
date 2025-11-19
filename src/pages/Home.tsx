@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { TrustSection } from '@/components/home/TrustSection';
 import { Search, Camera, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -209,6 +210,9 @@ const Home = () => {
           </Card>
         )}
       </div>
+
+      {/* Trust and Security Section */}
+      <TrustSection />
 
       <Footer />
       <BottomNav />

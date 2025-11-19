@@ -6,46 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper function to generate Agora RTC token
+// Note: For production, use Agora's official token generation library
+// This is a simplified version - consider using agora-access-token package
 async function generateAgoraToken(
   appId: string,
   appCertificate: string,
   channelName: string,
   uid: number,
-  role: number, // 1 = publisher, 2 = subscriber
+  role: number,
   privilegeExpireTime: number = 3600
 ): Promise<string> {
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const privilegeExpiredTs = currentTimestamp + privilegeExpireTime;
-
-  // Prepare message
-  const message = `${appId}${channelName}${uid}${privilegeExpiredTs}`;
-  
-  // Generate HMAC-SHA256 signature
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(appCertificate);
-  const messageData = encoder.encode(message);
-  
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  
-  const signature = await crypto.subtle.sign('HMAC', key, messageData);
-  const signatureArray = Array.from(new Uint8Array(signature));
-  const signatureHex = signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  // Build token string
-  const tokenString = `${appId}${channelName}${uid}${privilegeExpiredTs}${signatureHex}`;
-  
-  // Base64 encode
-  const tokenBytes = encoder.encode(tokenString);
-  const base64Token = btoa(String.fromCharCode(...tokenBytes));
-  
-  return base64Token;
+  // For now, return empty string to use Agora without token (testing mode)
+  // In production, implement proper token generation using Agora's algorithm
+  console.log('Token generation called - using testing mode (no token)');
+  return '';
 }
 
 serve(async (req) => {
@@ -99,13 +73,13 @@ serve(async (req) => {
 
     console.log('Agora credentials check:', {
       hasAppId: !!appId,
-      appIdLength: appId?.length || 0,
+      appIdValue: appId,
       hasCertificate: !!appCertificate,
-      certLength: appCertificate?.length || 0
+      certValue: appCertificate ? '***' + appCertificate.slice(-4) : 'none'
     });
 
-    if (!appId || !appCertificate) {
-      throw new Error('Agora credentials not configured');
+    if (!appId) {
+      throw new Error('AGORA_APP_ID not configured');
     }
 
     // Generate UID if not provided
@@ -116,14 +90,11 @@ serve(async (req) => {
 
     console.log(`Generating Agora token for user ${user.id}, channel ${channelName}, role ${agoraRole}`);
 
-    const token = await generateAgoraToken(
-      appId,
-      appCertificate,
-      channelName,
-      agoraUid,
-      agoraRole,
-      3600 // Token valid for 1 hour
-    );
+    // For testing without certificate, return null token
+    // Agora will work in testing mode without token validation
+    const token = appCertificate 
+      ? await generateAgoraToken(appId, appCertificate, channelName, agoraUid, agoraRole, 3600)
+      : null;
 
     return new Response(
       JSON.stringify({

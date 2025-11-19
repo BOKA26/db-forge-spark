@@ -56,48 +56,50 @@ const ProductList = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pb-20 md:pb-16">
       <Navbar />
 
-      <div className="container py-8">
-        <h1 className="text-4xl font-bold mb-8">Catalogue Produits</h1>
+      <div className="container py-6 md:py-8 px-3 md:px-4">
+        <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8">Catalogue Produits</h1>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        {/* Filters - Mobile Optimized */}
+        <div className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 md:h-5 md:w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Rechercher un produit..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 md:pl-12 h-11 md:h-12 text-base"
             />
           </div>
 
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes catégories</SelectItem>
-              <SelectItem value="Électronique">Électronique</SelectItem>
-              <SelectItem value="Mode">Mode</SelectItem>
-              <SelectItem value="Maison">Maison</SelectItem>
-              <SelectItem value="Agriculture">Agriculture</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-3 md:flex md:gap-4">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="h-11 md:h-12 text-base md:w-[200px]">
+                <SelectValue placeholder="Catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes catégories</SelectItem>
+                <SelectItem value="Électronique">Électronique</SelectItem>
+                <SelectItem value="Mode">Mode</SelectItem>
+                <SelectItem value="Maison">Maison</SelectItem>
+                <SelectItem value="Agriculture">Agriculture</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Trier par" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Plus récents</SelectItem>
-              <SelectItem value="price_asc">Prix croissant</SelectItem>
-              <SelectItem value="price_desc">Prix décroissant</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-11 md:h-12 text-base md:w-[200px]">
+                <SelectValue placeholder="Trier par" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Plus récents</SelectItem>
+                <SelectItem value="price_asc">Prix croissant</SelectItem>
+                <SelectItem value="price_desc">Prix décroissant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Products Grid */}

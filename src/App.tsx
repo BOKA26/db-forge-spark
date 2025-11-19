@@ -3,54 +3,71 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 import { BottomNav } from "@/components/layout/BottomNav";
 
-// Pages
+// Eager load critical pages
 import Home from "./pages/Home";
-import ForSellers from "./pages/Sellers/ForSellers";
-import SmartLadder from "./pages/Admin/SmartLadder";
-import DataRoom from "./pages/Investors/DataRoom";
 import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-import AdminRegister from "./pages/Auth/AdminRegister";
-import ResetPassword from "./pages/Auth/ResetPassword";
-import UpdatePassword from "./pages/Auth/UpdatePassword";
-import UserProfile from "./pages/Profile/UserProfile";
-import ProductList from "./pages/Products/ProductList";
-import AddProduct from "./pages/Products/AddProduct";
-import ProductDetail from "./pages/Products/ProductDetail";
-import CategoriesPage from "./pages/Categories/CategoriesPage";
-import BuyerDashboard from "./pages/Dashboard/BuyerDashboard";
-import SellerDashboard from "./pages/Dashboard/SellerDashboard";
-import CourierDashboard from "./pages/Dashboard/CourierDashboard";
-import CreateShop from "./pages/Shop/CreateShop";
-import MyShop from "./pages/Shop/MyShop";
-import PublicShop from "./pages/Shop/PublicShop";
-import ShopsList from "./pages/Shop/ShopsList";
-import MyOrders from "./pages/Orders/MyOrders";
-import SellerOrders from "./pages/Orders/SellerOrders";
-import MyDeliveries from "./pages/Deliveries/MyDeliveries";
-import NotificationPage from "./pages/Notifications/NotificationPage";
-import AdminDashboard from "./pages/Admin/AdminDashboard";
-import AdminShopsList from "./pages/Admin/ShopsList";
-import ShopDetail from "./pages/Admin/ShopDetail";
-import About from "./pages/Legal/About";
-import Contact from "./pages/Legal/Contact";
-import Terms from "./pages/Legal/Terms";
-import Privacy from "./pages/Legal/Privacy";
-import LegalNotice from "./pages/Legal/LegalNotice";
 import NotFound from "./pages/NotFound";
-import Messages from "./pages/Messages/Messages";
-import Cart from "./pages/Cart/Cart";
-import PaymentConfirmation from "./pages/Orders/PaymentConfirmation";
-import TrackDelivery from "./pages/Tracking/TrackDelivery";
-import StartLive from "./pages/Live/StartLive";
-import WatchLive from "./pages/Live/WatchLive";
 
-const queryClient = new QueryClient();
+// Lazy load non-critical pages for better mobile performance
+const ForSellers = lazy(() => import("./pages/Sellers/ForSellers"));
+const SmartLadder = lazy(() => import("./pages/Admin/SmartLadder"));
+const DataRoom = lazy(() => import("./pages/Investors/DataRoom"));
+const Register = lazy(() => import("./pages/Auth/Register"));
+const AdminRegister = lazy(() => import("./pages/Auth/AdminRegister"));
+const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
+const UpdatePassword = lazy(() => import("./pages/Auth/UpdatePassword"));
+const UserProfile = lazy(() => import("./pages/Profile/UserProfile"));
+const ProductList = lazy(() => import("./pages/Products/ProductList"));
+const AddProduct = lazy(() => import("./pages/Products/AddProduct"));
+const ProductDetail = lazy(() => import("./pages/Products/ProductDetail"));
+const CategoriesPage = lazy(() => import("./pages/Categories/CategoriesPage"));
+const BuyerDashboard = lazy(() => import("./pages/Dashboard/BuyerDashboard"));
+const SellerDashboard = lazy(() => import("./pages/Dashboard/SellerDashboard"));
+const CourierDashboard = lazy(() => import("./pages/Dashboard/CourierDashboard"));
+const CreateShop = lazy(() => import("./pages/Shop/CreateShop"));
+const MyShop = lazy(() => import("./pages/Shop/MyShop"));
+const PublicShop = lazy(() => import("./pages/Shop/PublicShop"));
+const ShopsList = lazy(() => import("./pages/Shop/ShopsList"));
+const MyOrders = lazy(() => import("./pages/Orders/MyOrders"));
+const SellerOrders = lazy(() => import("./pages/Orders/SellerOrders"));
+const MyDeliveries = lazy(() => import("./pages/Deliveries/MyDeliveries"));
+const NotificationPage = lazy(() => import("./pages/Notifications/NotificationPage"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
+const AdminShopsList = lazy(() => import("./pages/Admin/ShopsList"));
+const ShopDetail = lazy(() => import("./pages/Admin/ShopDetail"));
+const About = lazy(() => import("./pages/Legal/About"));
+const Contact = lazy(() => import("./pages/Legal/Contact"));
+const Terms = lazy(() => import("./pages/Legal/Terms"));
+const Privacy = lazy(() => import("./pages/Legal/Privacy"));
+const LegalNotice = lazy(() => import("./pages/Legal/LegalNotice"));
+const Messages = lazy(() => import("./pages/Messages/Messages"));
+const Cart = lazy(() => import("./pages/Cart/Cart"));
+const PaymentConfirmation = lazy(() => import("./pages/Orders/PaymentConfirmation"));
+const TrackDelivery = lazy(() => import("./pages/Tracking/TrackDelivery"));
+const StartLive = lazy(() => import("./pages/Live/StartLive"));
+const WatchLive = lazy(() => import("./pages/Live/WatchLive"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -59,8 +76,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <div className="pb-14 md:pb-0">
-            <Routes>
+          <div className="pb-16 md:pb-0">
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
               <Route path="/pour-vendeurs" element={<ForSellers />} />
@@ -228,6 +246,7 @@ const App = () => (
               {/* Catch all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
             <BottomNav />
           </div>
         </AuthProvider>

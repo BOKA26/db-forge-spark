@@ -134,8 +134,8 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-50">
-      <div className="flex items-center justify-around h-14">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-50 safe-area-bottom">
+      <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -144,11 +144,11 @@ export const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center gap-1 relative flex-1"
+              className="flex flex-col items-center justify-center gap-1 relative flex-1 min-h-[48px] min-w-[48px]"
             >
               <div className="relative">
                 <Icon
-                  className={`h-5 w-5 ${
+                  className={`h-6 w-6 ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 />
@@ -162,7 +162,7 @@ export const BottomNav = () => {
                 )}
               </div>
               <span
-                className={`text-[10px] ${
+                className={`text-[11px] font-medium ${
                   isActive ? item.activeColor : 'text-muted-foreground'
                 }`}
               >
@@ -178,10 +178,10 @@ export const BottomNav = () => {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-none hover:bg-transparent"
+                className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-none hover:bg-transparent min-h-[48px]"
               >
-                <User className={`h-5 w-5 ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`} />
-                <span className={`text-[10px] ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`} />
+                <span className={`text-[11px] font-medium ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`}>
                   Mon Trade
                 </span>
               </Button>
@@ -196,35 +196,35 @@ export const BottomNav = () => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/profil" className="cursor-pointer">Mon Profil</Link>
+                <Link to="/profil" className="cursor-pointer h-10">Mon Profil</Link>
               </DropdownMenuItem>
               {userRole === 'acheteur' && (
                 <DropdownMenuItem asChild>
-                  <Link to="/mes-commandes" className="cursor-pointer">Mes Commandes</Link>
+                  <Link to="/mes-commandes" className="cursor-pointer h-10">Mes Commandes</Link>
                 </DropdownMenuItem>
               )}
               {userRole === 'vendeur' && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard-vendeur" className="cursor-pointer">Dashboard Vendeur</Link>
+                    <Link to="/dashboard-vendeur" className="cursor-pointer h-10">Dashboard Vendeur</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/ma-boutique" className="cursor-pointer">Ma Boutique</Link>
+                    <Link to="/ma-boutique" className="cursor-pointer h-10">Ma Boutique</Link>
                   </DropdownMenuItem>
                 </>
               )}
               {userRole === 'livreur' && (
                 <DropdownMenuItem asChild>
-                  <Link to="/mes-livraisons" className="cursor-pointer">Mes Livraisons</Link>
+                  <Link to="/mes-livraisons" className="cursor-pointer h-10">Mes Livraisons</Link>
                 </DropdownMenuItem>
               )}
               {userRole === 'admin' && (
                 <DropdownMenuItem asChild>
-                  <Link to="/admin/dashboard" className="cursor-pointer">Dashboard Admin</Link>
+                  <Link to="/admin/dashboard" className="cursor-pointer h-10">Dashboard Admin</Link>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+              <DropdownMenuItem onClick={signOut} className="cursor-pointer h-10">
                 Déconnexion
               </DropdownMenuItem>
             </DropdownMenuContent>

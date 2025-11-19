@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, Search, Menu, MessageSquare, Home, Store, Package, LayoutGrid } from 'lucide-react';
+import { ShoppingCart, User, Search, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { MobileMenu } from '@/components/layout/MobileMenu';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUserRole } from '@/hooks/useUserRole';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,10 +54,10 @@ export const Navbar = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 md:h-16 items-center justify-between px-4">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="h-7 w-7 md:h-8 md:w-8 rounded bg-primary" />
+        <div className="container flex h-16 md:h-18 items-center justify-between px-3 md:px-4">
+          {/* Logo - Tactile optimized */}
+          <Link to="/" className="flex items-center space-x-2 min-h-[44px] min-w-[44px] -ml-2 pl-2">
+            <div className="h-8 w-8 md:h-9 md:w-9 rounded bg-primary flex-shrink-0" />
             <span className="text-lg md:text-xl font-bold hidden sm:inline">BokaTrade</span>
           </Link>
 
@@ -74,18 +74,18 @@ export const Navbar = () => {
           </div>
 
           {/* Navigation - Desktop */}
-          <nav className="hidden md:flex items-center space-x-4">
+          <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
             <Link to="/">
-              <Button variant="ghost">Accueil</Button>
+              <Button variant="ghost" size="default" className="h-10">Accueil</Button>
             </Link>
             <Link to="/produits">
-              <Button variant="ghost">Produits</Button>
+              <Button variant="ghost" size="default" className="h-10">Produits</Button>
             </Link>
             <Link to="/boutiques">
-              <Button variant="ghost">Boutiques</Button>
+              <Button variant="ghost" size="default" className="h-10">Boutiques</Button>
             </Link>
             <Link to="/pour-vendeurs">
-              <Button variant="ghost">Pour Vendeurs</Button>
+              <Button variant="ghost" size="default" className="h-10">Pour Vendeurs</Button>
             </Link>
             
             {user ? (
@@ -93,7 +93,7 @@ export const Navbar = () => {
                 <RoleSwitcher />
                 
                 <Link to="/panier">
-                  <Button variant="ghost" size="icon" title="Panier">
+                  <Button variant="ghost" size="icon" title="Panier" className="h-10 w-10">
                     <ShoppingCart className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -101,7 +101,7 @@ export const Navbar = () => {
                 <NotificationBell />
 
                 <Link to="/messages">
-                  <Button variant="ghost" size="icon" title="Messages">
+                  <Button variant="ghost" size="icon" title="Messages" className="h-10 w-10">
                     <MessageSquare className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -162,14 +162,17 @@ export const Navbar = () => {
             ) : (
               <>
                 <Link to="/connexion">
-                  <Button variant="ghost">Connexion</Button>
+                  <Button variant="ghost" className="h-10">Connexion</Button>
                 </Link>
                 <Link to="/inscription">
-                  <Button>Inscription</Button>
+                  <Button className="h-10">Inscription</Button>
                 </Link>
               </>
             )}
           </nav>
+
+          {/* Mobile Menu Button */}
+          <MobileMenu userProfile={userProfile} />
         </div>
       </header>
 

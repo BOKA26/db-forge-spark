@@ -53,10 +53,16 @@ export class LiveStreamService {
 
       console.log('Agora config received:', {
         appId: this.appId,
+        appIdLength: this.appId?.length || 0,
         channelName: this.channelName,
         uid: this.uid,
-        hasToken: !!this.token
+        hasToken: !!this.token,
+        tokenValue: this.token ? 'present' : 'null (testing mode)'
       });
+
+      if (!this.appId) {
+        throw new Error('App ID manquant dans la réponse du serveur');
+      }
 
       // Create Agora client
       this.client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });

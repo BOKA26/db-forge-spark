@@ -70,26 +70,26 @@ export const BottomNav = () => {
       path: '/',
       label: 'Accueil',
       icon: Home,
-      activeColor: 'text-orange-500',
+      activeColor: 'text-primary',
     },
     {
       path: '/categories',
       label: 'Catégories',
       icon: LayoutGrid,
-      activeColor: 'text-foreground',
+      activeColor: 'text-primary',
     },
     {
       path: '/messages',
       label: 'Messagerie',
       icon: MessageSquare,
-      activeColor: 'text-foreground',
+      activeColor: 'text-primary',
       badge: user ? unreadCount : 0,
     },
     {
       path: '/panier',
       label: 'Panier',
       icon: ShoppingCart,
-      activeColor: 'text-foreground',
+      activeColor: 'text-primary',
       requireAuth: true,
       badge: user ? cartCount : 0,
     },
@@ -97,8 +97,8 @@ export const BottomNav = () => {
 
   if (!user) {
     return (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-50">
-        <div className="flex items-center justify-around h-14">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50 safe-area-bottom">
+        <div className="flex items-center justify-around h-16 px-2">
           {navItems.filter(item => !item.requireAuth).map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -107,7 +107,7 @@ export const BottomNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 flex-1"
+                className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation"
               >
                 <Icon
                   className={`h-5 w-5 ${
@@ -115,7 +115,7 @@ export const BottomNav = () => {
                   }`}
                 />
                 <span
-                  className={`text-[10px] ${
+                  className={`text-[10px] font-medium ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 >
@@ -124,9 +124,9 @@ export const BottomNav = () => {
               </Link>
             );
           })}
-          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 flex-1">
+          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation">
             <User className="h-5 w-5 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">Connexion</span>
+            <span className="text-[10px] font-medium text-muted-foreground">Connexion</span>
           </Link>
         </div>
       </nav>
@@ -134,7 +134,7 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-50 safe-area-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50 safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -144,25 +144,25 @@ export const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center gap-1 relative flex-1 min-h-[48px] min-w-[48px]"
+              className="flex flex-col items-center justify-center gap-1 relative flex-1 py-2 touch-manipulation"
             >
               <div className="relative">
                 <Icon
-                  className={`h-6 w-6 ${
+                  className={`h-5 w-5 ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 />
                 {item.badge && item.badge > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-5 min-w-5 px-1 flex items-center justify-center text-xs"
+                    className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold"
                   >
                     {item.badge > 99 ? '99+' : item.badge}
                   </Badge>
                 )}
               </div>
               <span
-                className={`text-[11px] font-medium ${
+                className={`text-[10px] font-medium ${
                   isActive ? item.activeColor : 'text-muted-foreground'
                 }`}
               >

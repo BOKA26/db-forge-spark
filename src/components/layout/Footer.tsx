@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
-    <footer className="border-t bg-muted/40 mt-auto">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t bg-muted/40 mt-auto mb-16 md:mb-0">
+      <div className="container py-8 md:py-12 px-4 md:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* À propos */}
           <div>
-            <h3 className="font-semibold mb-4">À propos</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">À propos</h3>
+            <ul className="space-y-2 text-xs md:text-sm">
               <li>
                 <Link to="/a-propos" className="text-muted-foreground hover:text-foreground">
                   Qui sommes-nous
@@ -29,8 +29,8 @@ export const Footer = () => {
 
           {/* Aide */}
           <div>
-            <h3 className="font-semibold mb-4">Aide</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Aide</h3>
+            <ul className="space-y-2 text-xs md:text-sm">
               <li>
                 <Link to="/faq" className="text-muted-foreground hover:text-foreground">
                   FAQ
@@ -40,9 +40,9 @@ export const Footer = () => {
           </div>
 
           {/* Légal */}
-          <div>
-            <h3 className="font-semibold mb-4">Légal</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Légal</h3>
+            <ul className="space-y-2 text-xs md:text-sm">
               <li>
                 <Link to="/mentions-legales" className="text-muted-foreground hover:text-foreground">
                   Mentions légales
@@ -66,16 +66,16 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Newsletter */}
-          <div>
-            <h3 className="font-semibold mb-4">Newsletter</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+          {/* Newsletter - Hidden on mobile */}
+          <div className="hidden md:block">
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Newsletter</h3>
+            <p className="text-xs md:text-sm text-muted-foreground mb-4">
               Restez informé des dernières offres
             </p>
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t mt-6 md:mt-8 pt-6 md:pt-8 text-center text-xs md:text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} BokaTrade. Tous droits réservés.</p>
         </div>
       </div>

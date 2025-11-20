@@ -54,7 +54,16 @@ export default function AdminRegister() {
       });
 
       if (signUpError) {
-        toast.error(signUpError.message);
+        if (signUpError.message.includes('already registered')) {
+          toast.error('Cet email est déjà enregistré. Veuillez vous connecter.', {
+            action: {
+              label: 'Se connecter',
+              onClick: () => navigate('/connexion'),
+            },
+          });
+        } else {
+          toast.error(signUpError.message);
+        }
         setLoading(false);
         return;
       }

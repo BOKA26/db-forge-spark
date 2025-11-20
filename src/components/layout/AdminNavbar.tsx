@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Store, LogOut, Users, Package, ShoppingCart, Truck, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Store, LogOut, Users, Package, ShoppingCart, Truck, CreditCard, Bike } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -54,6 +54,12 @@ export const AdminNavbar = () => {
                 <Link to="/admin/orders">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Commandes
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/couriers">
+                  <Bike className="h-4 w-4 mr-2" />
+                  Livreurs
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>

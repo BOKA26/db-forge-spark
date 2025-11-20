@@ -84,6 +84,9 @@ export default function AdminRegister() {
 
       if (userError) {
         console.error('Erreur création utilisateur:', userError);
+        toast.error('Erreur lors de la création du profil utilisateur');
+        setLoading(false);
+        return;
       }
 
       // Valider le code et attribuer le rôle admin via edge function sécurisée

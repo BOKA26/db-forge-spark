@@ -79,7 +79,9 @@ export default function AdminLogin() {
 
       // Succès - rediriger vers le dashboard admin
       toast.success('Connexion réussie !');
-      navigate('/admin/dashboard', { replace: true });
+      
+      // S'assurer de la redirection vers le dashboard admin
+      window.location.href = '/admin/dashboard';
 
     } catch (error: any) {
       console.error('Erreur connexion admin:', error);

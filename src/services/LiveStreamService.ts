@@ -48,7 +48,7 @@ export class LiveStreamService {
 
       this.appId = data.appId;
       this.channelName = data.channelName;
-      this.token = data.token;
+      this.token = data.token || null; // Ensure null instead of empty string
       this.uid = data.uid;
 
       console.log('Agora config received:', {

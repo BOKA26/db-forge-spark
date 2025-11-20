@@ -15,11 +15,11 @@ async function generateAgoraToken(
   uid: number,
   role: number,
   privilegeExpireTime: number = 3600
-): Promise<string> {
-  // For now, return empty string to use Agora without token (testing mode)
+): Promise<string | null> {
+  // For now, return null to use Agora without token (testing mode)
   // In production, implement proper token generation using Agora's algorithm
   console.log('Token generation called - using testing mode (no token)');
-  return '';
+  return null;
 }
 
 serve(async (req) => {

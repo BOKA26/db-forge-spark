@@ -1,10 +1,18 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 
 const LegalNotice = () => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
+      <SEOHead
+        title="Mentions Légales"
+        description="Mentions légales de BokaTrade : informations sur l'éditeur, hébergeur, directeur de publication et propriété intellectuelle. Cadre légal de la plateforme."
+        keywords="mentions légales, éditeur, hébergeur, droits d'auteur, propriété intellectuelle"
+        canonical="/mentions-legales"
+      />
+      <div className="flex min-h-screen flex-col">
       <Navbar />
       
       <main className="flex-1 py-12">
@@ -133,6 +141,7 @@ const LegalNotice = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

@@ -1,11 +1,19 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Users, Globe, TrendingUp } from 'lucide-react';
 
 const About = () => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
+      <SEOHead
+        title="À propos de BokaTrade"
+        description="Découvrez BokaTrade, la marketplace B2B leader en Afrique de l'Ouest. Plateforme sécurisée avec Escrow pour faciliter le commerce professionnel entre acheteurs et vendeurs."
+        keywords="à propos, bokatrade, marketplace b2b, afrique, mission, valeurs"
+        canonical="/a-propos"
+      />
+      <div className="flex min-h-screen flex-col">
       <Navbar />
       
       <main className="flex-1 py-12">
@@ -88,6 +96,7 @@ const About = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

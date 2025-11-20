@@ -1,10 +1,18 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 
 const Terms = () => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
+      <SEOHead
+        title="Conditions Générales d'Utilisation"
+        description="Conditions générales d'utilisation de BokaTrade : marketplace B2B avec système Escrow sécurisé pour l'Afrique de l'Ouest. Droits et obligations des utilisateurs."
+        keywords="CGU, conditions générales, marketplace b2b, escrow, règlement"
+        canonical="/cgu"
+      />
+      <div className="flex min-h-screen flex-col">
       <Navbar />
       
       <main className="flex-1 py-12">
@@ -124,6 +132,7 @@ const Terms = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

@@ -242,10 +242,28 @@ const ProductDetail = () => {
             <div className="space-y-4 md:space-y-6">
               {/* Title */}
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2 leading-tight">{product.nom}</h1>
-                <div className="text-xs md:text-sm text-muted-foreground">
-                  Pas d'avis pour le moment
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 md:mb-3 leading-tight">{product.nom}</h1>
+                <p className="text-sm md:text-base text-muted-foreground mb-3">
+                  Fournisseur: {supplierName}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={inStock ? "default" : "secondary"} className="text-xs md:text-sm px-2 md:px-3 py-1">
+                    {inStock ? "✓ En stock" : "📦 Sur commande"}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs md:text-sm px-2 md:px-3 py-1">
+                    🚚 Livraison: 2-5 jours ouvrés
+                  </Badge>
+                  {product.origin_country && (
+                    <Badge variant="outline" className="text-xs md:text-sm px-2 md:px-3 py-1">
+                      📍 Origine: {product.origin_country}
+                    </Badge>
+                  )}
                 </div>
+                {inStock && (
+                  <p className="text-xs md:text-sm text-green-600 dark:text-green-400 font-medium mt-2">
+                    {product.stock} unités disponibles immédiatement
+                  </p>
+                )}
               </div>
 
               {/* Supplier Info */}
@@ -471,17 +489,83 @@ const ProductDetail = () => {
           </div>
 
           {/* Product Spotlight / Description */}
-          <Card className="mt-6 md:mt-12">
+          <Card className="mt-6 md:mt-12 border-2">
             <CardHeader className="p-4 md:p-6">
               <div className="flex items-center gap-2">
                 <div className="h-5 md:h-6 w-0.5 md:w-1 bg-[#FF6B35] rounded-full"></div>
-                <CardTitle className="text-lg md:text-2xl">Product spotlights</CardTitle>
+                <CardTitle className="text-lg md:text-2xl">Description du produit</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="p-4 md:p-6 pt-0">
-              <p className="text-sm md:text-base text-muted-foreground whitespace-pre-line leading-relaxed">
-                {product.description || "Aucune description disponible pour ce produit."}
-              </p>
+            <CardContent className="p-4 md:p-6 pt-0 space-y-6">
+              {/* Main Description */}
+              <div className="prose prose-sm max-w-none text-muted-foreground">
+                <p className="text-sm md:text-base whitespace-pre-line leading-relaxed">
+                  {product.description || "Ce produit est disponible pour commande en gros. Contactez-nous pour plus d'informations sur les quantités minimales, les options de personnalisation et les délais de livraison."}
+                </p>
+              </div>
+
+              {/* Key Features Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-base md:text-lg">✓</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm md:text-base mb-1">Qualité garantie</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">Produits vérifiés et certifiés conformes</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-base md:text-lg">🚚</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm md:text-base mb-1">Livraison rapide</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">2-5 jours ouvrés partout en Côte d'Ivoire</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-base md:text-lg">💰</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm md:text-base mb-1">Prix dégressifs</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">Meilleurs tarifs pour grosses quantités</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-base md:text-lg">📞</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm md:text-base mb-1">Support dédié</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">Accompagnement personnalisé 7j/7</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stock & Delivery Info */}
+              <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-sm md:text-base">Informations de disponibilité</h3>
+                <div className="grid gap-2 text-xs md:text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Disponibilité:</span>
+                    <span className="font-medium">{inStock ? `${product.stock} unités en stock` : "Sur commande (7-14 jours)"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Prix TTC:</span>
+                    <span className="font-medium">{product.prix.toLocaleString()} FCFA (TVA incluse)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Délai de livraison:</span>
+                    <span className="font-medium">2-5 jours ouvrés</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quantité minimale:</span>
+                    <span className="font-medium">{product.stock || 10} unités</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

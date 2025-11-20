@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Package, ZoomIn, ShieldCheck } from 'lucide-react';
 
 const ProductList = () => {
@@ -17,6 +19,8 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState(searchParams.get('categorie') || 'all');
   const [sortBy, setSortBy] = useState('recent');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -26,7 +30,7 @@ const ProductList = () => {
   }, [searchParams]);
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ['products', searchTerm, category, sortBy],
+    queryKey: ['products', searchTerm, category, sortBy, priceRange, inStockOnly],
     queryFn: async () => {
       let query = supabase
         .from('products')
@@ -40,6 +44,13 @@ const ProductList = () => {
       if (category !== 'all') {
         query = query.eq('categorie', category);
       }
+
+      if (inStockOnly) {
+        query = query.gt('stock', 0);
+      }
+
+      // Apply price range filter
+      query = query.gte('prix', priceRange[0]).lte('prix', priceRange[1]);
 
       if (sortBy === 'price_asc') {
         query = query.order('prix', { ascending: true });
@@ -82,10 +93,15 @@ const ProductList = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
-                <SelectItem value="Électronique">Électronique</SelectItem>
-                <SelectItem value="Mode">Mode</SelectItem>
-                <SelectItem value="Maison">Maison</SelectItem>
-                <SelectItem value="Agriculture">Agriculture</SelectItem>
+                <SelectItem value="Électronique">📱 Électronique</SelectItem>
+                <SelectItem value="Mode">👗 Mode & Vêtements</SelectItem>
+                <SelectItem value="Maison">🏠 Maison & Décoration</SelectItem>
+                <SelectItem value="Beauté">💄 Beauté & Cosmétiques</SelectItem>
+                <SelectItem value="Sport">⚽ Sport & Loisirs</SelectItem>
+                <SelectItem value="Jouets">🧸 Jouets & Enfants</SelectItem>
+                <SelectItem value="Alimentation">🍎 Alimentation</SelectItem>
+                <SelectItem value="Automobile">🚗 Automobile</SelectItem>
+                <SelectItem value="Agriculture">🌾 Agriculture</SelectItem>
               </SelectContent>
             </Select>
 
@@ -99,6 +115,39 @@ const ProductList = () => {
                 <SelectItem value="price_desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Advanced Filters */}
+          <div className="bg-muted/30 rounded-lg p-4 space-y-4">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+              <div className="flex-1 w-full">
+                <label className="text-sm font-medium mb-2 block">
+                  Prix: {priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} FCFA
+                </label>
+                <Slider
+                  min={0}
+                  max={1000000}
+                  step={10000}
+                  value={priceRange}
+                  onValueChange={(value) => setPriceRange(value as [number, number])}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="inStock"
+                  checked={inStockOnly}
+                  onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
+                />
+                <label
+                  htmlFor="inStock"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  En stock uniquement
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -170,14 +219,29 @@ const ProductList = () => {
                         </h3>
                         
                         {/* Prix */}
-                        <div className="text-2xl md:text-3xl font-bold text-foreground">
-                          {product.prix.toLocaleString()} FCFA
+                        <div className="space-y-1">
+                          <div className="text-2xl md:text-3xl font-bold text-foreground">
+                            {product.prix.toLocaleString()} FCFA{' '}
+                            <span className="text-xs text-muted-foreground font-normal">TTC</span>
+                          </div>
                         </div>
                         
-                        {/* MOQ et vues */}
-                        <div className="flex items-center justify-between text-xs md:text-sm text-muted-foreground">
-                          <span>MOQ: 2 pièces</span>
-                          <span>{randomViews.toLocaleString()} vues</span>
+                        {/* Stock et MOQ */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs md:text-sm text-muted-foreground">
+                            MOQ: {product.stock || 10} unités
+                          </span>
+                          <Badge 
+                            variant={product.stock && product.stock > 0 ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {product.stock && product.stock > 0 ? "En stock" : "Sur commande"}
+                          </Badge>
+                        </div>
+
+                        {/* Livraison */}
+                        <div className="text-xs text-muted-foreground pt-1">
+                          🚚 Livraison: 2-5 jours ouvrés
                         </div>
                         
                         {/* Verified badge */}

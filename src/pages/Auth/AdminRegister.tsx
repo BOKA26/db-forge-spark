@@ -109,8 +109,11 @@ export default function AdminRegister() {
 
       toast.success('Compte administrateur créé avec succès !');
       
-      // Rediriger immédiatement vers le dashboard admin
-      navigate('/admin/dashboard', { replace: true });
+      // Attendre un peu pour que le rôle soit synchronisé
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Forcer un rechargement complet pour s'assurer que l'état d'auth est à jour
+      window.location.href = '/admin/dashboard';
 
     } catch (error: any) {
       console.error('Erreur inscription admin:', error);

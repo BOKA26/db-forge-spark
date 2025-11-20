@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, LayoutGrid, MessageSquare, ShoppingCart, User, Store } from 'lucide-react';
+import { Home, LayoutGrid, MessageSquare, ShoppingCart, User, Store, ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
@@ -70,6 +70,12 @@ export const BottomNav = () => {
       path: '/',
       label: 'Accueil',
       icon: Home,
+      activeColor: 'text-primary',
+    },
+    {
+      path: '/boutiques',
+      label: 'Boutiques',
+      icon: ShoppingBag,
       activeColor: 'text-primary',
     },
     {

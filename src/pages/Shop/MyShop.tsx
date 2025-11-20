@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus, Package, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus, Package, Image as ImageIcon, Video } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
@@ -442,16 +442,37 @@ const MyShop = () => {
             </CardContent>
           </Card>
 
-          {/* Products Section */}
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Produits de ma boutique</CardTitle>
-                <Button size="sm" onClick={() => navigate(`/ajouter-produit?shop_id=${shop.id}`)}>
+              <CardTitle>Actions rapides</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  onClick={() => navigate('/demarrer-live')}
+                  className="w-full"
+                  variant="default"
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Démarrer un live
+                </Button>
+                <Button 
+                  onClick={() => navigate(`/ajouter-produit?shop_id=${shop.id}`)}
+                  className="w-full"
+                  variant="outline"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un produit
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Products Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Produits de ma boutique</CardTitle>
             </CardHeader>
             <CardContent>
               {productsLoading ? (

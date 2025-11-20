@@ -175,6 +175,75 @@ export type Database = {
           },
         ]
       }
+      courier_ratings: {
+        Row: {
+          acheteur_id: string
+          comment: string | null
+          created_at: string
+          delivery_id: string
+          id: string
+          livreur_id: string
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          acheteur_id: string
+          comment?: string | null
+          created_at?: string
+          delivery_id: string
+          id?: string
+          livreur_id: string
+          rating: number
+          updated_at?: string
+        }
+        Update: {
+          acheteur_id?: string
+          comment?: string | null
+          created_at?: string
+          delivery_id?: string
+          id?: string
+          livreur_id?: string
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_ratings_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
+          },
+          {
+            foreignKeyName: "courier_ratings_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courier_ratings_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courier_ratings_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
+          },
+          {
+            foreignKeyName: "courier_ratings_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deliveries: {
         Row: {
           acheteur_id: string | null
@@ -217,8 +286,22 @@ export type Database = {
             foreignKeyName: "deliveries_acheteur_id_fkey"
             columns: ["acheteur_id"]
             isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
+          },
+          {
+            foreignKeyName: "deliveries_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
           },
           {
             foreignKeyName: "deliveries_livreur_id_fkey"
@@ -233,6 +316,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "orders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
           },
           {
             foreignKeyName: "deliveries_vendeur_id_fkey"
@@ -449,6 +539,13 @@ export type Database = {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -496,8 +593,22 @@ export type Database = {
             foreignKeyName: "orders_acheteur_id_fkey"
             columns: ["acheteur_id"]
             isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
+          },
+          {
+            foreignKeyName: "orders_acheteur_id_fkey"
+            columns: ["acheteur_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_livreur_id_fkey"
+            columns: ["livreur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
           },
           {
             foreignKeyName: "orders_livreur_id_fkey"
@@ -512,6 +623,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
           },
           {
             foreignKeyName: "orders_vendeur_id_fkey"
@@ -637,6 +755,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "shops"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_vendeur_id_fkey"
+            columns: ["vendeur_id"]
+            isOneToOne: false
+            referencedRelation: "courier_stats"
+            referencedColumns: ["courier_id"]
           },
           {
             foreignKeyName: "products_vendeur_id_fkey"
@@ -860,7 +985,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      courier_stats: {
+        Row: {
+          average_rating: number | null
+          completed_deliveries: number | null
+          courier_id: string | null
+          courier_name: string | null
+          total_deliveries: number | null
+          total_ratings: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

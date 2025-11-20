@@ -44,57 +44,59 @@ export const FeaturedProducts = () => {
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-muted/30">
+    <section className="py-16 md:py-24 bg-muted/30">
       <div className="container px-4 md:px-6">
-        <div className="text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <TrendingUp className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl md:text-4xl font-bold text-foreground">
-              Nouveaux Produits
-            </h2>
+        <div className="text-center mb-12 md:mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <span className="text-sm font-semibold text-primary uppercase tracking-wide">Nouveautés</span>
           </div>
-          <p className="text-muted-foreground text-base md:text-lg">
-            Découvrez les dernières additions à notre catalogue
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+            Derniers Produits Ajoutés
+          </h2>
+          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
+            Découvrez les dernières additions à notre catalogue de produits africains authentiques
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-8">
           {products.map((product) => {
             const images = product.images as string[] | null;
             const imageUrl = images && images.length > 0 ? images[0] : '/placeholder.svg';
             
             return (
               <Link key={product.id} to={`/produit/${product.id}`}>
-                <Card className="h-full hover:shadow-lg transition-shadow group">
+                <Card className="h-full hover:shadow-xl hover:border-primary/50 transition-all duration-300 group overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
+                    <div className="relative aspect-square overflow-hidden bg-muted">
                       <img
                         src={imageUrl}
                         alt={product.nom}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       {product.stock && product.stock > 0 ? (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                        <Badge className="absolute top-3 right-3 bg-african-green text-white shadow-lg border-0 px-3 py-1">
                           ✓ En stock
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="absolute top-2 right-2">
+                        <Badge variant="secondary" className="absolute top-3 right-3 shadow-lg px-3 py-1">
                           Sur commande
                         </Badge>
                       )}
                     </div>
-                    <div className="p-3 md:p-4 space-y-2">
-                      <h3 className="font-semibold text-sm md:text-base text-foreground line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]">
+                    <div className="p-4 md:p-5 space-y-3">
+                      <h3 className="font-bold text-sm md:text-base text-foreground line-clamp-2 min-h-[2.5rem] md:min-h-[3rem] leading-snug">
                         {product.nom}
                       </h3>
-                      <div className="flex items-center justify-between">
-                        <p className="text-lg md:text-xl font-bold text-primary">
-                          {product.prix.toLocaleString()} FCFA
+                      <div className="flex items-center justify-between pt-1">
+                        <p className="text-xl md:text-2xl font-bold text-primary">
+                          {product.prix.toLocaleString()} <span className="text-sm font-normal">FCFA</span>
                         </p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                          <span>4.5</span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                          <Star className="w-3.5 h-3.5 fill-accent text-accent" />
+                          <span className="font-semibold">4.5</span>
                         </div>
                       </div>
                     </div>
@@ -105,10 +107,10 @@ export const FeaturedProducts = () => {
           })}
         </div>
 
-        <div className="text-center mt-8 md:mt-12">
-          <Button asChild size="lg" variant="outline" className="min-w-[200px] touch-manipulation">
+        <div className="text-center mt-12 md:mt-16">
+          <Button asChild size="lg" variant="outline" className="min-w-[240px] h-14 text-lg touch-manipulation border-2 hover:bg-primary/5 font-semibold">
             <Link to="/produits">
-              Voir tous les produits
+              Voir tous les produits →
             </Link>
           </Button>
         </div>

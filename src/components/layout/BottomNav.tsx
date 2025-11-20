@@ -97,8 +97,8 @@ export const BottomNav = () => {
 
   if (!user) {
     return (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50 safe-area-bottom">
-        <div className="flex items-center justify-around h-16 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
+        <div className="flex items-center justify-around h-16">
           {navItems.filter(item => !item.requireAuth).map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -107,15 +107,17 @@ export const BottomNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation"
+                className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]"
               >
-                <Icon
-                  className={`h-5 w-5 ${
-                    isActive ? item.activeColor : 'text-muted-foreground'
-                  }`}
-                />
+                <div className="relative flex items-center justify-center">
+                  <Icon
+                    className={`h-6 w-6 ${
+                      isActive ? item.activeColor : 'text-muted-foreground'
+                    }`}
+                  />
+                </div>
                 <span
-                  className={`text-[10px] font-medium ${
+                  className={`text-[11px] font-medium leading-none ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 >
@@ -124,9 +126,9 @@ export const BottomNav = () => {
               </Link>
             );
           })}
-          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation">
-            <User className="h-5 w-5 text-muted-foreground" />
-            <span className="text-[10px] font-medium text-muted-foreground">Connexion</span>
+          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]">
+            <User className="h-6 w-6 text-muted-foreground" />
+            <span className="text-[11px] font-medium text-muted-foreground leading-none">Mon Trade</span>
           </Link>
         </div>
       </nav>
@@ -134,35 +136,36 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50 safe-area-bottom">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
+      <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
+          const showBadge = item.badge !== undefined && item.badge > 0;
           
           return (
             <Link
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center gap-1 relative flex-1 py-2 touch-manipulation"
+              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]"
             >
-              <div className="relative">
+              <div className="relative flex items-center justify-center w-8 h-8">
                 <Icon
-                  className={`h-5 w-5 ${
+                  className={`h-6 w-6 ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 />
-                {item.badge && item.badge > 0 && (
+                {showBadge && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold"
+                    className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full"
                   >
                     {item.badge > 99 ? '99+' : item.badge}
                   </Badge>
                 )}
               </div>
               <span
-                className={`text-[10px] font-medium ${
+                className={`text-[11px] font-medium leading-none ${
                   isActive ? item.activeColor : 'text-muted-foreground'
                 }`}
               >
@@ -173,15 +176,17 @@ export const BottomNav = () => {
         })}
         
         {/* Profile Dropdown */}
-        <div className="flex-1">
+        <div className="flex-1 flex items-center justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full h-full flex flex-col items-center justify-center gap-1 rounded-none hover:bg-transparent min-h-[48px]"
+                className="flex flex-col items-center justify-center gap-1.5 py-2 h-auto hover:bg-transparent touch-manipulation min-w-[60px]"
               >
-                <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`} />
-                <span className={`text-[11px] font-medium ${location.pathname === '/profil' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className="relative flex items-center justify-center">
+                  <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+                <span className={`text-[11px] font-medium leading-none ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`}>
                   Mon Trade
                 </span>
               </Button>

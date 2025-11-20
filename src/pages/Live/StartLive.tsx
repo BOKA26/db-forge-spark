@@ -282,6 +282,19 @@ export default function StartLive() {
                   >
                     {isMicOn ? <Mic /> : <MicOff />}
                   </Button>
+                  
+                  {isLive && (
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      onClick={() => endLiveMutation.mutate()}
+                      disabled={endLiveMutation.isPending}
+                      className="rounded-full"
+                      title="Terminer le live"
+                    >
+                      ⏹️
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
@@ -339,6 +352,15 @@ export default function StartLive() {
                     </div>
                   </div>
 
+                  <div className="bg-destructive/10 border-2 border-destructive rounded-lg p-4 mb-4">
+                    <p className="text-sm font-medium text-destructive mb-2">
+                      🔴 Live en cours
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Cliquez sur le bouton ci-dessous pour terminer votre diffusion
+                    </p>
+                  </div>
+
                   <Button
                     onClick={() => endLiveMutation.mutate()}
                     disabled={endLiveMutation.isPending}
@@ -347,7 +369,7 @@ export default function StartLive() {
                     size="lg"
                   >
                     {endLiveMutation.isPending ? (
-                      <><Loader2 className="mr-2 animate-spin" /> Arrêt...</>
+                      <><Loader2 className="mr-2 animate-spin" /> Arrêt en cours...</>
                     ) : (
                       '⏹️ Terminer le Live'
                     )}

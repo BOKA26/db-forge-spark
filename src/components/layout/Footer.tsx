@@ -50,7 +50,12 @@ export const Footer = () => {
               </li>
               <li>
                 <Link to="/cgu" className="text-muted-foreground hover:text-foreground">
-                  CGU
+                  CGV/CGU
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-muted-foreground hover:text-foreground">
+                  Blog
                 </Link>
               </li>
               <li>

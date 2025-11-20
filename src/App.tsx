@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { HelmetProvider } from 'react-helmet-async';
+import { CookieConsent } from "@/components/seo/CookieConsent";
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -52,6 +54,8 @@ const PaymentConfirmation = lazy(() => import("./pages/Orders/PaymentConfirmatio
 const TrackDelivery = lazy(() => import("./pages/Tracking/TrackDelivery"));
 const StartLive = lazy(() => import("./pages/Live/StartLive"));
 const WatchLive = lazy(() => import("./pages/Live/WatchLive"));
+const BlogList = lazy(() => import("./pages/Blog/BlogList"));
+const BlogPost = lazy(() => import("./pages/Blog/BlogPost"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,14 +74,15 @@ const LoadingFallback = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <div className="pb-16 md:pb-0">
-            <Suspense fallback={<LoadingFallback />}>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <div className="pb-16 md:pb-0">
+              <Suspense fallback={<LoadingFallback />}>
               <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
@@ -99,6 +104,8 @@ const App = () => (
               <Route path="/mentions-legales" element={<LegalNotice />} />
               <Route path="/cgu" element={<Terms />} />
               <Route path="/politique-confidentialite" element={<Privacy />} />
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/panier" element={<Cart />} />
               <Route path="/confirmation-paiement" element={<PaymentConfirmation />} />
@@ -248,11 +255,13 @@ const App = () => (
             </Routes>
             </Suspense>
             <BottomNav />
+            <CookieConsent />
           </div>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

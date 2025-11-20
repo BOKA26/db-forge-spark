@@ -1,10 +1,18 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 
 const Privacy = () => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
+      <SEOHead
+        title="Politique de Confidentialité"
+        description="Politique de confidentialité de BokaTrade : collecte, traitement et protection de vos données personnelles. Conformité RGPD et droits des utilisateurs."
+        keywords="confidentialité, RGPD, données personnelles, protection des données, vie privée"
+        canonical="/politique-confidentialite"
+      />
+      <div className="flex min-h-screen flex-col">
       <Navbar />
       
       <main className="flex-1 py-12">
@@ -141,6 +149,7 @@ const Privacy = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

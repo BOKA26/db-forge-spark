@@ -795,6 +795,7 @@ export type Database = {
           id: string
           nom: string
           pays: string | null
+          points: number | null
           statut: string | null
           telephone: string | null
         }
@@ -805,6 +806,7 @@ export type Database = {
           id: string
           nom: string
           pays?: string | null
+          points?: number | null
           statut?: string | null
           telephone?: string | null
         }
@@ -815,6 +817,7 @@ export type Database = {
           id?: string
           nom?: string
           pays?: string | null
+          points?: number | null
           statut?: string | null
           telephone?: string | null
         }

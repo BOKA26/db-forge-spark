@@ -48,6 +48,7 @@ const ShopDetail = lazy(() => import("./pages/Admin/ShopDetail"));
 const AdminUsersList = lazy(() => import("./pages/Admin/UsersList"));
 const AdminProductsList = lazy(() => import("./pages/Admin/ProductsList"));
 const AdminOrdersList = lazy(() => import("./pages/Admin/OrdersList"));
+const AdminCouriersList = lazy(() => import("./pages/Admin/CouriersList"));
 const AdminDeliveriesList = lazy(() => import("./pages/Admin/DeliveriesList"));
 const AdminPaymentsList = lazy(() => import("./pages/Admin/PaymentsList"));
 const About = lazy(() => import("./pages/Legal/About"));
@@ -270,6 +271,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requireRole="admin">
                     <AdminOrdersList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/couriers"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminCouriersList />
                   </ProtectedRoute>
                 }
               />

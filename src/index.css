@@ -8,82 +8,101 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* African-inspired color palette */
+    --background: 30 15% 98%;
+    --foreground: 24 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 24 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 24 10% 10%;
 
-    --primary: 200 95% 40%;
+    /* Vibrant African orange/terracotta as primary */
+    --primary: 18 85% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Warm earth tones for secondary */
+    --secondary: 35 45% 88%;
+    --secondary-foreground: 24 10% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 35 20% 92%;
+    --muted-foreground: 24 6% 45%;
 
-    --accent: 200 95% 40%;
-    --accent-foreground: 0 0% 100%;
+    /* Warm accent with African yellow/gold */
+    --accent: 45 90% 60%;
+    --accent-foreground: 24 10% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 200 95% 40%;
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 18 85% 55%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 18 85% 55%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 35 45% 88%;
+    --sidebar-accent-foreground: 24 10% 10%;
+    --sidebar-border: 35 15% 88%;
+    --sidebar-ring: 18 85% 55%;
+    
+    /* Custom tokens for African theme */
+    --african-orange: 18 85% 55%;
+    --african-green: 142 70% 45%;
+    --african-yellow: 45 90% 60%;
+    --african-red: 0 75% 60%;
+    --earth-brown: 24 35% 35%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 24 15% 8%;
+    --foreground: 30 10% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 24 12% 12%;
+    --card-foreground: 30 10% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 24 12% 12%;
+    --popover-foreground: 30 10% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Vibrant African orange for dark mode */
+    --primary: 18 85% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 24 15% 18%;
+    --secondary-foreground: 30 10% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 24 10% 18%;
+    --muted-foreground: 30 8% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 45 90% 60%;
+    --accent-foreground: 24 15% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 24 15% 20%;
+    --input: 24 15% 20%;
+    --ring: 18 85% 55%;
+    --sidebar-background: 24 15% 8%;
+    --sidebar-foreground: 30 10% 95%;
+    --sidebar-primary: 18 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 24 15% 18%;
+    --sidebar-accent-foreground: 30 10% 95%;
+    --sidebar-border: 24 15% 20%;
+    --sidebar-ring: 18 85% 55%;
+    
+    /* Custom tokens for African theme */
+    --african-orange: 18 85% 60%;
+    --african-green: 142 65% 50%;
+    --african-yellow: 45 85% 65%;
+    --african-red: 0 70% 65%;
+    --earth-brown: 30 25% 65%;
   }
 }
 
@@ -135,6 +154,10 @@ All colors MUST be HSL.
     /* Performance: Enable hardware acceleration for smooth scrolling */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
   }
 
   /* Performance: Optimize images */

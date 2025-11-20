@@ -57,6 +57,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        african: {
+          orange: "hsl(var(--african-orange))",
+          green: "hsl(var(--african-green))",
+          yellow: "hsl(var(--african-yellow))",
+          red: "hsl(var(--african-red))",
+          brown: "hsl(var(--earth-brown))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

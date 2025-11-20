@@ -52,11 +52,31 @@ const UserProfile = () => {
           .maybeSingle();
 
         if (mounted.current) setProfile(data ?? null);
+        
+        // Vérifier si l'utilisateur a au moins un rôle
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        // Si aucun rôle n'existe, créer le rôle acheteur par défaut
+        if (!roles || roles.length === 0) {
+          await supabase
+            .from("user_roles")
+            .insert({
+              user_id: user.id,
+              role: "acheteur",
+              is_active: true,
+            } as any);
+          
+          // Rafraîchir les rôles
+          await refetch();
+        }
       } catch (e) {
         console.error("Erreur chargement profil:", e);
       }
     })();
-  }, [user?.id]);
+  }, [user?.id, refetch]);
 
   const redirectMap = useMemo<Record<Role, string>>(
     () => ({
@@ -115,24 +135,34 @@ const UserProfile = () => {
     
     setAddingRole(role);
     try {
-      // Désactiver tous les autres rôles
-      await supabase
-        .from("user_roles")
-        .update({ is_active: false } as any)
-        .eq("user_id", user.id);
+      const roleData = userRoles.find((r: any) => r.role === role);
+      
+      if (roleData) {
+        // Le rôle existe déjà, on l'active
+        await supabase
+          .from("user_roles")
+          .update({ is_active: false } as any)
+          .eq("user_id", user.id);
 
-      // Activer le rôle sélectionné
-      const { error } = await supabase
-        .from("user_roles")
-        .upsert({
-          user_id: user.id,
-          role: role,
-          is_active: true,
-        } as any, {
-          onConflict: 'user_id,role'
-        });
+        await supabase
+          .from("user_roles")
+          .update({ is_active: true } as any)
+          .eq("id", roleData.id);
+      } else {
+        // Le rôle n'existe pas, on le crée
+        await supabase
+          .from("user_roles")
+          .update({ is_active: false } as any)
+          .eq("user_id", user.id);
 
-      if (error) throw error;
+        await supabase
+          .from("user_roles")
+          .insert({
+            user_id: user.id,
+            role: role,
+            is_active: true,
+          } as any);
+      }
 
       await refetch();
       toast.success(`Rôle ${roleLabels[role].label} activé avec succès !`);

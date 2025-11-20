@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Store, CheckCircle, Clock, Package, Eye, CreditCard } from 'lucide-react';
+import { Store, CheckCircle, Clock, Package, Eye, CreditCard, Users, ShoppingCart, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminDashboard() {
@@ -23,11 +23,26 @@ export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [totalShops, activeShops, pendingShops, totalProducts] = await Promise.all([
+      const [
+        totalShops,
+        activeShops,
+        pendingShops,
+        totalProducts,
+        totalUsers,
+        totalOrders,
+        pendingOrdersCount,
+        totalDeliveries,
+        totalPayments
+      ] = await Promise.all([
         supabase.from('shops').select('*', { count: 'exact', head: true }),
         supabase.from('shops').select('*', { count: 'exact', head: true }).eq('statut', 'actif'),
         supabase.from('shops').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente'),
         supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente_paiement'),
+        supabase.from('deliveries').select('*', { count: 'exact', head: true }),
+        supabase.from('payments').select('*', { count: 'exact', head: true }),
       ]);
 
       return {
@@ -35,6 +50,11 @@ export default function AdminDashboard() {
         activeShops: activeShops.count || 0,
         pendingShops: pendingShops.count || 0,
         totalProducts: totalProducts.count || 0,
+        totalUsers: totalUsers.count || 0,
+        totalOrders: totalOrders.count || 0,
+        pendingOrdersCount: pendingOrdersCount.count || 0,
+        totalDeliveries: totalDeliveries.count || 0,
+        totalPayments: totalPayments.count || 0,
       };
     },
   });
@@ -155,6 +175,7 @@ export default function AdminDashboard() {
       icon: Store,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+      link: '/admin/boutiques',
     },
     {
       title: 'Boutiques Actives',
@@ -162,6 +183,7 @@ export default function AdminDashboard() {
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
+      link: '/admin/boutiques',
     },
     {
       title: 'Boutiques en attente',
@@ -169,6 +191,7 @@ export default function AdminDashboard() {
       icon: Clock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
+      link: '/admin/boutiques',
     },
     {
       title: 'Produits',
@@ -176,6 +199,47 @@ export default function AdminDashboard() {
       icon: Package,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
+      link: '/admin/products',
+    },
+    {
+      title: 'Utilisateurs',
+      value: stats?.totalUsers || 0,
+      icon: Users,
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-100',
+      link: '/admin/users',
+    },
+    {
+      title: 'Commandes',
+      value: stats?.totalOrders || 0,
+      icon: ShoppingCart,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-100',
+      link: '/admin/orders',
+    },
+    {
+      title: 'Commandes en attente',
+      value: stats?.pendingOrdersCount || 0,
+      icon: Clock,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+      link: '/admin/orders',
+    },
+    {
+      title: 'Livraisons',
+      value: stats?.totalDeliveries || 0,
+      icon: Truck,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100',
+      link: '/admin/deliveries',
+    },
+    {
+      title: 'Paiements',
+      value: stats?.totalPayments || 0,
+      icon: CreditCard,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
+      link: '/admin/payments',
     },
   ];
 
@@ -193,7 +257,11 @@ export default function AdminDashboard() {
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
+            <Card 
+              key={stat.title} 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(stat.link)}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                 <div className={`p-2 rounded-full ${stat.bgColor}`}>

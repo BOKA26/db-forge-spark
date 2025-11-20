@@ -45,6 +45,11 @@ const NotificationPage = lazy(() => import("./pages/Notifications/NotificationPa
 const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
 const AdminShopsList = lazy(() => import("./pages/Admin/ShopsList"));
 const ShopDetail = lazy(() => import("./pages/Admin/ShopDetail"));
+const AdminUsersList = lazy(() => import("./pages/Admin/UsersList"));
+const AdminProductsList = lazy(() => import("./pages/Admin/ProductsList"));
+const AdminOrdersList = lazy(() => import("./pages/Admin/OrdersList"));
+const AdminDeliveriesList = lazy(() => import("./pages/Admin/DeliveriesList"));
+const AdminPaymentsList = lazy(() => import("./pages/Admin/PaymentsList"));
 const About = lazy(() => import("./pages/Legal/About"));
 const Contact = lazy(() => import("./pages/Legal/Contact"));
 const Terms = lazy(() => import("./pages/Legal/Terms"));
@@ -241,6 +246,46 @@ const App = () => (
                 element={
                   <ProtectedRoute requireRole="admin">
                     <ShopDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminUsersList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminProductsList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminOrdersList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/deliveries"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminDeliveriesList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/payments"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminPaymentsList />
                   </ProtectedRoute>
                 }
               />

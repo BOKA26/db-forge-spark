@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Store, LogOut } from 'lucide-react';
+import { LayoutDashboard, Store, LogOut, Users, Package, ShoppingCart, Truck, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -25,7 +25,7 @@ export const AdminNavbar = () => {
             <Link to="/admin/dashboard" className="text-xl font-bold">
               Admin Panel
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/admin/dashboard">
                   <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -36,6 +36,36 @@ export const AdminNavbar = () => {
                 <Link to="/admin/boutiques">
                   <Store className="h-4 w-4 mr-2" />
                   Boutiques
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/users">
+                  <Users className="h-4 w-4 mr-2" />
+                  Utilisateurs
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/products">
+                  <Package className="h-4 w-4 mr-2" />
+                  Produits
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/orders">
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Commandes
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/deliveries">
+                  <Truck className="h-4 w-4 mr-2" />
+                  Livraisons
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/payments">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Paiements
                 </Link>
               </Button>
             </div>

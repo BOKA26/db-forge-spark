@@ -836,14 +836,19 @@ export type Database = {
         Row: {
           adresse: string | null
           created_at: string | null
+          date_verification: string | null
           description: string | null
+          document_identite_url: string | null
           email: string | null
           id: string
           logo_url: string | null
           nom_boutique: string
           owner_id: string | null
+          photo_vendeur_url: string | null
+          raison_rejet: string | null
           site_web: string | null
           statut: string
+          statut_verification: string | null
           telephone: string | null
           updated_at: string | null
           vendeur_id: string
@@ -851,14 +856,19 @@ export type Database = {
         Insert: {
           adresse?: string | null
           created_at?: string | null
+          date_verification?: string | null
           description?: string | null
+          document_identite_url?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
           nom_boutique: string
           owner_id?: string | null
+          photo_vendeur_url?: string | null
+          raison_rejet?: string | null
           site_web?: string | null
           statut?: string
+          statut_verification?: string | null
           telephone?: string | null
           updated_at?: string | null
           vendeur_id: string
@@ -866,14 +876,19 @@ export type Database = {
         Update: {
           adresse?: string | null
           created_at?: string | null
+          date_verification?: string | null
           description?: string | null
+          document_identite_url?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
           nom_boutique?: string
           owner_id?: string | null
+          photo_vendeur_url?: string | null
+          raison_rejet?: string | null
           site_web?: string | null
           statut?: string
+          statut_verification?: string | null
           telephone?: string | null
           updated_at?: string | null
           vendeur_id?: string

@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus, Package, Image as ImageIcon, Video } from 'lucide-react';
+import { Loader2, Edit, Store, MapPin, Phone, Mail, Globe, ExternalLink, AlertTriangle, XCircle, Plus, Package, Image as ImageIcon, Video, Shield, Clock, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 

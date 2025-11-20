@@ -7,16 +7,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, AlertTriangle, MapPin } from 'lucide-react';
+import { Package, CheckCircle, AlertTriangle, MapPin, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { RatingDialog } from '@/components/couriers/RatingDialog';
+import { useState } from 'react';
 
 const MyOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [ratingDialog, setRatingDialog] = useState<{
+    isOpen: boolean;
+    deliveryId: string;
+    courierId: string;
+    courierName: string;
+    existingRating?: any;
+  }>({
+    isOpen: false,
+    deliveryId: '',
+    courierId: '',
+    courierName: '',
+  });
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['buyer-orders', user?.id],
+    queryKey: ['my-orders', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
@@ -24,14 +38,35 @@ const MyOrders = () => {
           *,
           products(*),
           validations(*),
-          deliveries(*)
+          deliveries(
+            *,
+            courier:users!deliveries_livreur_id_fkey(id, nom)
+          )
         `)
         .eq('acheteur_id', user?.id)
         .neq('statut', 'en_attente_paiement')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Récupérer les évaluations existantes
+      const ordersWithRatings = await Promise.all(
+        data.map(async (order) => {
+          if (order.deliveries?.[0]?.id) {
+            const { data: rating } = await supabase
+              .from('courier_ratings')
+              .select('*')
+              .eq('delivery_id', order.deliveries[0].id)
+              .eq('acheteur_id', user?.id)
+              .maybeSingle();
+
+            return { ...order, courierRating: rating };
+          }
+          return { ...order, courierRating: null };
+        })
+      );
+
+      return ordersWithRatings;
     },
     enabled: !!user?.id,
   });
@@ -75,7 +110,7 @@ const MyOrders = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       toast.success('✅ Réception confirmée');
     },
     onError: () => {
@@ -107,7 +142,7 @@ const MyOrders = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       toast.success('Litige ouvert');
     },
     onError: () => {
@@ -176,7 +211,7 @@ const MyOrders = () => {
                           {new Date(order.created_at).toLocaleDateString('fr-FR')}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             {/* Bouton de suivi pour les commandes en livraison */}
                             {(order.statut === 'en_livraison' || order.statut === 'livré') && 
                              Array.isArray(order.deliveries) && order.deliveries.length > 0 && (
@@ -186,6 +221,25 @@ const MyOrders = () => {
                                   Suivre
                                 </Button>
                               </Link>
+                            )}
+                            
+                            {/* Bouton pour noter le livreur après livraison */}
+                            {order.statut === 'livré' && 
+                             order.deliveries?.[0]?.courier && (
+                              <Button
+                                size="sm"
+                                variant={order.courierRating ? "outline" : "secondary"}
+                                onClick={() => setRatingDialog({
+                                  isOpen: true,
+                                  deliveryId: order.deliveries[0].id,
+                                  courierId: order.deliveries[0].courier.id,
+                                  courierName: order.deliveries[0].courier.nom,
+                                  existingRating: order.courierRating,
+                                })}
+                              >
+                                <Star className={`h-4 w-4 mr-1 ${order.courierRating ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                {order.courierRating ? 'Modifier note' : 'Noter livreur'}
+                              </Button>
                             )}
                             
                             {order.statut === 'livré' && !order.validations?.acheteur_ok && (
@@ -233,6 +287,18 @@ const MyOrders = () => {
       </main>
 
       <Footer />
+
+      {/* Dialog pour noter le livreur */}
+      {ratingDialog.isOpen && (
+        <RatingDialog
+          deliveryId={ratingDialog.deliveryId}
+          courierId={ratingDialog.courierId}
+          courierName={ratingDialog.courierName}
+          isOpen={ratingDialog.isOpen}
+          onClose={() => setRatingDialog({ ...ratingDialog, isOpen: false })}
+          existingRating={ratingDialog.existingRating}
+        />
+      )}
     </div>
   );
 };

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, Store, MapPin, Phone, Mail, Globe } from 'lucide-react';
+import { Loader2, Upload, Store, MapPin, Phone, Mail, Globe, FileText, Camera, AlertCircle } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
@@ -24,6 +24,8 @@ const formSchema = z.object({
   telephone: z.string().optional(),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   site_web: z.string().url('URL invalide').optional().or(z.literal('')),
+  document_identite_url: z.string().optional(),
+  photo_vendeur_url: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -34,6 +36,8 @@ const CreateShop = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [idDocFile, setIdDocFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const form = useForm<FormData>({
@@ -46,6 +50,8 @@ const CreateShop = () => {
       telephone: '',
       email: '',
       site_web: '',
+      document_identite_url: '',
+      photo_vendeur_url: '',
     },
   });
 
@@ -78,10 +84,13 @@ const CreateShop = () => {
       if (!user?.id) throw new Error('User not authenticated');
 
       let logoUrl = values.logo_url;
+      let idDocUrl = values.document_identite_url;
+      let photoUrl = values.photo_vendeur_url;
+
+      setUploading(true);
 
       // Upload logo if file is selected
       if (logoFile) {
-        setUploading(true);
         const filePath = `${user.id}/logo.png`;
         const { error: uploadError } = await supabase.storage
           .from('shops')
@@ -94,8 +103,45 @@ const CreateShop = () => {
           .getPublicUrl(filePath);
         
         logoUrl = publicUrl;
-        setUploading(false);
       }
+
+      // Upload ID document if file is selected
+      if (idDocFile) {
+        const timestamp = Date.now();
+        const ext = idDocFile.name.split('.').pop();
+        const filePath = `${user.id}/id_document_${timestamp}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('identity-documents')
+          .upload(filePath, idDocFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('identity-documents')
+          .getPublicUrl(filePath);
+        
+        idDocUrl = publicUrl;
+      }
+
+      // Upload seller photo if file is selected
+      if (photoFile) {
+        const timestamp = Date.now();
+        const ext = photoFile.name.split('.').pop();
+        const filePath = `${user.id}/photo_${timestamp}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('identity-documents')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('identity-documents')
+          .getPublicUrl(filePath);
+        
+        photoUrl = publicUrl;
+      }
+
+      setUploading(false);
 
       const { data, error } = await supabase
         .from('shops')
@@ -108,7 +154,10 @@ const CreateShop = () => {
           telephone: values.telephone || null,
           email: values.email || null,
           site_web: values.site_web || null,
-          statut: 'actif',
+          document_identite_url: idDocUrl || null,
+          photo_vendeur_url: photoUrl || null,
+          statut: 'en_attente',
+          statut_verification: 'en_attente',
         })
         .select()
         .single();

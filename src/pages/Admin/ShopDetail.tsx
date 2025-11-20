@@ -25,7 +25,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Check, Ban, Trash2, ExternalLink, Mail, Phone, MapPin, Globe, ArrowLeft } from 'lucide-react';
+import { Check, Ban, Trash2, ExternalLink, Mail, Phone, MapPin, Globe, ArrowLeft, FileText, Camera, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useState } from 'react';
 
 export default function ShopDetail() {
@@ -33,6 +35,8 @@ export default function ShopDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const { data: shop, isLoading } = useQuery({
     queryKey: ['admin-shop', id],
@@ -87,6 +91,55 @@ export default function ShopDetail() {
     },
   });
 
+  const verifyShopMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('shops')
+        .update({
+          statut_verification: 'verifie',
+          date_verification: new Date().toISOString(),
+          statut: 'actif',
+        })
+        .eq('id', id!);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-shop', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-shops'] });
+      toast.success('Boutique vérifiée et activée avec succès');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la vérification');
+    },
+  });
+
+  const rejectVerificationMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      const { error } = await supabase
+        .from('shops')
+        .update({
+          statut_verification: 'rejete',
+          date_verification: new Date().toISOString(),
+          raison_rejet: reason,
+          statut: 'suspendu',
+        })
+        .eq('id', id!);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-shop', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-shops'] });
+      setShowRejectDialog(false);
+      setRejectReason('');
+      toast.success('Vérification rejetée');
+    },
+    onError: () => {
+      toast.error('Erreur lors du rejet');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('shops').delete().eq('id', id!);
@@ -106,6 +159,16 @@ export default function ShopDetail() {
       en_attente: { variant: 'secondary', label: 'En attente' },
       actif: { variant: 'default', label: 'Active' },
       suspendu: { variant: 'destructive', label: 'Suspendue' },
+    };
+    const config = variants[statut] || { variant: 'outline', label: statut };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getVerificationBadge = (statut: string) => {
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
+      en_attente: { variant: 'secondary', label: 'En attente de vérification' },
+      verifie: { variant: 'default', label: 'Vérifié' },
+      rejete: { variant: 'destructive', label: 'Rejeté' },
     };
     const config = variants[statut] || { variant: 'outline', label: statut };
     return <Badge variant={config.variant}>{config.label}</Badge>;

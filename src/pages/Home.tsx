@@ -12,7 +12,6 @@ import { TrustSection } from '@/components/home/TrustSection';
 import { HeroSection } from '@/components/home/HeroSection';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
-import { WhatsAppButton } from '@/components/home/WhatsAppButton';
 import { Search, Camera, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -168,9 +167,6 @@ const Home = () => {
 
       {/* Trust & Reassurance Section */}
       <TrustSection />
-
-      {/* WhatsApp Contact Button */}
-      <WhatsAppButton />
 
       <Footer />
       <BottomNav />

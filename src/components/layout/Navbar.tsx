@@ -68,18 +68,36 @@ export const Navbar = () => {
           <SearchBar className="hidden md:flex flex-1 max-w-2xl mx-6" />
 
           {/* Navigation - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-1">
-            <MegaMenu />
-            
+          <nav className="hidden md:flex items-center space-x-1">
             <Link to="/">
-              <Button variant="ghost" size="default" className="h-10">Accueil</Button>
+              <Button 
+                variant="ghost" 
+                size="default" 
+                className={cn("h-10", isActive('/') && "bg-accent")}
+              >
+                Accueil
+              </Button>
             </Link>
             <Link to="/produits">
-              <Button variant="ghost" size="default" className="h-10">Produits</Button>
+              <Button 
+                variant="ghost" 
+                size="default" 
+                className={cn("h-10", isActive('/produits') && "bg-accent")}
+              >
+                Produits
+              </Button>
             </Link>
             <Link to="/boutiques">
-              <Button variant="ghost" size="default" className="h-10">Boutiques</Button>
+              <Button 
+                variant="ghost" 
+                size="default" 
+                className={cn("h-10", isActive('/boutiques') && "bg-accent")}
+              >
+                Boutiques
+              </Button>
             </Link>
+            
+            <MegaMenu />
             
             {user ? (
               <>
@@ -101,11 +119,11 @@ export const Navbar = () => {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="h-10 w-10">
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-background">
+                  <DropdownMenuContent align="end" className="w-56 bg-background z-50">
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">

@@ -74,19 +74,13 @@ export const BottomNav = () => {
     },
     {
       path: '/boutiques',
-      label: 'Boutiques',
+      label: 'Shops',
       icon: ShoppingBag,
       activeColor: 'text-primary',
     },
     {
-      path: '/categories',
-      label: 'Catégories',
-      icon: LayoutGrid,
-      activeColor: 'text-primary',
-    },
-    {
       path: '/messages',
-      label: 'Messagerie',
+      label: 'Messages',
       icon: MessageSquare,
       activeColor: 'text-primary',
       badge: user ? unreadCount : 0,
@@ -103,38 +97,38 @@ export const BottomNav = () => {
 
   if (!user) {
     return (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
-        <div className="flex items-center justify-around h-16">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
+      <div className="flex items-center justify-evenly h-16 px-1">
           {navItems.filter(item => !item.requireAuth).map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
             
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]"
-              >
-                <div className="relative flex items-center justify-center">
-                  <Icon
-                    className={`h-6 w-6 ${
-                      isActive ? item.activeColor : 'text-muted-foreground'
-                    }`}
-                  />
-                </div>
-                <span
-                  className={`text-[11px] font-medium leading-none ${
+            <Link
+              key={item.path}
+              to={item.path}
+              className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation min-w-0"
+            >
+              <div className="relative flex items-center justify-center">
+                <Icon
+                  className={`h-5 w-5 ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
-                >
-                  {item.label}
-                </span>
-              </Link>
+                />
+              </div>
+              <span
+                className={`text-[10px] font-medium leading-tight text-center ${
+                  isActive ? item.activeColor : 'text-muted-foreground'
+                }`}
+              >
+                {item.label}
+              </span>
+            </Link>
             );
           })}
-          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]">
-            <User className="h-6 w-6 text-muted-foreground" />
-            <span className="text-[11px] font-medium text-muted-foreground leading-none">Mon Trade</span>
+          <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation min-w-0">
+            <User className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[10px] font-medium text-muted-foreground leading-tight text-center">Profile</span>
           </Link>
         </div>
       </nav>
@@ -143,7 +137,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-evenly h-16 px-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -153,25 +147,25 @@ export const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-2 touch-manipulation min-w-[60px]"
+              className="flex flex-col items-center justify-center gap-1 flex-1 py-2 touch-manipulation min-w-0"
             >
-              <div className="relative flex items-center justify-center w-8 h-8">
+              <div className="relative flex items-center justify-center w-6 h-6">
                 <Icon
-                  className={`h-6 w-6 ${
+                  className={`h-5 w-5 ${
                     isActive ? item.activeColor : 'text-muted-foreground'
                   }`}
                 />
                 {showBadge && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full"
+                    className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full"
                   >
                     {item.badge > 99 ? '99+' : item.badge}
                   </Badge>
                 )}
               </div>
               <span
-                className={`text-[11px] font-medium leading-none ${
+                className={`text-[10px] font-medium leading-tight text-center ${
                   isActive ? item.activeColor : 'text-muted-foreground'
                 }`}
               >
@@ -182,22 +176,22 @@ export const BottomNav = () => {
         })}
 
         {/* Profile/Trade Dropdown */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center min-w-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="flex flex-col items-center justify-center gap-1.5 py-2 h-auto hover:bg-transparent touch-manipulation min-w-[60px]"
+                className="flex flex-col items-center justify-center gap-1 py-2 h-auto hover:bg-transparent touch-manipulation min-w-0 px-0"
               >
                 <div className="relative flex items-center justify-center">
-                  <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <User className={`h-5 w-5 ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`} />
                 </div>
-                <span className={`text-[11px] font-medium leading-none ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Mon Trade
+                <span className={`text-[10px] font-medium leading-tight text-center ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Profile
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-background mb-2">
+            <DropdownMenuContent align="end" className="w-56 bg-background mb-2 z-50">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">

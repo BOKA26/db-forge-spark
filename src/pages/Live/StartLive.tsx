@@ -169,6 +169,7 @@ export default function StartLive() {
 
       console.log('Starting preview with authenticated session');
       await liveStreamService.current.initialize('publisher', 'preview_channel');
+      await liveStreamService.current.joinChannel();
       const { videoTrack } = await liveStreamService.current.startBroadcast();
       
       if (videoPreviewRef.current && videoTrack) {

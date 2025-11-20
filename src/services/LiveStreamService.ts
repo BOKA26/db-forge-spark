@@ -88,7 +88,8 @@ export class LiveStreamService {
     if (!this.client) throw new Error('Client not initialized');
 
     try {
-      await this.client.join(this.appId, this.channelName, this.token, this.uid);
+      const tokenToUse = this.token || null; // Agora requires null when no token is used
+      await this.client.join(this.appId, this.channelName, tokenToUse, this.uid);
       console.log('Joined channel successfully');
       return { success: true };
     } catch (error) {

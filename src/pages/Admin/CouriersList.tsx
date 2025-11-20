@@ -13,12 +13,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CourierRatings } from '@/components/couriers/CourierRatings';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Ban, CheckCircle, Minus, Plus } from 'lucide-react';
+import { Ban, CheckCircle, Minus, Plus, Star, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CouriersList() {
@@ -41,14 +43,37 @@ export default function CouriersList() {
 
       if (courierIds.length === 0) return [];
 
-      const { data, error } = await supabase
+      // Récupérer les utilisateurs avec leurs statistiques de notation
+      const { data: users, error: usersError } = await supabase
         .from('users')
         .select('*')
         .in('id', courierIds)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (usersError) throw usersError;
+
+      // Récupérer les statistiques de notation pour chaque livreur
+      const couriersWithStats = await Promise.all(
+        users.map(async (user) => {
+          const { data: ratings } = await supabase
+            .from('courier_ratings')
+            .select('rating')
+            .eq('livreur_id', user.id);
+
+          const totalRatings = ratings?.length || 0;
+          const averageRating = totalRatings > 0
+            ? ratings.reduce((acc, r) => acc + r.rating, 0) / totalRatings
+            : 0;
+
+          return {
+            ...user,
+            totalRatings,
+            averageRating: Math.round(averageRating * 10) / 10,
+          };
+        })
+      );
+
+      return couriersWithStats;
     },
   });
 
@@ -131,6 +156,7 @@ export default function CouriersList() {
                       <TableHead>Téléphone</TableHead>
                       <TableHead>Pays</TableHead>
                       <TableHead>Points</TableHead>
+                      <TableHead>Évaluation</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Date d'inscription</TableHead>
                       <TableHead>Actions</TableHead>
@@ -149,6 +175,19 @@ export default function CouriersList() {
                           </Badge>
                         </TableCell>
                         <TableCell>
+                          {courier.totalRatings > 0 ? (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium">{courier.averageRating.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                ({courier.totalRatings})
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Aucune note</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Badge variant={courier.statut === 'suspendu' ? 'destructive' : 'default'}>
                             {courier.statut || 'actif'}
                           </Badge>
@@ -157,7 +196,7 @@ export default function CouriersList() {
                           {courier.created_at ? format(new Date(courier.created_at), 'dd MMM yyyy', { locale: fr }) : '-'}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <Button
                               variant={courier.statut === 'suspendu' ? 'outline' : 'destructive'}
                               size="sm"
@@ -175,6 +214,22 @@ export default function CouriersList() {
                                 </>
                               )}
                             </Button>
+                            <Sheet>
+                              <SheetTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MessageSquare className="h-4 w-4 mr-1" />
+                                  Avis
+                                </Button>
+                              </SheetTrigger>
+                              <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+                                <SheetHeader>
+                                  <SheetTitle>Évaluations de {courier.nom}</SheetTitle>
+                                </SheetHeader>
+                                <div className="mt-6">
+                                  <CourierRatings courierId={courier.id} />
+                                </div>
+                              </SheetContent>
+                            </Sheet>
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button

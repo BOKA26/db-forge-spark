@@ -101,16 +101,6 @@ export const BottomNav = () => {
     },
   ];
 
-  // Add vendor-specific item
-  if (user && userRole === 'vendeur') {
-    navItems.push({
-      path: '/ma-boutique',
-      label: 'Ma Boutique',
-      icon: Store,
-      activeColor: 'text-primary',
-    });
-  }
-
   if (!user) {
     return (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg z-50 safe-area-bottom">
@@ -191,58 +181,61 @@ export const BottomNav = () => {
           );
         })}
 
-        {/* Profile/Trade - Only show if not vendor (vendors have Ma Boutique) */}
-        {userRole !== 'vendeur' && (
-          <div className="flex-1 flex items-center justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="flex flex-col items-center justify-center gap-1.5 py-2 h-auto hover:bg-transparent touch-manipulation min-w-[60px]"
-                >
-                  <div className="relative flex items-center justify-center">
-                    <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <span className={`text-[11px] font-medium leading-none ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`}>
-                    Mon Trade
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background mb-2">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {userProfile?.nom || 'Utilisateur'}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+        {/* Profile/Trade Dropdown */}
+        <div className="flex-1 flex items-center justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="flex flex-col items-center justify-center gap-1.5 py-2 h-auto hover:bg-transparent touch-manipulation min-w-[60px]"
+              >
+                <div className="relative flex items-center justify-center">
+                  <User className={`h-6 w-6 ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+                <span className={`text-[11px] font-medium leading-none ${location.pathname === '/profil' ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Mon Trade
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-background mb-2">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {userProfile?.nom || 'Utilisateur'}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profil" className="cursor-pointer h-10">Mon Profil</Link>
+              </DropdownMenuItem>
+              {userRole === 'acheteur' && (
                 <DropdownMenuItem asChild>
-                  <Link to="/profil" className="cursor-pointer h-10">Mon Profil</Link>
+                  <Link to="/mes-commandes" className="cursor-pointer h-10">Mes Commandes</Link>
                 </DropdownMenuItem>
-                {userRole === 'acheteur' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/mes-commandes" className="cursor-pointer h-10">Mes Commandes</Link>
-                  </DropdownMenuItem>
-                )}
-                {userRole === 'livreur' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/mes-livraisons" className="cursor-pointer h-10">Mes Livraisons</Link>
-                  </DropdownMenuItem>
-                )}
-                {userRole === 'admin' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/dashboard" className="cursor-pointer h-10">Dashboard Admin</Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="cursor-pointer h-10">
-                  Déconnexion
+              )}
+              {userRole === 'vendeur' && (
+                <DropdownMenuItem asChild>
+                  <Link to="/ma-boutique" className="cursor-pointer h-10">Ma Boutique</Link>
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+              )}
+              {userRole === 'livreur' && (
+                <DropdownMenuItem asChild>
+                  <Link to="/mes-livraisons" className="cursor-pointer h-10">Mes Livraisons</Link>
+                </DropdownMenuItem>
+              )}
+              {userRole === 'admin' && (
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/dashboard" className="cursor-pointer h-10">Dashboard Admin</Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="cursor-pointer h-10">
+                Déconnexion
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </nav>
   );

@@ -450,7 +450,7 @@ const MyShop = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button 
-                  onClick={() => navigate('/demarrer-live')}
+                  onClick={() => navigate('/lancer-live')}
                   className="w-full"
                   variant="default"
                 >

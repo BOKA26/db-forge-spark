@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -214,6 +214,13 @@ export default function AdminRegister() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Création du compte...' : 'Créer le compte administrateur'}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground space-y-2">
+              <p>Vous avez déjà un compte administrateur ?</p>
+              <Link to="/secure-admin-login-2024" className="text-primary hover:underline">
+                Se connecter
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

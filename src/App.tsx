@@ -23,6 +23,7 @@ const SmartLadder = lazy(() => import("./pages/Admin/SmartLadder"));
 const DataRoom = lazy(() => import("./pages/Investors/DataRoom"));
 const Register = lazy(() => import("./pages/Auth/Register"));
 const AdminRegister = lazy(() => import("./pages/Auth/AdminRegister"));
+const AdminLogin = lazy(() => import("./pages/Auth/AdminLogin"));
 const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/Auth/UpdatePassword"));
 const UserProfile = lazy(() => import("./pages/Profile/UserProfile"));
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/connexion" element={<Login />} />
               <Route path="/inscription" element={<Register />} />
               <Route path="/secure-admin-registration-2024" element={<AdminRegister />} />
+              <Route path="/secure-admin-login-2024" element={<AdminLogin />} />
               <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
               <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
               <Route path="/produits" element={<ProductList />} />

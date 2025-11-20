@@ -93,7 +93,7 @@ const App = () => (
               <Route path="/data-room" element={<DataRoom />} />
               <Route path="/connexion" element={<Login />} />
               <Route path="/inscription" element={<Register />} />
-              <Route path="/inscription/admin" element={<AdminRegister />} />
+              <Route path="/secure-admin-registration-2024" element={<AdminRegister />} />
               <Route path="/mot-de-passe-oublie" element={<ResetPassword />} />
               <Route path="/nouveau-mot-de-passe" element={<UpdatePassword />} />
               <Route path="/produits" element={<ProductList />} />

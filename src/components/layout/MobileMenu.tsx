@@ -1,19 +1,30 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Home, Package, Store, Users, ShoppingCart, MessageSquare, User, LogOut } from 'lucide-react';
+import { Menu, Home, Package, Store, Users, ShoppingCart, MessageSquare, User, LogOut, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { CategoriesDropdown } from '@/components/layout/CategoriesDropdown';
 
 export const MobileMenu = ({ userProfile }: { userProfile?: { nom: string } | null }) => {
   const { user, signOut } = useAuth();
   const { data: userRole } = useUserRole();
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLinkClick = () => {
     setOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      window.location.href = `/produits?q=${encodeURIComponent(searchTerm)}`;
+      setOpen(false);
+    }
   };
 
   const mainLinks = [
@@ -58,7 +69,28 @@ export const MobileMenu = ({ userProfile }: { userProfile?: { nom: string } | nu
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-2 mt-6">
+        {/* Mobile Search */}
+        <form onSubmit={handleSearch} className="mt-6 mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-11"
+            />
+          </div>
+        </form>
+
+        {/* Categories Button */}
+        <div className="mb-4">
+          <CategoriesDropdown />
+        </div>
+
+        <Separator className="mb-4" />
+
+        <div className="flex flex-col gap-2">
           {/* Main Navigation */}
           <div className="space-y-1">
             {mainLinks.map((link) => (

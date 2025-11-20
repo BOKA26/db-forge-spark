@@ -10,6 +10,7 @@ import { RoleBasedDashboard } from "@/components/layout/RoleBasedDashboard";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { HelmetProvider } from 'react-helmet-async';
 import { CookieConsent } from "@/components/seo/CookieConsent";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -81,6 +82,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <Breadcrumbs />
             <div className="pb-16 md:pb-0">
               <Suspense fallback={<LoadingFallback />}>
               <Routes>

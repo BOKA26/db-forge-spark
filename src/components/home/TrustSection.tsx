@@ -35,52 +35,62 @@ const paymentMethods = [
 
 export const TrustSection = () => {
   return (
-    <section className="py-8 md:py-12 bg-muted/30">
-      <div className="container px-4">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-background to-muted/30">
+      <div className="container px-4 md:px-6">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+            Pourquoi Nous Choisir ?
+          </h2>
+          <p className="text-muted-foreground text-base md:text-lg">
+            Votre satisfaction et sécurité sont nos priorités
+          </p>
+        </div>
         {/* Trust Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
           {trustBadges.map((badge, index) => (
-            <Card key={index} className="border-primary/20 hover:border-primary/40 transition-colors">
-              <CardContent className="p-4 text-center">
-                <badge.icon className="w-8 h-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm mb-1 text-foreground">{badge.title}</h3>
-                <p className="text-xs text-muted-foreground">{badge.description}</p>
+            <Card key={index} className="border-primary/20 hover:border-primary/40 hover:shadow-md transition-all">
+              <CardContent className="p-6 text-center touch-manipulation">
+                <badge.icon className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 text-primary" />
+                <h3 className="font-semibold text-base md:text-lg mb-1 text-foreground">{badge.title}</h3>
+                <p className="text-sm text-muted-foreground">{badge.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Payment Methods */}
-        <div className="text-center">
-          <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center justify-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            Moyens de paiement acceptés
+        <div className="text-center mb-8 md:mb-10">
+          <h3 className="text-xl md:text-2xl font-semibold mb-6 text-foreground flex items-center justify-center gap-2">
+            <CreditCard className="w-6 h-6" />
+            Moyens de Paiement Acceptés
           </h3>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4">
             {paymentMethods.map((method, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 px-4 py-2 bg-card border rounded-lg hover:shadow-md transition-shadow"
+                className="flex items-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-card border rounded-lg hover:shadow-md transition-all touch-manipulation min-w-[120px] md:min-w-[140px]"
               >
-                <span className="text-2xl">{method.logo}</span>
-                <span className="text-sm font-medium text-foreground">{method.name}</span>
+                <span className="text-2xl md:text-3xl">{method.logo}</span>
+                <span className="text-sm md:text-base font-medium text-foreground">{method.name}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Security Info */}
-        <div className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
-          <div className="flex items-start gap-3">
-            <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-1">Politique de sécurité</p>
-              <p>
-                Vos paiements sont sécurisés avec un cryptage SSL. Nous ne stockons jamais vos informations bancaires. 
-                <span className="font-medium"> Livraison sous 2-5 jours</span> • 
-                <span className="font-medium"> Retour gratuit sous 14 jours</span> • 
-                <span className="font-medium"> Remboursement garanti</span>
+        <div className="p-6 md:p-8 bg-primary/5 rounded-xl border border-primary/20">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <Lock className="w-8 h-8 text-primary flex-shrink-0" />
+            <div className="text-sm md:text-base">
+              <p className="font-semibold text-foreground text-lg mb-2">Garantie de Sécurité</p>
+              <p className="text-muted-foreground">
+                Vos paiements sont sécurisés avec un cryptage SSL. Nous ne stockons jamais vos informations bancaires.
               </p>
+              <div className="flex flex-wrap gap-4 mt-3">
+                <span className="font-medium text-foreground">✓ Livraison sous 2-5 jours</span>
+                <span className="font-medium text-foreground">✓ Retour gratuit sous 14 jours</span>
+                <span className="font-medium text-foreground">✓ Remboursement garanti</span>
+              </div>
             </div>
           </div>
         </div>

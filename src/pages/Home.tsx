@@ -9,10 +9,15 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { TrustSection } from '@/components/home/TrustSection';
+import { HeroSection } from '@/components/home/HeroSection';
+import { FeaturedProducts } from '@/components/home/FeaturedProducts';
+import { CategoryGrid } from '@/components/home/CategoryGrid';
+import { WhatsAppButton } from '@/components/home/WhatsAppButton';
 import { Search, Camera, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 const categories = [
   'Tous',
@@ -70,7 +75,15 @@ const Home = () => {
 
   return (
     <div className="flex min-h-screen flex-col pb-16">
+      <SEOHead 
+        title="Marketplace Africain - Produits Authentiques & Fabricants Vérifiés"
+        description="Découvrez des milliers de produits africains authentiques. Achetez directement auprès de fabricants vérifiés. Livraison rapide et sécurisée."
+        keywords="marketplace africain, produits africains, fabricants africains, e-commerce afrique, achats en ligne"
+      />
       <Navbar />
+
+      {/* Hero Section with Clear CTAs */}
+      <HeroSection />
 
       {/* Tabs and Search Section - Mobile Optimized */}
       <section className="bg-background border-b sticky top-0 z-10 md:static">
@@ -137,90 +150,17 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Shops/Manufacturers Feed */}
-      <div className="container px-2 md:px-4 py-4 space-y-4">
-        {shopsData && shopsData.length > 0 ? (
-          shopsData.map((shop) => (
-            <Card key={shop.id} className="overflow-hidden">
-              <CardContent className="p-3 md:p-4 space-y-3">
-                {/* Shop Header */}
-                <div className="flex gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                    {shop.logo_url ? (
-                      <img 
-                        src={shop.logo_url} 
-                        alt={shop.nom_boutique} 
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <span className="text-lg font-bold">{shop.nom_boutique[0]}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-base line-clamp-1">{shop.nom_boutique}</h3>
-                    <div className="flex items-center gap-1 mt-1 flex-wrap">
-                      <Badge variant="secondary" className="text-xs h-5 bg-blue-50 text-blue-600 border-0">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Verified
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {Math.floor(Math.random() * 10) + 1} ans · {Math.floor(Math.random() * 100) + 10}+ personnel · {Math.floor(Math.random() * 5000) + 1000}+ m² · US${Math.floor(Math.random() * 100000) + 10000}+
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                      {shop.description || 'Des solutions pour les projets · Personnalisation flexible'}
-                    </p>
-                  </div>
-                </div>
+      {/* Category Quick Access */}
+      <CategoryGrid />
 
-                {/* Shop Products - Grid */}
-                {shop.products && shop.products.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {shop.products.map((product: any) => (
-                      <Link key={product.id} to={`/produit/${product.id}`}>
-                        <div className="space-y-1">
-                          <div className="aspect-square rounded-lg overflow-hidden bg-muted relative">
-                            {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
-                              <img 
-                                src={product.images[0]} 
-                                alt={product.nom}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Camera className="h-6 w-6 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <p className="font-bold text-sm line-clamp-1">
-                            {product.prix.toLocaleString('fr-FR')} F CFA
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {Math.floor(Math.random() * 5) + 2} pièces (MOQ)
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">Aucun fabricant disponible</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Featured/New Products */}
+      <FeaturedProducts />
 
-      {/* Trust and Security Section */}
+      {/* Trust & Reassurance Section */}
       <TrustSection />
+
+      {/* WhatsApp Contact Button */}
+      <WhatsAppButton />
 
       <Footer />
       <BottomNav />

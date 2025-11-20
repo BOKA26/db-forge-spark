@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, Search, MessageSquare } from 'lucide-react';
+import { ShoppingCart, User, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { MobileMenu } from '@/components/layout/MobileMenu';
+import { SearchBar } from '@/components/layout/SearchBar';
+import { MegaMenu } from '@/components/layout/MegaMenu';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUserRole } from '@/hooks/useUserRole';
-import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -57,24 +58,19 @@ export const Navbar = () => {
         <div className="container flex h-16 md:h-18 items-center justify-between px-3 md:px-4">
           {/* Logo - Tactile optimized */}
           <Link to="/" className="flex items-center space-x-2 min-h-[44px] min-w-[44px] -ml-2 pl-2">
-            <div className="h-8 w-8 md:h-9 md:w-9 rounded bg-primary flex-shrink-0" />
-            <span className="text-lg md:text-xl font-bold hidden sm:inline">BokaTrade</span>
+            <div className="h-8 w-8 md:h-9 md:w-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex-shrink-0 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">BT</span>
+            </div>
+            <span className="text-lg md:text-xl font-bold hidden sm:inline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">BokaTrade</span>
           </Link>
 
           {/* Search Bar - Desktop Only */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Rechercher des produits..."
-                className="pl-10"
-              />
-            </div>
-          </div>
+          <SearchBar className="hidden md:flex flex-1 max-w-2xl mx-6" />
 
           {/* Navigation - Desktop */}
-          <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
+          <nav className="hidden lg:flex items-center space-x-1">
+            <MegaMenu />
+            
             <Link to="/">
               <Button variant="ghost" size="default" className="h-10">Accueil</Button>
             </Link>
@@ -83,9 +79,6 @@ export const Navbar = () => {
             </Link>
             <Link to="/boutiques">
               <Button variant="ghost" size="default" className="h-10">Boutiques</Button>
-            </Link>
-            <Link to="/pour-vendeurs">
-              <Button variant="ghost" size="default" className="h-10">Pour Vendeurs</Button>
             </Link>
             
             {user ? (

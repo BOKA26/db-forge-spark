@@ -74,20 +74,9 @@ export default function AdminRegister() {
         return;
       }
 
-      // Créer l'utilisateur dans la table users
-      const { error: userError } = await supabase.from('users').insert({
-        id: authData.user.id,
-        nom: data.nom,
-        email: data.email,
-        telephone: data.telephone,
-      });
-
-      if (userError) {
-        console.error('Erreur création utilisateur:', userError);
-        toast.error('Erreur lors de la création du profil utilisateur');
-        setLoading(false);
-        return;
-      }
+      // Le trigger handle_new_user() crée automatiquement l'utilisateur dans la table users
+      // Attendre un peu pour que le trigger s'exécute
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Valider le code et attribuer le rôle admin via edge function sécurisée
       const { data: roleResult, error: roleError } = await supabase.functions.invoke(

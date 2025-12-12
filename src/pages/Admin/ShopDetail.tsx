@@ -43,7 +43,7 @@ export default function ShopDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('shops')
-        .select('*, users!shops_vendeur_id_fkey(nom, email)')
+        .select('*')
         .eq('id', id!)
         .maybeSingle();
 
@@ -217,8 +217,8 @@ export default function ShopDetail() {
               <div>
                 <CardTitle className="text-2xl mb-2">{shop.nom_boutique}</CardTitle>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm text-muted-foreground">Vendeur:</span>
-                  <span className="text-sm font-medium">{(shop.users as any)?.nom || 'N/A'}</span>
+                  <span className="text-sm text-muted-foreground">Vendeur ID:</span>
+                  <span className="text-sm font-medium">{shop.vendeur_id}</span>
                 </div>
                 {getStatusBadge(shop.statut)}
               </div>

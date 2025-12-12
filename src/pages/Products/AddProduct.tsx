@@ -201,7 +201,22 @@ const AddProduct = () => {
       if (imageFiles.length > 0) {
         setUploading(true);
         const uploadPromises = imageFiles.map(async (file, index) => {
-          const filePath = `${user.id}/${shopId}/${Date.now()}_${index}_${file.name}`;
+          // Sanitize filename: remove accents, special chars, spaces
+          const sanitizeFilename = (name: string) => {
+            const extension = name.split('.').pop()?.toLowerCase() || 'jpg';
+            const baseName = name.replace(/\.[^/.]+$/, '');
+            const sanitized = baseName
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '') // Remove accents
+              .replace(/[^a-zA-Z0-9]/g, '_') // Replace special chars with underscore
+              .replace(/_+/g, '_') // Remove consecutive underscores
+              .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+              .substring(0, 50); // Limit length
+            return `${sanitized || 'image'}.${extension}`;
+          };
+          
+          const safeFileName = sanitizeFilename(file.name);
+          const filePath = `${user.id}/${shopId}/${Date.now()}_${index}_${safeFileName}`;
           const { error: uploadError } = await supabase.storage
             .from('products')
             .upload(filePath, file);

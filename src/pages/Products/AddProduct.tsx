@@ -35,16 +35,126 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>;
 
-const categories = [
-  'Électronique',
-  'Vêtements',
-  'Alimentation',
-  'Maison & Jardin',
-  'Sports & Loisirs',
-  'Santé & Beauté',
-  'Automobile',
-  'Autre',
-];
+// Configuration des champs par catégorie
+const categoryConfig: Record<string, {
+  showSizes: boolean;
+  showColors: boolean;
+  showCustomization: boolean;
+  showWholesale: boolean;
+  showSamplePrice: boolean;
+  sizes?: string[];
+  customizationOptions?: Array<{ type: string; minQty: number }>;
+}> = {
+  'Vêtements': {
+    showSizes: true,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'],
+    customizationOptions: [
+      { type: 'Logo personnalisé', minQty: 100 },
+      { type: 'Emballage personnalisé', minQty: 300 },
+      { type: 'Graphique personnalisé', minQty: 100 },
+    ],
+  },
+  'Chaussures': {
+    showSizes: true,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
+    customizationOptions: [
+      { type: 'Logo personnalisé', minQty: 100 },
+      { type: 'Emballage personnalisé', minQty: 200 },
+    ],
+  },
+  'Électronique': {
+    showSizes: false,
+    showColors: true,
+    showCustomization: false,
+    showWholesale: true,
+    showSamplePrice: true,
+  },
+  'Alimentation': {
+    showSizes: false,
+    showColors: false,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    customizationOptions: [
+      { type: 'Emballage personnalisé', minQty: 500 },
+      { type: 'Étiquetage personnalisé', minQty: 300 },
+    ],
+  },
+  'Maison & Jardin': {
+    showSizes: false,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    customizationOptions: [
+      { type: 'Logo personnalisé', minQty: 100 },
+      { type: 'Emballage personnalisé', minQty: 200 },
+    ],
+  },
+  'Sports & Loisirs': {
+    showSizes: true,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
+    customizationOptions: [
+      { type: 'Logo personnalisé', minQty: 50 },
+      { type: 'Graphique personnalisé', minQty: 100 },
+    ],
+  },
+  'Santé & Beauté': {
+    showSizes: false,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    customizationOptions: [
+      { type: 'Emballage personnalisé', minQty: 500 },
+      { type: 'Étiquetage personnalisé', minQty: 300 },
+    ],
+  },
+  'Automobile': {
+    showSizes: false,
+    showColors: true,
+    showCustomization: false,
+    showWholesale: true,
+    showSamplePrice: true,
+  },
+  'Bijoux & Accessoires': {
+    showSizes: true,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    sizes: ['XS', 'S', 'M', 'L', 'Unique'],
+    customizationOptions: [
+      { type: 'Gravure personnalisée', minQty: 50 },
+      { type: 'Emballage personnalisé', minQty: 100 },
+    ],
+  },
+  'Autre': {
+    showSizes: false,
+    showColors: true,
+    showCustomization: true,
+    showWholesale: true,
+    showSamplePrice: true,
+    customizationOptions: [
+      { type: 'Logo personnalisé', minQty: 100 },
+      { type: 'Emballage personnalisé', minQty: 300 },
+    ],
+  },
+};
+
+const categories = Object.keys(categoryConfig);
 
 const AddProduct = () => {
   const { user } = useAuth();
@@ -76,6 +186,10 @@ const AddProduct = () => {
       origin_country: 'CI',
     },
   });
+
+  // Récupérer la catégorie sélectionnée pour adapter les champs
+  const selectedCategory = form.watch('categorie');
+  const currentConfig = selectedCategory ? categoryConfig[selectedCategory] : null;
 
   const createProductMutation = useMutation({
     mutationFn: async (values: ProductFormData) => {
@@ -330,221 +444,236 @@ const AddProduct = () => {
                     )}
                   />
 
-                  {/* Prix en gros */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Prix de gros (wholesale)</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Définissez les prix par tranche de quantité
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="price_tier_1"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>5-49 pièces (FCFA)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                placeholder="Ex: 5000"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="price_tier_2"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>50-299 pièces (FCFA)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                placeholder="Ex: 4500"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="price_tier_3"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>300-99999 pièces (FCFA)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                placeholder="Ex: 4000"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="price_tier_4"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>100000+ pièces (FCFA)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                placeholder="Ex: 3500"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="sample_price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prix de l'échantillon (FCFA)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              step="0.01"
-                              placeholder="Ex: 6000"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* Tailles */}
-                  <div className="space-y-4">
-                    <FormLabel>Tailles disponibles</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {['S', 'M', 'L', 'XL', '2XL', '3XL'].map((size) => (
-                        <Badge
-                          key={size}
-                          variant={sizes.includes(size) ? 'default' : 'outline'}
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setSizes(prev =>
-                              prev.includes(size)
-                                ? prev.filter(s => s !== size)
-                                : [...prev, size]
-                            );
-                          }}
-                        >
-                          {size}
-                        </Badge>
-                      ))}
-                    </div>
-                    {sizes.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Sélectionnées: {sizes.join(', ')}
+                  {/* Message si aucune catégorie sélectionnée */}
+                  {!selectedCategory && (
+                    <div className="p-4 rounded-lg bg-muted/50 border border-dashed">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Sélectionnez une catégorie pour afficher les options spécifiques au produit
                       </p>
-                    )}
-                  </div>
-
-                  {/* Couleurs */}
-                  <div className="space-y-4">
-                    <FormLabel>Couleurs disponibles</FormLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Ex: Rouge, Bleu, Vert..."
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const value = e.currentTarget.value.trim();
-                            if (value && !colors.includes(value)) {
-                              setColors([...colors, value]);
-                              e.currentTarget.value = '';
-                            }
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={(e) => {
-                          const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                          const value = input.value.trim();
-                          if (value && !colors.includes(value)) {
-                            setColors([...colors, value]);
-                            input.value = '';
-                          }
-                        }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
                     </div>
-                    {colors.length > 0 && (
+                  )}
+
+                  {/* Prix en gros - affiché si la catégorie le permet */}
+                  {currentConfig?.showWholesale && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Prix de gros (wholesale)</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Définissez les prix par tranche de quantité
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="price_tier_1"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>5-49 pièces (FCFA)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Ex: 5000"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="price_tier_2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>50-299 pièces (FCFA)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Ex: 4500"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="price_tier_3"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>300-99999 pièces (FCFA)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Ex: 4000"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="price_tier_4"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>100000+ pièces (FCFA)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Ex: 3500"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {currentConfig?.showSamplePrice && (
+                        <FormField
+                          control={form.control}
+                          name="sample_price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Prix de l'échantillon (FCFA)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  placeholder="Ex: 6000"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Tailles - affiché si la catégorie le permet */}
+                  {currentConfig?.showSizes && currentConfig.sizes && (
+                    <div className="space-y-4">
+                      <FormLabel>Tailles disponibles</FormLabel>
                       <div className="flex flex-wrap gap-2">
-                        {colors.map((color, idx) => (
-                          <Badge key={idx} variant="secondary" className="gap-1">
-                            {color}
-                            <X
-                              className="h-3 w-3 cursor-pointer"
-                              onClick={() => setColors(colors.filter((_, i) => i !== idx))}
-                            />
+                        {currentConfig.sizes.map((size) => (
+                          <Badge
+                            key={size}
+                            variant={sizes.includes(size) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setSizes(prev =>
+                                prev.includes(size)
+                                  ? prev.filter(s => s !== size)
+                                  : [...prev, size]
+                              );
+                            }}
+                          >
+                            {size}
                           </Badge>
                         ))}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Options de personnalisation */}
-                  <div className="space-y-4">
-                    <FormLabel>Options de personnalisation</FormLabel>
-                    <div className="space-y-2">
-                      {[
-                        { type: 'Logo personnalisé', minQty: 100 },
-                        { type: 'Emballage personnalisé', minQty: 300 },
-                        { type: 'Graphique personnalisé', minQty: 100 },
-                      ].map((option) => (
-                        <div key={option.type} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option.type}
-                            checked={customOptions.some(o => o.type === option.type)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setCustomOptions([...customOptions, option]);
-                              } else {
-                                setCustomOptions(customOptions.filter(o => o.type !== option.type));
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={option.type}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {option.type} <span className="text-muted-foreground">(min. {option.minQty} pcs)</span>
-                          </label>
-                        </div>
-                      ))}
+                      {sizes.length > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          Sélectionnées: {sizes.join(', ')}
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  )}
+
+                  {/* Couleurs - affiché si la catégorie le permet */}
+                  {currentConfig?.showColors && (
+                    <div className="space-y-4">
+                      <FormLabel>Couleurs disponibles</FormLabel>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Ex: Rouge, Bleu, Vert..."
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const value = e.currentTarget.value.trim();
+                              if (value && !colors.includes(value)) {
+                                setColors([...colors, value]);
+                                e.currentTarget.value = '';
+                              }
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={(e) => {
+                            const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                            const value = input.value.trim();
+                            if (value && !colors.includes(value)) {
+                              setColors([...colors, value]);
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {colors.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {colors.map((color, idx) => (
+                            <Badge key={idx} variant="secondary" className="gap-1">
+                              {color}
+                              <X
+                                className="h-3 w-3 cursor-pointer"
+                                onClick={() => setColors(colors.filter((_, i) => i !== idx))}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Options de personnalisation - affiché si la catégorie le permet */}
+                  {currentConfig?.showCustomization && currentConfig.customizationOptions && (
+                    <div className="space-y-4">
+                      <FormLabel>Options de personnalisation</FormLabel>
+                      <div className="space-y-2">
+                        {currentConfig.customizationOptions.map((option) => (
+                          <div key={option.type} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={option.type}
+                              checked={customOptions.some(o => o.type === option.type)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setCustomOptions([...customOptions, option]);
+                                } else {
+                                  setCustomOptions(customOptions.filter(o => o.type !== option.type));
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={option.type}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {option.type} <span className="text-muted-foreground">(min. {option.minQty} pcs)</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     <FormLabel>Images du produit</FormLabel>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -14,15 +14,34 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, CheckCircle, Clock, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 type ShopStatus = 'en_attente' | 'actif' | 'suspendu';
 
 export default function ShopsList() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<ShopStatus | 'all'>('all');
+
+  const updateShopStatus = useMutation({
+    mutationFn: async ({ shopId, status }: { shopId: string; status: ShopStatus }) => {
+      const { error } = await supabase
+        .from('shops')
+        .update({ statut: status })
+        .eq('id', shopId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-shops'] });
+      toast.success('Statut de la boutique mis à jour');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la mise à jour');
+    },
+  });
 
   const { data: shops, isLoading } = useQuery({
     queryKey: ['admin-shops', statusFilter],
@@ -128,14 +147,51 @@ export default function ShopsList() {
                           : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/admin/boutique/${shop.id}`)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Voir détails
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          {shop.statut !== 'actif' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-600 hover:text-green-700"
+                              onClick={() => updateShopStatus.mutate({ shopId: shop.id, status: 'actif' })}
+                              disabled={updateShopStatus.isPending}
+                              title="Activer"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {shop.statut !== 'en_attente' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-yellow-600 hover:text-yellow-700"
+                              onClick={() => updateShopStatus.mutate({ shopId: shop.id, status: 'en_attente' })}
+                              disabled={updateShopStatus.isPending}
+                              title="Mettre en attente"
+                            >
+                              <Clock className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {shop.statut !== 'suspendu' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => updateShopStatus.mutate({ shopId: shop.id, status: 'suspendu' })}
+                              disabled={updateShopStatus.isPending}
+                              title="Suspendre"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/admin/boutique/${shop.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

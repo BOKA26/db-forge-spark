@@ -202,20 +202,17 @@ const AddProduct = () => {
         setUploading(true);
         const uploadPromises = imageFiles.map(async (file, index) => {
           // Sanitize filename: remove accents, special chars, spaces
-          const sanitizeFilename = (name: string) => {
-            const extension = name.split('.').pop()?.toLowerCase() || 'jpg';
-            const baseName = name.replace(/\.[^/.]+$/, '');
-            const sanitized = baseName
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '') // Remove accents
-              .replace(/[^a-zA-Z0-9]/g, '_') // Replace special chars with underscore
-              .replace(/_+/g, '_') // Remove consecutive underscores
-              .replace(/^_|_$/g, '') // Remove leading/trailing underscores
-              .substring(0, 50); // Limit length
-            return `${sanitized || 'image'}.${extension}`;
-          };
+          const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const baseName = file.name.replace(/\.[^/.]+$/, '');
+          const sanitizedName = baseName
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/[^a-zA-Z0-9]/g, '_') // Replace special chars with underscore
+            .replace(/_+/g, '_') // Remove consecutive underscores
+            .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+            .substring(0, 50) || 'image'; // Limit length
           
-          const safeFileName = sanitizeFilename(file.name);
+          const safeFileName = `${sanitizedName}.${extension}`;
           const filePath = `${user.id}/${shopId}/${Date.now()}_${index}_${safeFileName}`;
           const { error: uploadError } = await supabase.storage
             .from('products')

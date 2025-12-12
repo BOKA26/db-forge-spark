@@ -29,7 +29,7 @@ export default function ShopsList() {
     queryFn: async () => {
       let query = supabase
         .from('shops')
-        .select('*, users!shops_vendeur_id_fkey(nom)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (statusFilter !== 'all') {
@@ -37,7 +37,10 @@ export default function ShopsList() {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching shops:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -115,7 +118,7 @@ export default function ShopsList() {
                   {shops.map((shop) => (
                     <TableRow key={shop.id}>
                       <TableCell className="font-medium">{shop.nom_boutique}</TableCell>
-                      <TableCell>{(shop.users as any)?.nom || 'N/A'}</TableCell>
+                      <TableCell>{shop.email || 'N/A'}</TableCell>
                       <TableCell>{shop.email || 'N/A'}</TableCell>
                       <TableCell>{shop.telephone || 'N/A'}</TableCell>
                       <TableCell>{getStatusBadge(shop.statut)}</TableCell>

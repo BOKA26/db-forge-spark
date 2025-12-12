@@ -201,19 +201,14 @@ const AddProduct = () => {
       if (imageFiles.length > 0) {
         setUploading(true);
         const uploadPromises = imageFiles.map(async (file, index) => {
-          // Sanitize filename: remove accents, special chars, spaces
-          const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-          const baseName = file.name.replace(/\.[^/.]+$/, '');
-          const sanitizedName = baseName
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') // Remove accents
-            .replace(/[^a-zA-Z0-9]/g, '_') // Replace special chars with underscore
-            .replace(/_+/g, '_') // Remove consecutive underscores
-            .replace(/^_|_$/g, '') // Remove leading/trailing underscores
-            .substring(0, 50) || 'image'; // Limit length
+          // Get file extension, default to jpg for images without extension
+          const nameParts = file.name.split('.');
+          const extension = nameParts.length > 1 ? nameParts.pop()?.toLowerCase() : 'jpg';
+          const validExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(extension || '') ? extension : 'jpg';
           
-          const safeFileName = `${sanitizedName}.${extension}`;
-          const filePath = `${user.id}/${shopId}/${Date.now()}_${index}_${safeFileName}`;
+          // Generate unique filename with timestamp and random string to avoid conflicts
+          const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          const filePath = `${user.id}/${shopId}/${uniqueId}_${index}.${validExtension}`;
           const { error: uploadError } = await supabase.storage
             .from('products')
             .upload(filePath, file);

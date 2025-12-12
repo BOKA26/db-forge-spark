@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { AdminNavbar } from '@/components/layout/AdminNavbar';
@@ -13,12 +13,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function ProductsList() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -30,6 +32,23 @@ export default function ProductsList() {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const deleteProduct = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success('Produit supprimé définitivement');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la suppression');
     },
   });
 
@@ -81,13 +100,26 @@ export default function ProductsList() {
                           {product.created_at ? format(new Date(product.created_at), 'dd MMM yyyy', { locale: fr }) : '-'}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate(`/produit/${product.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/produit/${product.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {product.statut === 'supprimé' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => deleteProduct.mutate(product.id)}
+                                disabled={deleteProduct.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

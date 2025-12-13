@@ -142,16 +142,18 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande avec le livreur sélectionné
+    // Note: Le statut reste 'fonds_bloques' car le livreur n'a pas encore pris en charge la livraison
+    // Il passera à 'en_livraison' quand le vendeur marquera comme expédié
     const { error: orderUpdateError } = await supabaseAdmin
       .from('orders')
       .update({ 
-        livreur_id: courierId,
-        statut: 'en_attente_livreur'
+        livreur_id: courierId
       })
       .eq('id', orderId);
 
     if (orderUpdateError) {
       console.error('Erreur lors de la mise à jour de la commande avec le livreur:', orderUpdateError);
+      throw new Error('Erreur lors de la mise à jour de la commande');
     }
 
     // Construire les infos de livraison pour le livreur

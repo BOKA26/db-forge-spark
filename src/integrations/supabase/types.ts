@@ -554,38 +554,47 @@ export type Database = {
       orders: {
         Row: {
           acheteur_id: string | null
+          adresse_livraison: string | null
           created_at: string | null
           id: string
           livreur_id: string | null
           montant: number
+          nom_destinataire: string | null
           produit_id: string | null
           quantite: number
           reference_gateway: string | null
           statut: string
+          telephone_destinataire: string | null
           vendeur_id: string | null
         }
         Insert: {
           acheteur_id?: string | null
+          adresse_livraison?: string | null
           created_at?: string | null
           id?: string
           livreur_id?: string | null
           montant: number
+          nom_destinataire?: string | null
           produit_id?: string | null
           quantite?: number
           reference_gateway?: string | null
           statut?: string
+          telephone_destinataire?: string | null
           vendeur_id?: string | null
         }
         Update: {
           acheteur_id?: string | null
+          adresse_livraison?: string | null
           created_at?: string | null
           id?: string
           livreur_id?: string | null
           montant?: number
+          nom_destinataire?: string | null
           produit_id?: string | null
           quantite?: number
           reference_gateway?: string | null
           statut?: string
+          telephone_destinataire?: string | null
           vendeur_id?: string | null
         }
         Relationships: [

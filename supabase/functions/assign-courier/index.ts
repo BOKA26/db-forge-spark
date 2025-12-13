@@ -14,7 +14,35 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create service role client for privileged operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Create anon client to verify the user's JWT
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Extract and verify the user's JWT
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header requis' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Token invalide ou expiré' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Utilisateur authentifié:', user.id);
 
     const { orderId } = await req.json();
 
@@ -28,7 +56,7 @@ serve(async (req) => {
     console.log('Recherche d\'un livreur pour la commande:', orderId);
 
     // Récupérer les infos de la commande
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('*, products(*)')
       .eq('id', orderId)
@@ -38,8 +66,27 @@ serve(async (req) => {
       throw new Error('Commande introuvable');
     }
 
+    // SECURITY: Verify the caller is the vendor of this order OR an admin
+    const isVendor = order.vendeur_id === user.id;
+    
+    // Check if user is admin
+    const { data: isAdmin } = await supabaseAdmin.rpc('has_role', { 
+      _user_id: user.id, 
+      _role: 'admin' 
+    });
+
+    if (!isVendor && !isAdmin) {
+      console.error('Unauthorized: User', user.id, 'is not vendor', order.vendeur_id, 'or admin');
+      return new Response(
+        JSON.stringify({ error: 'Seul le vendeur ou un admin peut assigner un livreur' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Autorisation vérifiée - Vendeur:', isVendor, 'Admin:', isAdmin);
+
     // Trouver un livreur actif disponible
-    const { data: couriers, error: couriersError } = await supabase
+    const { data: couriers, error: couriersError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
       .eq('role', 'livreur')
@@ -60,7 +107,7 @@ serve(async (req) => {
     const trackingCode = `TRK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
     // Vérifier si une delivery existe déjà
-    const { data: existingDelivery } = await supabase
+    const { data: existingDelivery } = await supabaseAdmin
       .from('deliveries')
       .select('id')
       .eq('order_id', orderId)
@@ -68,7 +115,7 @@ serve(async (req) => {
 
     if (existingDelivery) {
       // Mettre à jour la delivery existante
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('deliveries')
         .update({
           livreur_id: courierId,
@@ -80,7 +127,7 @@ serve(async (req) => {
       if (updateError) throw updateError;
     } else {
       // Créer une nouvelle delivery
-      const { error: deliveryError } = await supabase
+      const { error: deliveryError } = await supabaseAdmin
         .from('deliveries')
         .insert({
           order_id: orderId,
@@ -95,7 +142,7 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande avec le livreur sélectionné
-    const { error: orderUpdateError } = await supabase
+    const { error: orderUpdateError } = await supabaseAdmin
       .from('orders')
       .update({ 
         livreur_id: courierId,
@@ -113,7 +160,7 @@ serve(async (req) => {
     const adresse = order.adresse_livraison || 'Non renseignée';
 
     // Envoyer une notification au livreur avec les infos de livraison
-    const { error: notifError } = await supabase
+    const { error: notifError } = await supabaseAdmin
       .from('notifications')
       .insert({
         user_id: courierId,
@@ -126,7 +173,7 @@ serve(async (req) => {
     }
 
     // Envoyer une notification au vendeur
-    const { error: vendorNotifError } = await supabase
+    const { error: vendorNotifError } = await supabaseAdmin
       .from('notifications')
       .insert({
         user_id: order.vendeur_id,
@@ -139,7 +186,7 @@ serve(async (req) => {
     }
 
     // Envoyer une notification à l'acheteur
-    const { error: buyerNotifError } = await supabase
+    const { error: buyerNotifError } = await supabaseAdmin
       .from('notifications')
       .insert({
         user_id: order.acheteur_id,

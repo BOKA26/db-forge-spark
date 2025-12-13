@@ -37,8 +37,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Redirect after sign in will be handled by RoleBasedDashboard
         if (event === 'SIGNED_IN' && session?.user) {
-          // Give time for user_roles to be created by trigger
-          setTimeout(() => {
+          // Give time for user_roles to be created by trigger, then ensure acheteur is active
+          setTimeout(async () => {
+            // Check if user has an active role
+            const { data: activeRole } = await supabase
+              .from('user_roles')
+              .select('id, role')
+              .eq('user_id', session.user.id)
+              .eq('is_active', true)
+              .maybeSingle();
+
+            // If no active role, activate acheteur role
+            if (!activeRole) {
+              // First check if acheteur role exists
+              const { data: acheteurRole } = await supabase
+                .from('user_roles')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .eq('role', 'acheteur')
+                .maybeSingle();
+
+              if (acheteurRole) {
+                // Activate it
+                await supabase
+                  .from('user_roles')
+                  .update({ is_active: true })
+                  .eq('id', acheteurRole.id);
+              } else {
+                // Create and activate acheteur role
+                await supabase
+                  .from('user_roles')
+                  .insert({ user_id: session.user.id, role: 'acheteur', is_active: true });
+              }
+            }
+
             const currentPath = window.location.pathname;
             // Only redirect if on login/register pages
             if (currentPath === '/connexion' || currentPath === '/inscription') {

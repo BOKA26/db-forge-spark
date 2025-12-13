@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, Package, CheckCircle, AlertTriangle, Truck, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['user-notifications', user?.id],
@@ -23,6 +27,29 @@ const NotificationPage = () => {
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch orders pending buyer confirmation
+  const { data: pendingOrders } = useQuery({
+    queryKey: ['pending-confirmation-orders', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          products(nom, images),
+          validations(acheteur_ok, livreur_ok),
+          deliveries(statut)
+        `)
+        .eq('acheteur_id', user?.id)
+        .eq('statut', 'livré')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      // Filter to only show orders where acheteur_ok is false
+      return data?.filter(order => !order.validations?.acheteur_ok) || [];
     },
     enabled: !!user?.id,
   });
@@ -58,7 +85,63 @@ const NotificationPage = () => {
     },
   });
 
+  const confirmDelivery = useMutation({
+    mutationFn: async (orderId: string) => {
+      // Update validation - this will trigger the unlock_payment function
+      const { error } = await supabase
+        .from('validations')
+        .update({ acheteur_ok: true })
+        .eq('order_id', orderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-confirmation-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['user-notifications'] });
+      toast.success('Réception confirmée ! Le paiement a été débloqué.');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la confirmation');
+    },
+  });
+
+  const openDispute = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ statut: 'litige' })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // Notify seller
+      const { data: order } = await supabase
+        .from('orders')
+        .select('vendeur_id')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.vendeur_id,
+          message: '⚠️ Un litige a été ouvert sur une de vos commandes.',
+          canal: 'app',
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-confirmation-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      toast.success('Litige ouvert, un administrateur va traiter votre demande');
+    },
+    onError: () => {
+      toast.error("Erreur lors de l'ouverture du litige");
+    },
+  });
+
   const unreadCount = notifications?.filter(n => !n.lue).length || 0;
+  const pendingCount = pendingOrders?.length || 0;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,9 +169,97 @@ const NotificationPage = () => {
           )}
         </div>
 
+        {/* Pending Confirmations Section */}
+        {pendingCount > 0 && (
+          <Card className="mb-8 border-primary/50 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <Package className="h-5 w-5" />
+                Commandes en attente de confirmation ({pendingCount})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Ces commandes ont été livrées. Confirmez la réception pour débloquer le paiement au vendeur.
+              </p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Statut livraison</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingOrders?.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {order.products?.images?.[0] && (
+                              <img
+                                src={order.products.images[0]}
+                                alt={order.products?.nom}
+                                className="w-10 h-10 rounded object-cover"
+                              />
+                            )}
+                            <span className="font-medium">{order.products?.nom || 'N/A'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          {order.montant.toLocaleString()} FCFA
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="default" className="gap-1">
+                            <Truck className="h-3 w-3" />
+                            Livré
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => confirmDelivery.mutate(order.id)}
+                              disabled={confirmDelivery.isPending}
+                              className="gap-1"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              Confirmer
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => openDispute.mutate(order.id)}
+                              disabled={openDispute.isPending}
+                              className="gap-1"
+                            >
+                              <AlertTriangle className="h-4 w-4" />
+                              Litige
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* All Notifications */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Toutes mes notifications</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard-acheteur')}>
+              <Eye className="mr-2 h-4 w-4" />
+              Voir mes commandes
+            </Button>
           </CardHeader>
           <CardContent>
             {isLoading ? (

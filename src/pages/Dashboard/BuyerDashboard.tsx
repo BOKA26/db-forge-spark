@@ -1,78 +1,75 @@
+import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, AlertTriangle, User, Mail, Phone, Bell, Store, Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { useUserRoles } from '@/hooks/useUserRole';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { 
+  Package, 
+  CheckCircle, 
+  AlertTriangle, 
+  MapPin, 
+  Star, 
+  User, 
+  ShoppingCart, 
+  CreditCard, 
+  Bell, 
+  Receipt, 
+  Clock, 
+  DollarSign,
+  Download,
+  Eye,
+  Truck,
+  Store
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Link, useNavigate } from 'react-router-dom';
+import { RatingDialog } from '@/components/couriers/RatingDialog';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: userRoles } = useUserRoles();
-
-  const addRoleMutation = useMutation({
-    mutationFn: async (newRole: 'vendeur' | 'livreur') => {
-      if (!user) throw new Error('User not authenticated');
-
-      // Désactiver tous les rôles actuels
-      await supabase
-        .from('user_roles')
-        .update({ is_active: false })
-        .eq('user_id', user.id);
-
-      // Ajouter et activer le nouveau rôle
-      const { error } = await supabase
-        .from('user_roles')
-        .insert([{
-          user_id: user.id,
-          role: newRole,
-          is_active: true,
-        }]);
-
-      if (error) throw error;
-      return newRole;
-    },
-    onSuccess: (newRole) => {
-      queryClient.invalidateQueries({ queryKey: ['userRole'] });
-      queryClient.invalidateQueries({ queryKey: ['userRoles'] });
-      
-      if (newRole === 'vendeur') {
-        toast.success('Rôle vendeur activé ! Créez votre boutique.');
-        navigate('/creer-boutique');
-      } else if (newRole === 'livreur') {
-        toast.success('Rôle livreur activé !');
-        navigate('/dashboard-livreur');
-      }
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de l\'ajout du rôle');
-    },
+  
+  const [ratingDialog, setRatingDialog] = useState<{
+    isOpen: boolean;
+    deliveryId: string;
+    courierId: string;
+    courierName: string;
+    existingRating?: any;
+  }>({
+    isOpen: false,
+    deliveryId: '',
+    courierId: '',
+    courierName: '',
   });
 
+  // Profil utilisateur
   const { data: userProfile } = useQuery({
-    queryKey: ['user-profile', user?.id],
+    queryKey: ['buyer-profile', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', user?.id)
         .single();
-
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
   });
 
-  const { data: orders } = useQuery({
+  // Commandes de l'acheteur
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['buyer-orders', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -80,66 +77,96 @@ const BuyerDashboard = () => {
         .select(`
           *,
           products(*),
-          validations(*)
+          validations(*),
+          deliveries(
+            *,
+            courier:users!deliveries_livreur_id_fkey(id, nom)
+          )
         `)
         .eq('acheteur_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Récupérer les évaluations existantes
+      const ordersWithRatings = await Promise.all(
+        (data || []).map(async (order) => {
+          if (order.deliveries?.[0]?.id) {
+            const { data: rating } = await supabase
+              .from('courier_ratings')
+              .select('*')
+              .eq('delivery_id', order.deliveries[0].id)
+              .eq('acheteur_id', user?.id)
+              .maybeSingle();
+
+            return { ...order, courierRating: rating };
+          }
+          return { ...order, courierRating: null };
+        })
+      );
+
+      return ordersWithRatings;
     },
     enabled: !!user?.id,
   });
 
-  const { data: notifications } = useQuery({
-    queryKey: ['user-notifications', user?.id],
+  // Paiements liés aux commandes de l'acheteur
+  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ['buyer-payments', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          orders!inner(
+            acheteur_id,
+            produit_id,
+            quantite,
+            reference_gateway,
+            products(nom, images)
+          )
+        `)
+        .eq('orders.acheteur_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Notifications
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['buyer-notifications', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user?.id,
   });
 
-  const openDispute = useMutation({
-    mutationFn: async (orderId: string) => {
+  // Marquer les notifications comme lues
+  const markAsRead = useMutation({
+    mutationFn: async (notificationId: string) => {
       const { error } = await supabase
-        .from('orders')
-        .update({ statut: 'litige' })
-        .eq('id', orderId);
-
+        .from('notifications')
+        .update({ lue: true })
+        .eq('id', notificationId);
       if (error) throw error;
-
-      // Get order to send notification to admin
-      const { data: order } = await supabase
-        .from('orders')
-        .select('vendeur_id')
-        .eq('id', orderId)
-        .single();
-
-      if (order) {
-        await supabase.from('notifications').insert({
-          user_id: order.vendeur_id,
-          message: 'Un litige a été ouvert sur une de vos commandes.',
-          canal: 'app',
-        });
-      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Litige ouvert, un administrateur va traiter votre demande');
-    },
-    onError: () => {
-      toast.error('Erreur lors de l\'ouverture du litige');
+      queryClient.invalidateQueries({ queryKey: ['buyer-notifications'] });
     },
   });
 
+  // Valider la commande
   const validateOrder = useMutation({
     mutationFn: async (orderId: string) => {
       const { error } = await supabase
@@ -149,13 +176,47 @@ const BuyerDashboard = () => {
 
       if (error) throw error;
 
-      // Update order status to 'livré'
-      await supabase
+      const { data: order } = await supabase
         .from('orders')
-        .update({ statut: 'livré' })
+        .select('vendeur_id, livreur_id, montant')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await supabase.from('notifications').insert({
+          user_id: order.vendeur_id,
+          message: `💰 Paiement de ${order.montant.toLocaleString()} FCFA libéré suite à la confirmation de réception.`,
+          canal: 'app',
+        });
+
+        if (order.livreur_id) {
+          await supabase.from('notifications').insert({
+            user_id: order.livreur_id,
+            message: '✅ Livraison validée par le client. Merci !',
+            canal: 'app',
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
+      toast.success('✅ Réception confirmée');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la validation');
+    },
+  });
+
+  // Ouvrir un litige
+  const openDispute = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ statut: 'litige' })
         .eq('id', orderId);
 
-      // Get order to send notification to vendor
+      if (error) throw error;
+
       const { data: order } = await supabase
         .from('orders')
         .select('vendeur_id')
@@ -165,19 +226,77 @@ const BuyerDashboard = () => {
       if (order) {
         await supabase.from('notifications').insert({
           user_id: order.vendeur_id,
-          message: 'Le paiement a été libéré suite à la confirmation de réception.',
+          message: '⚠️ Un litige a été ouvert sur une de vos commandes.',
           canal: 'app',
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Réception confirmée, paiement libéré');
+      toast.success('Litige ouvert');
     },
     onError: () => {
-      toast.error('Erreur lors de la validation');
+      toast.error("Erreur lors de l'ouverture du litige");
     },
   });
+
+  // Ajouter le rôle vendeur
+  const addVendeurRole = useMutation({
+    mutationFn: async () => {
+      await supabase
+        .from('user_roles')
+        .update({ is_active: false })
+        .eq('user_id', user?.id);
+
+      const { error } = await supabase
+        .from('user_roles')
+        .upsert({
+          user_id: user?.id,
+          role: 'vendeur',
+          is_active: true,
+        }, { onConflict: 'user_id,role' });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userRoles'] });
+      toast.success('🏪 Vous êtes maintenant vendeur !');
+      navigate('/creer-boutique');
+    },
+    onError: () => {
+      toast.error('Erreur lors du changement de rôle');
+    },
+  });
+
+  // Ajouter le rôle livreur
+  const addLivreurRole = useMutation({
+    mutationFn: async () => {
+      await supabase
+        .from('user_roles')
+        .update({ is_active: false })
+        .eq('user_id', user?.id);
+
+      const { error } = await supabase
+        .from('user_roles')
+        .upsert({
+          user_id: user?.id,
+          role: 'livreur',
+          is_active: true,
+        }, { onConflict: 'user_id,role' });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userRoles'] });
+      toast.success('🚚 Vous êtes maintenant livreur !');
+      navigate('/dashboard-livreur');
+    },
+    onError: () => {
+      toast.error('Erreur lors du changement de rôle');
+    },
+  });
+
+  const hasRole = (role: string) => userRoles?.some(r => r.role === role);
 
   const getStatusBadge = (statut: string) => {
     const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
@@ -188,220 +307,547 @@ const BuyerDashboard = () => {
       'litige': { variant: 'destructive', label: 'Litige' },
       'terminé': { variant: 'secondary', label: 'Terminé' },
     };
-
     const config = statusConfig[statut] || { variant: 'outline' as const, label: statut };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
+
+  const getPaymentStatusBadge = (statut: string) => {
+    if (statut === 'débloqué') return <Badge className="bg-green-500">Débloqué</Badge>;
+    if (statut === 'bloqué') return <Badge variant="secondary">Bloqué</Badge>;
+    if (statut === 'remboursé') return <Badge variant="outline">Remboursé</Badge>;
+    return <Badge variant="outline">{statut}</Badge>;
+  };
+
+  // Statistiques
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(o => ['fonds_bloques', 'en_livraison'].includes(o.statut)).length;
+  const completedOrders = orders.filter(o => o.statut === 'terminé' || o.statut === 'livré').length;
+  const totalSpent = orders.reduce((sum, o) => sum + Number(o.montant || 0), 0);
+  const unreadNotifications = notifications.filter(n => !n.lue).length;
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="container py-8 flex-1">
-        <h1 className="text-4xl font-bold mb-8">Dashboard Acheteur</h1>
+      <main className="container py-8 flex-1 space-y-8">
+        {/* Header */}
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Mon Espace Acheteur</h1>
+            <p className="text-lg text-muted-foreground mt-2">
+              Gérez vos commandes, paiements et reçus en toute simplicité
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Section Profil */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Mon Profil
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-muted-foreground" />
+          {/* Profile Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-8 w-8 text-primary" />
+                  </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Nom</p>
-                    <p className="font-semibold">{userProfile?.nom || 'Non renseigné'}</p>
+                    <h2 className="text-2xl font-semibold">{userProfile?.nom || 'Utilisateur'}</h2>
+                    <p className="text-muted-foreground">{userProfile?.email}</p>
+                    {userProfile?.telephone && (
+                      <p className="text-sm text-muted-foreground">{userProfile.telephone}</p>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-semibold">{userProfile?.email || 'Non renseigné'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Téléphone</p>
-                    <p className="font-semibold">{userProfile?.telephone || 'Non renseigné'}</p>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link to="/produits">
+                    <Button variant="outline">
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Continuer mes achats
+                    </Button>
+                  </Link>
+                  {!hasRole('vendeur') && (
+                    <Button variant="secondary" onClick={() => addVendeurRole.mutate()}>
+                      <Store className="mr-2 h-4 w-4" />
+                      Devenir vendeur
+                    </Button>
+                  )}
+                  {!hasRole('livreur') && (
+                    <Button variant="secondary" onClick={() => addLivreurRole.mutate()}>
+                      <Truck className="mr-2 h-4 w-4" />
+                      Devenir livreur
+                    </Button>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Devenir Vendeur ou Livreur */}
-          <Card className="border-primary/50">
-            <CardHeader>
-              <CardTitle className="text-lg">Développez votre activité</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!userRoles?.some(r => r.role === 'vendeur') && (
-                <div>
-                  <Button 
-                    onClick={() => addRoleMutation.mutate('vendeur')} 
-                    className="w-full gap-2"
-                    variant="default"
-                    disabled={addRoleMutation.isPending}
-                  >
-                    <Store className="h-4 w-4" />
-                    Créer ma boutique
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Devenez vendeur et développez votre business
-                  </p>
-                </div>
-              )}
-              
-              {!userRoles?.some(r => r.role === 'livreur') && (
-                <div>
-                  <Button 
-                    onClick={() => addRoleMutation.mutate('livreur')} 
-                    className="w-full gap-2"
-                    variant="outline"
-                    disabled={addRoleMutation.isPending}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Devenir livreur
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Effectuez des livraisons et gagnez de l'argent
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Section Mes Commandes */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Mes Commandes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {orders && orders.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Référence</TableHead>
-                      <TableHead>Produit</TableHead>
-                      <TableHead>Quantité</TableHead>
-                      <TableHead>Montant</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-mono text-sm">
-                          #{order.id.slice(0, 8)}
-                        </TableCell>
-                        <TableCell>{order.products?.nom || 'N/A'}</TableCell>
-                        <TableCell>{order.quantite}</TableCell>
-                        <TableCell className="font-semibold">
-                          {order.montant.toLocaleString()} FCFA
-                        </TableCell>
-                        <TableCell>{getStatusBadge(order.statut)}</TableCell>
-                        <TableCell>
-                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {order.statut === 'livré' && !order.validations?.acheteur_ok && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  onClick={() => validateOrder.mutate(order.id)}
-                                  disabled={validateOrder.isPending}
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Confirmer
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => openDispute.mutate(order.id)}
-                                  disabled={openDispute.isPending}
-                                >
-                                  <AlertTriangle className="mr-2 h-4 w-4" />
-                                  Litige
-                                </Button>
-                              </>
-                            )}
-                            {order.validations?.acheteur_ok && (
-                              <Badge variant="secondary" className="gap-1">
-                                <CheckCircle className="h-3 w-3" />
-                                Confirmé
-                              </Badge>
-                            )}
-                            {order.statut === 'litige' && (
-                              <Badge variant="destructive">En cours</Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+        {/* Statistics */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Commandes</p>
+                  <p className="text-3xl font-bold mt-2">{totalOrders}</p>
+                </div>
+                <Package className="h-10 w-10 text-blue-500" />
               </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune commande pour le moment</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Section Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notifications Récentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {notifications && notifications.length > 0 ? (
-              <div className="space-y-3">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border bg-card"
-                  >
-                    <Bell className="h-4 w-4 mt-1 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-sm">{notif.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notif.created_at).toLocaleString('fr-FR')}
-                      </p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">En cours</p>
+                  <p className="text-3xl font-bold mt-2">{pendingOrders}</p>
+                </div>
+                <Clock className="h-10 w-10 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Terminées</p>
+                  <p className="text-3xl font-bold mt-2">{completedOrders}</p>
+                </div>
+                <CheckCircle className="h-10 w-10 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total dépensé</p>
+                  <p className="text-2xl font-bold mt-2">{totalSpent.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">FCFA</p>
+                </div>
+                <DollarSign className="h-10 w-10 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Notifications</p>
+                  <p className="text-3xl font-bold mt-2">{unreadNotifications}</p>
+                  <p className="text-xs text-muted-foreground">non lues</p>
+                </div>
+                <Bell className="h-10 w-10 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Tabs */}
+        <Tabs defaultValue="orders" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="orders" className="gap-2">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Mes Commandes</span>
+              <span className="sm:hidden">Commandes</span>
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="gap-2">
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden sm:inline">Paiements & Reçus</span>
+              <span className="sm:hidden">Paiements</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Notifications</span>
+              <span className="sm:hidden">Notifs</span>
+              {unreadNotifications > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {unreadNotifications}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Mon Profil</span>
+              <span className="sm:hidden">Profil</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Commandes Tab */}
+          <TabsContent value="orders">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Historique de mes commandes
+                </CardTitle>
+                <CardDescription>
+                  Suivez et gérez toutes vos commandes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {ordersLoading ? (
+                  <div className="text-center py-12">Chargement...</div>
+                ) : orders.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Référence</TableHead>
+                          <TableHead>Produit</TableHead>
+                          <TableHead>Quantité</TableHead>
+                          <TableHead>Montant</TableHead>
+                          <TableHead>Statut</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {orders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-sm">
+                              #{order.id.slice(0, 8)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {order.products?.images?.[0] && (
+                                  <img 
+                                    src={order.products.images[0]} 
+                                    alt="" 
+                                    className="h-10 w-10 rounded object-cover"
+                                  />
+                                )}
+                                <span className="max-w-[150px] truncate">{order.products?.nom || 'N/A'}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{order.quantite}</TableCell>
+                            <TableCell className="font-semibold">
+                              {Number(order.montant).toLocaleString()} FCFA
+                            </TableCell>
+                            <TableCell>{getStatusBadge(order.statut)}</TableCell>
+                            <TableCell>
+                              {format(new Date(order.created_at), 'dd MMM yyyy', { locale: fr })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2 flex-wrap">
+                                {/* Suivi livraison */}
+                                {(order.statut === 'en_livraison' || order.statut === 'livré') && 
+                                 Array.isArray(order.deliveries) && order.deliveries.length > 0 && (
+                                  <Link to={`/suivi-livraison/${order.deliveries[0].id}`}>
+                                    <Button size="sm" variant="outline" className="gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      Suivre
+                                    </Button>
+                                  </Link>
+                                )}
+                                
+                                {/* Noter le livreur */}
+                                {order.statut === 'livré' && order.deliveries?.[0]?.courier && (
+                                  <Button
+                                    size="sm"
+                                    variant={order.courierRating ? "outline" : "secondary"}
+                                    onClick={() => setRatingDialog({
+                                      isOpen: true,
+                                      deliveryId: order.deliveries[0].id,
+                                      courierId: order.deliveries[0].courier.id,
+                                      courierName: order.deliveries[0].courier.nom,
+                                      existingRating: order.courierRating,
+                                    })}
+                                  >
+                                    <Star className={`h-4 w-4 mr-1 ${order.courierRating ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                    {order.courierRating ? 'Modifier' : 'Noter'}
+                                  </Button>
+                                )}
+                                
+                                {/* Confirmer réception */}
+                                {order.statut === 'livré' && !order.validations?.acheteur_ok && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => validateOrder.mutate(order.id)}
+                                      disabled={validateOrder.isPending}
+                                    >
+                                      <CheckCircle className="mr-1 h-4 w-4" />
+                                      Confirmer
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => openDispute.mutate(order.id)}
+                                      disabled={openDispute.isPending}
+                                    >
+                                      <AlertTriangle className="mr-1 h-4 w-4" />
+                                      Litige
+                                    </Button>
+                                  </>
+                                )}
+                                
+                                {order.validations?.acheteur_ok && (
+                                  <Badge variant="secondary" className="gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Confirmé
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Aucune commande pour le moment</p>
+                    <Link to="/produits">
+                      <Button className="mt-4">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        Découvrir les produits
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Paiements & Reçus Tab */}
+          <TabsContent value="payments">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Mes Paiements & Reçus
+                </CardTitle>
+                <CardDescription>
+                  Consultez l'historique de vos paiements et téléchargez vos reçus
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {paymentsLoading ? (
+                  <div className="text-center py-12">Chargement...</div>
+                ) : payments.length > 0 ? (
+                  <div className="space-y-4">
+                    {payments.map((payment) => (
+                      <Card key={payment.id} className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Receipt className="h-6 w-6 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-semibold">
+                                  {payment.orders?.products?.nom || 'Produit'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Réf: {payment.reference_gateway || payment.id.slice(0, 8)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(payment.created_at), "dd MMMM yyyy 'à' HH:mm", { locale: fr })}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <p className="text-2xl font-bold">
+                                  {Number(payment.montant).toLocaleString()} FCFA
+                                </p>
+                                {getPaymentStatusBadge(payment.statut)}
+                              </div>
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  const receiptContent = `
+REÇU DE PAIEMENT
+================
+Référence: ${payment.reference_gateway || payment.id}
+Date: ${format(new Date(payment.created_at), "dd/MM/yyyy HH:mm")}
+Produit: ${payment.orders?.products?.nom || 'Produit'}
+Quantité: ${payment.orders?.quantite || 1}
+Montant: ${Number(payment.montant).toLocaleString()} FCFA
+Statut: ${payment.statut}
+Mode: ${payment.mode || 'Paystack'}
+================
+Merci pour votre achat !
+                                  `.trim();
+                                  
+                                  const blob = new Blob([receiptContent], { type: 'text/plain' });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `recu-${payment.reference_gateway || payment.id.slice(0, 8)}.txt`;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                  toast.success('Reçu téléchargé');
+                                }}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Reçu
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Aucun paiement pour le moment</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Mes Notifications
+                </CardTitle>
+                <CardDescription>
+                  Restez informé de l'état de vos commandes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {notifications.length > 0 ? (
+                  <div className="space-y-3">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-4 rounded-lg border ${
+                          notification.lue 
+                            ? 'bg-background' 
+                            : 'bg-primary/5 border-primary/20'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className={notification.lue ? 'text-muted-foreground' : 'font-medium'}>
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {format(new Date(notification.created_at), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
+                            </p>
+                          </div>
+                          {!notification.lue && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => markAsRead.mutate(notification.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Aucune notification</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Profil Tab */}
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Mon Profil
+                </CardTitle>
+                <CardDescription>
+                  Vos informations personnelles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Nom complet</p>
+                      <p className="font-medium text-lg">{userProfile?.nom || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="font-medium">{userProfile?.email || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Téléphone</p>
+                      <p className="font-medium">{userProfile?.telephone || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pays</p>
+                      <p className="font-medium">{userProfile?.pays || '-'}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bell className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                <p>Aucune notification</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Entreprise</p>
+                      <p className="font-medium">{userProfile?.entreprise || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Points de fidélité</p>
+                      <p className="font-medium text-lg">{userProfile?.points || 0} points</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Membre depuis</p>
+                      <p className="font-medium">
+                        {userProfile?.created_at 
+                          ? format(new Date(userProfile.created_at), 'MMMM yyyy', { locale: fr })
+                          : '-'
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Statut</p>
+                      <Badge variant={userProfile?.statut === 'actif' ? 'default' : 'secondary'}>
+                        {userProfile?.statut || 'Actif'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t">
+                  <Link to="/profil">
+                    <Button>
+                      Modifier mon profil
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />
+
+      {/* Rating Dialog */}
+      {ratingDialog.isOpen && (
+        <RatingDialog
+          deliveryId={ratingDialog.deliveryId}
+          courierId={ratingDialog.courierId}
+          courierName={ratingDialog.courierName}
+          isOpen={ratingDialog.isOpen}
+          onClose={() => setRatingDialog({ ...ratingDialog, isOpen: false })}
+          existingRating={ratingDialog.existingRating}
+        />
+      )}
     </div>
   );
 };

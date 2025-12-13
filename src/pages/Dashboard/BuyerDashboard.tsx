@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,7 +28,9 @@ import {
   Download,
   Eye,
   Truck,
-  Store
+  Store,
+  Save,
+  Edit2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
@@ -51,6 +55,16 @@ const BuyerDashboard = () => {
     deliveryId: '',
     courierId: '',
     courierName: '',
+  });
+
+  // État pour l'édition du profil
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    nom: '',
+    telephone: '',
+    email: '',
+    pays: '',
+    entreprise: ''
   });
 
   // Profil utilisateur
@@ -293,6 +307,32 @@ const BuyerDashboard = () => {
     },
     onError: () => {
       toast.error('Erreur lors du changement de rôle');
+    },
+  });
+
+  // Mettre à jour le profil
+  const updateProfile = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          nom: profileForm.nom,
+          telephone: profileForm.telephone,
+          email: profileForm.email,
+          pays: profileForm.pays,
+          entreprise: profileForm.entreprise
+        })
+        .eq('id', user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
+      setIsEditingProfile(false);
+      toast.success('✅ Profil mis à jour avec succès');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la mise à jour du profil');
     },
   });
 
@@ -766,69 +806,154 @@ Merci pour votre achat !
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Mon Profil
-                </CardTitle>
-                <CardDescription>
-                  Vos informations personnelles
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Mon Profil
+                    </CardTitle>
+                    <CardDescription>
+                      Gérez vos informations personnelles
+                    </CardDescription>
+                  </div>
+                  {!isEditingProfile && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setProfileForm({
+                          nom: userProfile?.nom || '',
+                          telephone: userProfile?.telephone || '',
+                          email: userProfile?.email || '',
+                          pays: userProfile?.pays || '',
+                          entreprise: userProfile?.entreprise || ''
+                        });
+                        setIsEditingProfile(true);
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Modifier
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Nom complet</p>
-                      <p className="font-medium text-lg">{userProfile?.nom || '-'}</p>
+                {isEditingProfile ? (
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    updateProfile.mutate();
+                  }} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="nom">Nom complet</Label>
+                        <Input
+                          id="nom"
+                          value={profileForm.nom}
+                          onChange={(e) => setProfileForm({ ...profileForm, nom: e.target.value })}
+                          placeholder="Votre nom complet"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={profileForm.email}
+                          onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                          placeholder="votre@email.com"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="telephone">Téléphone</Label>
+                        <Input
+                          id="telephone"
+                          value={profileForm.telephone}
+                          onChange={(e) => setProfileForm({ ...profileForm, telephone: e.target.value })}
+                          placeholder="+225 00 00 00 00"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pays">Pays</Label>
+                        <Input
+                          id="pays"
+                          value={profileForm.pays}
+                          onChange={(e) => setProfileForm({ ...profileForm, pays: e.target.value })}
+                          placeholder="Côte d'Ivoire"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="entreprise">Entreprise (optionnel)</Label>
+                        <Input
+                          id="entreprise"
+                          value={profileForm.entreprise}
+                          onChange={(e) => setProfileForm({ ...profileForm, entreprise: e.target.value })}
+                          placeholder="Nom de votre entreprise"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{userProfile?.email || '-'}</p>
+                    <div className="flex gap-3 pt-4">
+                      <Button type="submit" disabled={updateProfile.isPending}>
+                        <Save className="h-4 w-4 mr-2" />
+                        {updateProfile.isPending ? 'Enregistrement...' : 'Enregistrer'}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsEditingProfile(false)}
+                      >
+                        Annuler
+                      </Button>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Téléphone</p>
-                      <p className="font-medium">{userProfile?.telephone || '-'}</p>
+                  </form>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Nom complet</p>
+                          <p className="font-medium text-lg">{userProfile?.nom || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <p className="font-medium">{userProfile?.email || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Téléphone</p>
+                          <p className="font-medium">{userProfile?.telephone || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Pays</p>
+                          <p className="font-medium">{userProfile?.pays || '-'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Entreprise</p>
+                          <p className="font-medium">{userProfile?.entreprise || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Points de fidélité</p>
+                          <p className="font-medium text-lg">{userProfile?.points || 0} points</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Membre depuis</p>
+                          <p className="font-medium">
+                            {userProfile?.created_at 
+                              ? format(new Date(userProfile.created_at), 'MMMM yyyy', { locale: fr })
+                              : '-'
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Statut</p>
+                          <Badge variant={userProfile?.statut === 'actif' ? 'default' : 'secondary'}>
+                            {userProfile?.statut || 'Actif'}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Pays</p>
-                      <p className="font-medium">{userProfile?.pays || '-'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Entreprise</p>
-                      <p className="font-medium">{userProfile?.entreprise || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Points de fidélité</p>
-                      <p className="font-medium text-lg">{userProfile?.points || 0} points</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Membre depuis</p>
-                      <p className="font-medium">
-                        {userProfile?.created_at 
-                          ? format(new Date(userProfile.created_at), 'MMMM yyyy', { locale: fr })
-                          : '-'
-                        }
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Statut</p>
-                      <Badge variant={userProfile?.statut === 'actif' ? 'default' : 'secondary'}>
-                        {userProfile?.statut || 'Actif'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t">
-                  <Link to="/profil">
-                    <Button>
-                      Modifier mon profil
-                    </Button>
-                  </Link>
-                </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

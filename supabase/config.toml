@@ -4,4 +4,4 @@ project_id = "psvxciccmshwdbuifkje"
 verify_jwt = false
 
 [functions.secure-admin-register]
-verify_jwt = false
+verify_jwt = true

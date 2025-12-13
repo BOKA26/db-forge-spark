@@ -12,6 +12,30 @@ serve(async (req) => {
   }
 
   try {
+    // Verify JWT and get authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Authorization header requis' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !authUser) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Utilisateur non authentifié' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
     const { accessCode, userId } = await req.json();
     
     console.log('Secure admin registration request for user:', userId);
@@ -24,10 +48,19 @@ serve(async (req) => {
       );
     }
 
+    // CRITICAL: Verify that the authenticated user matches the requested userId
+    if (authUser.id !== userId) {
+      console.error('User ID mismatch: auth user', authUser.id, 'vs requested', userId);
+      return new Response(
+        JSON.stringify({ success: false, message: 'Non autorisé à modifier ce compte' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
     // Validate the admin code
     const ADMIN_CODE = Deno.env.get('ADMIN_REGISTRATION_CODE');
     if (!ADMIN_CODE || accessCode !== ADMIN_CODE) {
-      console.error('Invalid admin code attempt');
+      console.error('Invalid admin code attempt for user:', authUser.id);
       return new Response(
         JSON.stringify({ success: false, message: 'Code d\'accès incorrect' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
@@ -35,7 +68,6 @@ serve(async (req) => {
     }
 
     // Use SERVICE_ROLE_KEY to bypass RLS and securely insert admin role
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

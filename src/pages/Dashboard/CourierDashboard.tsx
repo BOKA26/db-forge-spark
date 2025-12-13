@@ -77,7 +77,7 @@ const CourierDashboard = () => {
   // Filter deliveries
   const pendingDeliveries = deliveries?.filter(d => d.statut === 'en_attente') || [];
   const activeDeliveries = deliveries?.filter(d => d.statut === 'en_livraison') || [];
-  const completedDeliveries = deliveries?.filter(d => d.statut === 'livrée') || [];
+  const completedDeliveries = deliveries?.filter(d => d.statut === 'livré' || d.statut === 'livrée') || [];
 
   // Accept delivery mutation
   const acceptDelivery = useMutation({
@@ -106,48 +106,25 @@ const CourierDashboard = () => {
       const delivery = deliveries?.find(d => d.id === deliveryId);
       if (!delivery) throw new Error('Delivery not found');
 
-      // Update delivery status
+      // Update delivery status to 'livré' - this will trigger the database trigger
       const { error: deliveryError } = await supabase
         .from('deliveries')
-        .update({ statut: 'livrée', date_livraison: new Date().toISOString() })
+        .update({ 
+          statut: 'livré', 
+          date_livraison: new Date().toISOString() 
+        })
         .eq('id', deliveryId);
 
       if (deliveryError) throw deliveryError;
 
-      // Update order status
-      const { error: orderError } = await supabase
-        .from('orders')
-        .update({ statut: 'livré' })
-        .eq('id', delivery.order_id);
-
-      if (orderError) throw orderError;
-
-      // Update validation
-      const { error: validationError } = await supabase
-        .from('validations')
-        .update({ livreur_ok: true })
-        .eq('order_id', delivery.order_id);
-
-      if (validationError) throw validationError;
-
-      // Send notification to buyer
-      const { data: order } = await supabase
-        .from('orders')
-        .select('acheteur_id')
-        .eq('id', delivery.order_id)
-        .single();
-
-      if (order) {
-        await supabase.from('notifications').insert({
-          user_id: order.acheteur_id,
-          message: 'Votre colis est livré. Merci de confirmer la réception.',
-          canal: 'app',
-        });
-      }
+      // The database trigger 'on_delivery_complete' will:
+      // 1. Update validations.livreur_ok = true
+      // 2. Send notification to buyer
+      // 3. Update order status to 'livré'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courier-deliveries'] });
-      toast.success('Livraison marquée comme effectuée');
+      toast.success('Livraison terminée ! L\'acheteur a été notifié pour confirmer la réception.');
     },
     onError: () => {
       toast.error('Erreur lors de la mise à jour');
@@ -161,6 +138,7 @@ const CourierDashboard = () => {
         return <Badge className="bg-red-500 hover:bg-red-600">En attente</Badge>;
       case 'en_livraison':
         return <Badge className="bg-orange-500 hover:bg-orange-600">En cours</Badge>;
+      case 'livré':
       case 'livrée':
         return <Badge className="bg-green-500 hover:bg-green-600">Livrée</Badge>;
       default:

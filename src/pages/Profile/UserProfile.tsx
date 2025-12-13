@@ -36,6 +36,17 @@ const UserProfile = () => {
   const [addingRole, setAddingRole] = useState<Role | null>(null);
   const mounted = useRef(true);
 
+  const activeRole = useMemo(() => {
+    const active = (userRoles as any[]).find((r) => r.is_active);
+    return active?.role as Role | undefined;
+  }, [userRoles]);
+
+  useEffect(() => {
+    if (activeRole === "acheteur") {
+      navigate("/dashboard-acheteur", { replace: true });
+    }
+  }, [activeRole, navigate]);
+
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };

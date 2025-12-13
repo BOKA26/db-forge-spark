@@ -133,13 +133,8 @@ export const Navbar = () => {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/profil" className="cursor-pointer">Mon Profil</Link>
+                      <Link to="/dashboard-acheteur" className="cursor-pointer">Mon Profil</Link>
                     </DropdownMenuItem>
-                    {userRole === 'acheteur' && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/mes-commandes" className="cursor-pointer">Mes Commandes</Link>
-                      </DropdownMenuItem>
-                    )}
                     {userRole === 'vendeur' && (
                       <>
                         <DropdownMenuItem asChild>
@@ -160,9 +155,6 @@ export const Navbar = () => {
                         <Link to="/admin/dashboard" className="cursor-pointer">Dashboard Admin</Link>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem asChild>
-                      <Link to="/messages" className="cursor-pointer">Messages</Link>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut} className="cursor-pointer">
                       Déconnexion

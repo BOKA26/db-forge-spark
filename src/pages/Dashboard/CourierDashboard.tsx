@@ -240,11 +240,10 @@ const CourierDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID Livraison</TableHead>
-                      <TableHead>Commande</TableHead>
+                      <TableHead>ID</TableHead>
                       <TableHead>Produit</TableHead>
+                      <TableHead>Destinataire</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead>Date d'assignation</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -253,17 +252,44 @@ const CourierDashboard = () => {
                       <TableRow key={delivery.id}>
                         <TableCell className="font-mono text-sm">
                           {delivery.id.slice(0, 8)}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Code: {delivery.tracking_code?.slice(0, 12) || 'N/A'}
+                          </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {delivery.orders?.id?.slice(0, 8) || 'N/A'}
-                        </TableCell>
-                        <TableCell>{delivery.orders?.products?.nom || 'N/A'}</TableCell>
-                        <TableCell>{getStatusBadge(delivery.statut)}</TableCell>
                         <TableCell>
-                          {delivery.date_assignation 
-                            ? new Date(delivery.date_assignation).toLocaleDateString('fr-FR')
-                            : 'Non assignée'}
+                          <div>
+                            <p className="font-medium">{delivery.orders?.products?.nom || 'N/A'}</p>
+                            <p className="text-sm text-muted-foreground">Qté: {delivery.orders?.quantite || 1}</p>
+                          </div>
                         </TableCell>
+                        <TableCell>
+                          <div className="space-y-1 text-sm">
+                            {delivery.orders?.nom_destinataire && (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3 text-muted-foreground" />
+                                <span className="font-medium">{delivery.orders.nom_destinataire}</span>
+                              </div>
+                            )}
+                            {delivery.orders?.telephone_destinataire && (
+                              <div className="flex items-center gap-1">
+                                <Phone className="h-3 w-3 text-muted-foreground" />
+                                <a href={`tel:${delivery.orders.telephone_destinataire}`} className="text-primary hover:underline">
+                                  {delivery.orders.telephone_destinataire}
+                                </a>
+                              </div>
+                            )}
+                            {delivery.orders?.adresse_livraison && (
+                              <div className="flex items-start gap-1">
+                                <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                                <span className="text-muted-foreground max-w-[200px]">{delivery.orders.adresse_livraison}</span>
+                              </div>
+                            )}
+                            {!delivery.orders?.nom_destinataire && !delivery.orders?.telephone_destinataire && (
+                              <span className="text-muted-foreground italic">Non renseigné</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(delivery.statut)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             {delivery.statut === 'en_attente' && (
@@ -272,6 +298,7 @@ const CourierDashboard = () => {
                                 onClick={() => acceptDelivery.mutate(delivery.id)}
                                 disabled={acceptDelivery.isPending}
                               >
+                                <CheckCircle className="mr-1 h-3 w-3" />
                                 Accepter
                               </Button>
                             )}
@@ -282,6 +309,7 @@ const CourierDashboard = () => {
                                 onClick={() => markAsDelivered.mutate(delivery.id)}
                                 disabled={markAsDelivered.isPending}
                               >
+                                <TruckIcon className="mr-1 h-3 w-3" />
                                 Marquer livrée
                               </Button>
                             )}
@@ -291,7 +319,7 @@ const CourierDashboard = () => {
                     ))}
                     {pendingDeliveries.length === 0 && activeDeliveries.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                           Aucune livraison active
                         </TableCell>
                       </TableRow>

@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, CheckCircle, TruckIcon } from 'lucide-react';
+import { Package, CheckCircle, TruckIcon, User, Phone, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SellerOrders = () => {
@@ -143,10 +143,9 @@ const SellerOrders = () => {
                     <TableRow>
                       <TableHead>Référence</TableHead>
                       <TableHead>Produit</TableHead>
-                      <TableHead>Quantité</TableHead>
+                      <TableHead>Infos Livraison</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Statut</TableHead>
-                      <TableHead>Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -155,16 +154,47 @@ const SellerOrders = () => {
                       <TableRow key={order.id}>
                         <TableCell className="font-mono text-sm">
                           #{order.id.slice(0, 8)}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                          </div>
                         </TableCell>
-                        <TableCell>{order.products?.nom || 'N/A'}</TableCell>
-                        <TableCell>{order.quantite}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{order.products?.nom || 'N/A'}</p>
+                            <p className="text-sm text-muted-foreground">Qté: {order.quantite}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1 text-sm">
+                            {order.nom_destinataire && (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3 text-muted-foreground" />
+                                <span className="font-medium">{order.nom_destinataire}</span>
+                              </div>
+                            )}
+                            {order.telephone_destinataire && (
+                              <div className="flex items-center gap-1">
+                                <Phone className="h-3 w-3 text-muted-foreground" />
+                                <a href={`tel:${order.telephone_destinataire}`} className="text-primary hover:underline">
+                                  {order.telephone_destinataire}
+                                </a>
+                              </div>
+                            )}
+                            {order.adresse_livraison && (
+                              <div className="flex items-start gap-1">
+                                <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                                <span className="text-muted-foreground">{order.adresse_livraison}</span>
+                              </div>
+                            )}
+                            {!order.nom_destinataire && !order.telephone_destinataire && !order.adresse_livraison && (
+                              <span className="text-muted-foreground italic">Non renseigné</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="font-semibold">
                           {order.montant.toLocaleString()} FCFA
                         </TableCell>
                         <TableCell>{getStatusBadge(order.statut)}</TableCell>
-                        <TableCell>
-                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (

@@ -107,12 +107,17 @@ serve(async (req) => {
       console.error('Erreur lors de la mise à jour de la commande avec le livreur:', orderUpdateError);
     }
 
-    // Envoyer une notification au livreur
+    // Construire les infos de livraison pour le livreur
+    const destinataire = order.nom_destinataire || 'Non renseigné';
+    const telephone = order.telephone_destinataire || 'Non renseigné';
+    const adresse = order.adresse_livraison || 'Non renseignée';
+
+    // Envoyer une notification au livreur avec les infos de livraison
     const { error: notifError } = await supabase
       .from('notifications')
       .insert({
         user_id: courierId,
-        message: `🚚 Nouvelle livraison disponible pour le produit "${order.products?.nom || 'N/A'}". Code de suivi: ${trackingCode}`,
+        message: `🚚 Nouvelle livraison disponible!\n📦 Produit: "${order.products?.nom || 'N/A'}"\n👤 Destinataire: ${destinataire}\n📞 Tél: ${telephone}\n📍 Adresse: ${adresse}\n🔗 Code: ${trackingCode}`,
         canal: 'app',
       });
 
@@ -125,7 +130,7 @@ serve(async (req) => {
       .from('notifications')
       .insert({
         user_id: order.vendeur_id,
-        message: `✅ Un livreur a été assigné à votre commande. Code de suivi: ${trackingCode}`,
+        message: `✅ Un livreur a été assigné à votre commande pour "${order.products?.nom || 'N/A'}". Code de suivi: ${trackingCode}`,
         canal: 'app',
       });
 
@@ -138,7 +143,7 @@ serve(async (req) => {
       .from('notifications')
       .insert({
         user_id: order.acheteur_id,
-        message: `📦 Votre commande est en cours de traitement. Un livreur a été assigné. Code de suivi: ${trackingCode}`,
+        message: `📦 Votre commande "${order.products?.nom || 'N/A'}" est en cours de traitement. Un livreur a été assigné et vous contactera bientôt. Code de suivi: ${trackingCode}`,
         canal: 'app',
       });
 

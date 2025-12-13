@@ -29,6 +29,7 @@ import {
   Eye,
   Truck,
   Store,
+  Lock,
   Save,
   Edit2
 } from 'lucide-react';
@@ -65,6 +66,13 @@ const BuyerDashboard = () => {
     email: '',
     pays: '',
     entreprise: ''
+  });
+
+  // État pour le changement de mot de passe
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: '',
+    confirmPassword: ''
   });
 
   // Profil utilisateur
@@ -333,6 +341,32 @@ const BuyerDashboard = () => {
     },
     onError: () => {
       toast.error('Erreur lors de la mise à jour du profil');
+    },
+  });
+
+  // Changer le mot de passe
+  const changePassword = useMutation({
+    mutationFn: async () => {
+      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        throw new Error('Les mots de passe ne correspondent pas');
+      }
+      if (passwordForm.newPassword.length < 6) {
+        throw new Error('Le mot de passe doit contenir au moins 6 caractères');
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setIsChangingPassword(false);
+      setPasswordForm({ newPassword: '', confirmPassword: '' });
+      toast.success('🔐 Mot de passe modifié avec succès');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors du changement de mot de passe');
     },
   });
 
@@ -951,6 +985,76 @@ Merci pour votre achat !
                           </Badge>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Section Mot de passe */}
+                    <div className="border-t pt-6 mt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Sécurité
+                          </h3>
+                          <p className="text-sm text-muted-foreground">Gérez votre mot de passe</p>
+                        </div>
+                        {!isChangingPassword && (
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsChangingPassword(true)}
+                          >
+                            <Lock className="h-4 w-4 mr-2" />
+                            Changer le mot de passe
+                          </Button>
+                        )}
+                      </div>
+
+                      {isChangingPassword && (
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          changePassword.mutate();
+                        }} className="space-y-4 max-w-md">
+                          <div className="space-y-2">
+                            <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+                            <Input
+                              id="newPassword"
+                              type="password"
+                              value={passwordForm.newPassword}
+                              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                              placeholder="••••••••"
+                              minLength={6}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                            <Input
+                              id="confirmPassword"
+                              type="password"
+                              value={passwordForm.confirmPassword}
+                              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                              placeholder="••••••••"
+                              minLength={6}
+                              required
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button type="submit" disabled={changePassword.isPending}>
+                              <Save className="h-4 w-4 mr-2" />
+                              {changePassword.isPending ? 'Enregistrement...' : 'Enregistrer'}
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsChangingPassword(false);
+                                setPasswordForm({ newPassword: '', confirmPassword: '' });
+                              }}
+                            >
+                              Annuler
+                            </Button>
+                          </div>
+                        </form>
+                      )}
                     </div>
                   </>
                 )}

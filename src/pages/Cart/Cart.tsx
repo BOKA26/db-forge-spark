@@ -1,19 +1,65 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Package, Trash2, Minus, Plus, CreditCard } from 'lucide-react';
+import { ShoppingCart, Package, Trash2, Minus, Plus, CreditCard, MapPin, User, Phone } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useState, useEffect } from 'react';
+import { z } from 'zod';
+
+// Validation schema for delivery info
+const deliveryInfoSchema = z.object({
+  nom: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom est trop long"),
+  telephone: z.string().trim().min(8, "Le numéro doit contenir au moins 8 chiffres").max(20, "Le numéro est trop long"),
+  adresse: z.string().trim().min(5, "L'adresse doit contenir au moins 5 caractères").max(255, "L'adresse est trop longue"),
+});
 
 const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Delivery info state
+  const [deliveryInfo, setDeliveryInfo] = useState({
+    nom: '',
+    telephone: '',
+    adresse: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Fetch user profile to pre-fill form
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('users')
+        .select('nom, telephone')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Pre-fill form with user profile data
+  useEffect(() => {
+    if (userProfile) {
+      setDeliveryInfo(prev => ({
+        ...prev,
+        nom: userProfile.nom || prev.nom,
+        telephone: userProfile.telephone || prev.telephone,
+      }));
+    }
+  }, [userProfile]);
 
   // Récupérer les articles du panier (orders en attente de paiement)
   const { data: cartItems = [], isLoading } = useQuery({
@@ -89,8 +135,36 @@ const Cart = () => {
     mutationFn: async () => {
       if (!cartItems.length || !user?.email) return;
 
+      // Validate delivery info
+      const validation = deliveryInfoSchema.safeParse(deliveryInfo);
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.errors.forEach(err => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        throw new Error('Veuillez remplir correctement les informations de livraison');
+      }
+      setErrors({});
+
       const orderIds = cartItems.map(item => item.id);
       const totalAmount = cartItems.reduce((sum, item) => sum + Number(item.montant), 0);
+
+      // Update orders with delivery info
+      for (const orderId of orderIds) {
+        const { error: updateError } = await supabase
+          .from('orders')
+          .update({
+            nom_destinataire: deliveryInfo.nom.trim(),
+            telephone_destinataire: deliveryInfo.telephone.trim(),
+            adresse_livraison: deliveryInfo.adresse.trim(),
+          })
+          .eq('id', orderId);
+
+        if (updateError) throw updateError;
+      }
 
       // Appeler l'edge function pour initialiser Paystack
       const { data, error } = await supabase.functions.invoke('paystack-initialize', {
@@ -108,12 +182,10 @@ const Cart = () => {
       window.location.href = data.authorization_url;
     },
     onSuccess: () => {
-      // Invalider le cache du panier après redirection
       queryClient.invalidateQueries({ queryKey: ['cart-items'] });
     },
-    onError: (error) => {
-      console.error('Payment initialization error:', error);
-      toast.error('Erreur lors de l\'initialisation du paiement');
+    onError: (error: Error) => {
+      toast.error(error.message || "Erreur lors de l'initialisation du paiement");
     },
   });
 
@@ -122,6 +194,14 @@ const Cart = () => {
     if (newQuantity < 1 || newQuantity > maxStock) return;
     
     updateQuantityMutation.mutate({ orderId, newQuantity, productPrice });
+  };
+
+  const handleInputChange = (field: keyof typeof deliveryInfo, value: string) => {
+    setDeliveryInfo(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const total = cartItems.reduce((sum, item) => sum + Number(item.montant), 0);
@@ -135,7 +215,7 @@ const Cart = () => {
             <CardContent className="p-12 text-center">
               <ShoppingCart className="h-24 w-24 text-muted-foreground mx-auto mb-6" />
               <h2 className="text-2xl font-semibold mb-4">Connectez-vous pour voir votre panier</h2>
-              <Link to="/auth/login">
+              <Link to="/connexion">
                 <Button>Se connecter</Button>
               </Link>
             </CardContent>
@@ -191,6 +271,7 @@ const Cart = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
+              {/* Cart Items */}
               {cartItems.map((item) => (
                 <Card key={item.id}>
                   <CardContent className="p-6">
@@ -263,6 +344,71 @@ const Cart = () => {
                   </CardContent>
                 </Card>
               ))}
+
+              {/* Delivery Information Form */}
+              <Card className="border-primary/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Informations de livraison
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nom" className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Nom du destinataire *
+                      </Label>
+                      <Input
+                        id="nom"
+                        placeholder="Votre nom complet"
+                        value={deliveryInfo.nom}
+                        onChange={(e) => handleInputChange('nom', e.target.value)}
+                        className={errors.nom ? 'border-destructive' : ''}
+                      />
+                      {errors.nom && (
+                        <p className="text-sm text-destructive">{errors.nom}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="telephone" className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Numéro de téléphone *
+                      </Label>
+                      <Input
+                        id="telephone"
+                        type="tel"
+                        placeholder="Ex: 0701020304"
+                        value={deliveryInfo.telephone}
+                        onChange={(e) => handleInputChange('telephone', e.target.value)}
+                        className={errors.telephone ? 'border-destructive' : ''}
+                      />
+                      {errors.telephone && (
+                        <p className="text-sm text-destructive">{errors.telephone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="adresse" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Adresse de livraison *
+                    </Label>
+                    <Input
+                      id="adresse"
+                      placeholder="Ex: Cocody, Angré 8ème tranche, près de la pharmacie"
+                      value={deliveryInfo.adresse}
+                      onChange={(e) => handleInputChange('adresse', e.target.value)}
+                      className={errors.adresse ? 'border-destructive' : ''}
+                    />
+                    {errors.adresse && (
+                      <p className="text-sm text-destructive">{errors.adresse}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
             {/* Résumé commande */}

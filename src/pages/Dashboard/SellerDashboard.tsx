@@ -909,8 +909,8 @@ const SellerDashboard = () => {
                               })}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                {order.statut === 'fonds_bloques' && !order.validations?.vendeur_ok ? (
+                              <div className="flex justify-end gap-2 flex-wrap">
+                                {(order.statut === 'fonds_bloques' || order.statut === 'en_attente_paiement') && !order.validations?.vendeur_ok ? (
                                   <>
                                     {!Array.isArray(order.deliveries) || order.deliveries.length === 0 || !order.deliveries[0]?.livreur_id ? (
                                       <Button
@@ -920,26 +920,33 @@ const SellerDashboard = () => {
                                         disabled={assignCourier.isPending}
                                       >
                                         <TruckIcon className="h-4 w-4 mr-1" />
-                                        Demander un livreur
+                                        Assigner livreur
                                       </Button>
                                     ) : (
                                       <Badge variant="secondary" className="mr-2">
                                         Livreur assigné
                                       </Badge>
                                     )}
-                                    <Button
-                                      size="sm"
-                                      onClick={() => markAsShipped.mutate(order.id)}
-                                      disabled={markAsShipped.isPending || (!Array.isArray(order.deliveries) || !order.deliveries[0]?.livreur_id)}
-                                    >
-                                      <CheckCircle className="h-4 w-4 mr-1" />
-                                      Expédier
-                                    </Button>
+                                    {Array.isArray(order.deliveries) && order.deliveries[0]?.livreur_id && (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => markAsShipped.mutate(order.id)}
+                                        disabled={markAsShipped.isPending}
+                                      >
+                                        <TruckIcon className="h-4 w-4 mr-1" />
+                                        Lancer livraison
+                                      </Button>
+                                    )}
                                   </>
-                                ) : order.validations?.vendeur_ok ? (
+                                ) : order.statut === 'en_livraison' ? (
+                                  <div className="flex items-center gap-1 text-xs text-blue-600">
+                                    <TruckIcon className="h-4 w-4" />
+                                    En livraison
+                                  </div>
+                                ) : order.validations?.vendeur_ok || order.statut === 'livré' || order.statut === 'terminé' ? (
                                   <div className="flex items-center gap-1 text-xs text-green-600">
                                     <CheckCircle className="h-4 w-4" />
-                                    Expédié
+                                    {order.statut === 'terminé' ? 'Terminé' : 'Expédié'}
                                   </div>
                                 ) : (
                                   <Button variant="outline" size="sm">

@@ -300,6 +300,8 @@ const SellerDashboard = () => {
     switch(statut) {
       case 'terminé':
         return <Badge className="bg-green-500">Terminé</Badge>;
+      case 'livré':
+        return <Badge className="bg-emerald-500">Livré</Badge>;
       case 'en_livraison':
         return <Badge className="bg-blue-500">En livraison</Badge>;
       case 'fonds_bloques':
@@ -313,8 +315,10 @@ const SellerDashboard = () => {
 
   // Calculate additional statistics
   const totalProducts = products?.length || 0;
+  // "en cours" = en livraison ou fonds bloqués, mais pas livré/terminé
   const ordersInProgress = orders?.filter(o => ['fonds_bloques', 'en_livraison'].includes(o.statut)).length || 0;
-  const completedOrders = orders?.filter(o => o.statut === 'terminé').length || 0;
+  // "terminées" = statut terminé OU livré (livraison faite)
+  const completedOrders = orders?.filter(o => ['terminé', 'livré'].includes(o.statut)).length || 0;
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -23,7 +23,8 @@ const SellerOrders = () => {
           *,
           products(*),
           validations(*),
-          deliveries(*)
+          deliveries(*),
+          livreur:users!orders_livreur_id_fkey(id, nom)
         `)
         .eq('vendeur_id', user?.id)
         .order('created_at', { ascending: false });
@@ -211,8 +212,9 @@ const SellerOrders = () => {
                                     Demander un livreur
                                   </Button>
                                 ) : (
-                                  <Badge variant="secondary" className="mr-2">
-                                    Livreur assigné
+                                  <Badge variant="secondary" className="mr-2 gap-1">
+                                    <TruckIcon className="h-3 w-3" />
+                                    {order.livreur?.nom || 'Livreur assigné'}
                                   </Badge>
                                 )}
                                 <Button

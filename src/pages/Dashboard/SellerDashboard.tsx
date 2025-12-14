@@ -71,6 +71,7 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
   });
 
   const { data: orders } = useQuery({
@@ -91,6 +92,7 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
   });
 
   const { data: payments } = useQuery({
@@ -108,6 +110,7 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
   });
 
   const { data: notifications } = useQuery({
@@ -124,6 +127,7 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
   });
 
   // Fetch shop data

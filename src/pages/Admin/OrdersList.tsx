@@ -25,7 +25,8 @@ export default function OrdersList() {
           *,
           products(nom),
           validations(*),
-          deliveries(statut, livreur_id)
+          deliveries(statut, livreur_id),
+          livreur:users!orders_livreur_id_fkey(id, nom)
         `)
         .order('created_at', { ascending: false });
 
@@ -192,7 +193,12 @@ export default function OrdersList() {
                           <TableCell>{order.quantite}</TableCell>
                           <TableCell>{getStatusBadge(order.statut)}</TableCell>
                           <TableCell>
-                            {hasDelivery && order.deliveries[0]?.livreur_id ? (
+                            {order.livreur?.nom ? (
+                              <Badge variant="outline" className="text-xs gap-1">
+                                <Truck className="h-3 w-3" />
+                                {order.livreur.nom}
+                              </Badge>
+                            ) : hasDelivery && order.deliveries[0]?.livreur_id ? (
                               <Badge variant="outline" className="text-xs">Assigné</Badge>
                             ) : (
                               <span className="text-muted-foreground text-xs">Non assigné</span>

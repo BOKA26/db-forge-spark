@@ -154,6 +154,7 @@ const MyOrders = () => {
     const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
       'en_attente_paiement': { variant: 'outline', label: 'En attente paiement' },
       'fonds_bloques': { variant: 'secondary', label: 'Fonds bloqués' },
+      'en_attente_livreur': { variant: 'secondary', label: 'En attente livreur' },
       'en_livraison': { variant: 'default', label: 'En livraison' },
       'livré': { variant: 'default', label: 'Livré' },
       'litige': { variant: 'destructive', label: 'Litige' },

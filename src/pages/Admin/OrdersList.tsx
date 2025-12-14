@@ -39,6 +39,7 @@ export default function OrdersList() {
     total: orders?.length || 0,
     enAttente: orders?.filter(o => o.statut === 'en_attente_paiement').length || 0,
     fondsBloqués: orders?.filter(o => o.statut === 'fonds_bloques').length || 0,
+    enAttenteLivreur: orders?.filter(o => o.statut === 'en_attente_livreur').length || 0,
     enLivraison: orders?.filter(o => o.statut === 'en_livraison').length || 0,
     livré: orders?.filter(o => o.statut === 'livré').length || 0,
     terminé: orders?.filter(o => o.statut === 'terminé').length || 0,
@@ -49,6 +50,7 @@ export default function OrdersList() {
     const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string; icon: React.ReactNode }> = {
       en_attente_paiement: { variant: 'outline', label: 'En attente paiement', icon: <Clock className="h-3 w-3" /> },
       fonds_bloques: { variant: 'secondary', label: 'Fonds bloqués', icon: <Package className="h-3 w-3" /> },
+      en_attente_livreur: { variant: 'secondary', label: 'En attente livreur', icon: <Truck className="h-3 w-3" /> },
       en_livraison: { variant: 'default', label: 'En livraison', icon: <Truck className="h-3 w-3" /> },
       livré: { variant: 'default', label: 'Livré', icon: <CheckCircle className="h-3 w-3" /> },
       terminé: { variant: 'default', label: 'Terminé', icon: <CheckCircle className="h-3 w-3" /> },
@@ -78,7 +80,7 @@ export default function OrdersList() {
       <AdminNavbar />
       <div className="container mx-auto py-8 px-4">
         {/* Statistiques */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
           <Card>
             <CardContent className="pt-4 pb-4">
               <div className="text-center">
@@ -100,6 +102,14 @@ export default function OrdersList() {
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Fonds bloqués</p>
                 <p className="text-2xl font-bold text-orange-500">{stats.fondsBloqués}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Att. livreur</p>
+                <p className="text-2xl font-bold text-amber-500">{stats.enAttenteLivreur}</p>
               </div>
             </CardContent>
           </Card>

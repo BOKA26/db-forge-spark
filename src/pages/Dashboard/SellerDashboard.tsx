@@ -118,7 +118,8 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
-    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: notifications } = useQuery({

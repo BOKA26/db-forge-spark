@@ -73,82 +73,12 @@ const MyOrders = () => {
 
   const validateOrder = useMutation({
     mutationFn: async (orderId: string) => {
-      // 1. Récupérer les infos de la commande
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('vendeur_id, livreur_id, montant, reference_gateway')
-        .eq('id', orderId)
-        .single();
+      const { data, error } = await supabase.functions.invoke('confirm-reception', {
+        body: { orderId },
+      });
 
-      if (orderError) throw orderError;
-
-      // 2. Marquer l'acheteur comme OK
-      const { error: validationError } = await supabase
-        .from('validations')
-        .update({ acheteur_ok: true })
-        .eq('order_id', orderId);
-
-      if (validationError) throw validationError;
-
-      // 3. Vérifier si un paiement existe, sinon le créer puis le débloquer
-      const { data: existingPayment } = await supabase
-        .from('payments')
-        .select('id, statut')
-        .eq('order_id', orderId)
-        .maybeSingle();
-
-      if (!existingPayment) {
-        // Créer le paiement comme débloqué directement
-        const { error: createPaymentError } = await supabase
-          .from('payments')
-          .insert({
-            order_id: orderId,
-            montant: order.montant,
-            mode: 'Paystack',
-            statut: 'débloqué',
-            reference_gateway: order.reference_gateway || `MANUAL-${Date.now()}`,
-            debloque_at: new Date().toISOString(),
-          });
-
-        if (createPaymentError) throw createPaymentError;
-      } else if (existingPayment.statut === 'bloqué') {
-        // Débloquer le paiement existant
-        const { error: updatePaymentError } = await supabase
-          .from('payments')
-          .update({ 
-            statut: 'débloqué', 
-            debloque_at: new Date().toISOString() 
-          })
-          .eq('id', existingPayment.id);
-
-        if (updatePaymentError) throw updatePaymentError;
-      }
-
-      // 4. Mettre à jour le statut de la commande
-      const { error: orderUpdateError } = await supabase
-        .from('orders')
-        .update({ statut: 'terminé' })
-        .eq('id', orderId);
-
-      if (orderUpdateError) throw orderUpdateError;
-
-      // 5. Notifier le vendeur
-      if (order) {
-        await supabase.from('notifications').insert({
-          user_id: order.vendeur_id,
-          message: `💰 Paiement de ${order.montant.toLocaleString()} FCFA libéré suite à la confirmation de réception par l'acheteur.`,
-          canal: 'app',
-        });
-
-        // Notifier le livreur
-        if (order.livreur_id) {
-          await supabase.from('notifications').insert({
-            user_id: order.livreur_id,
-            message: '✅ Livraison validée par le client. Merci pour votre service !',
-            canal: 'app',
-          });
-        }
-      }
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
@@ -156,7 +86,7 @@ const MyOrders = () => {
     },
     onError: (error: any) => {
       console.error('Validation error:', error);
-      toast.error('Erreur lors de la validation');
+      toast.error(error?.message || 'Erreur lors de la validation');
     },
   });
 

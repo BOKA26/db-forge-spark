@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Download, Brain, LayoutGrid, Map, Wallet, HelpCircle, BarChart3, CheckCircle2, Users, Star, TrendingUp, Shield, Target, Clock, Zap, ArrowRight, Activity, ShoppingBag, Store, MessageSquare, Truck, UserPlus, Package } from 'lucide-react';
+import { Download, Brain, LayoutGrid, Map, Wallet, HelpCircle, BarChart3, CheckCircle2, Users, Star, TrendingUp, Shield, Target, Clock, Zap, ArrowRight, Activity, ShoppingBag, Store, MessageSquare, Truck, UserPlus, Package, PlayCircle } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
+import EmbeddedDemo from '@/components/demo/EmbeddedDemo';
 const FounderDossier = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -109,7 +110,7 @@ const FounderDossier = () => {
         {/* Main Content */}
         <div id="founder-dossier-content" ref={contentRef} className="container mx-auto px-4 py-8 max-w-5xl">
           
-          {/* Cover */}
+{/* Cover */}
           <div className="text-center mb-12 pb-8 border-b border-border">
             <Badge className="mb-4">Document Confidentiel</Badge>
             <h1 className="text-4xl font-bold mb-2">FOUNDER DOSSIER</h1>
@@ -117,6 +118,16 @@ const FounderDossier = () => {
             <p className="text-muted-foreground">Le commerce B2B sécurisé en Afrique</p>
             <p className="text-sm text-muted-foreground mt-4">Version 1.0 | Décembre 2024</p>
           </div>
+
+          {/* Interactive Product Demo */}
+          <Section icon={PlayCircle} title="DÉMO PRODUIT" subtitle="Découvrez BokaTrade en action">
+            <p className="text-muted-foreground text-center mb-6">
+              Cliquez sur Play pour voir le parcours utilisateur complet : de la découverte à la transaction sécurisée par Escrow.
+            </p>
+            <EmbeddedDemo />
+          </Section>
+
+          <Separator className="my-8" />
 
           {/* NEW SECTION: Users & Traction Report */}
           <Section icon={Activity} title="USERS & TRACTION REPORT" subtitle="Données en temps réel">

@@ -56,6 +56,8 @@ const CourierDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch notifications
@@ -73,6 +75,8 @@ const CourierDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   // Filter deliveries

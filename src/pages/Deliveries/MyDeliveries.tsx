@@ -40,6 +40,8 @@ const MyDeliveries = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const pendingDeliveries = deliveries?.filter(d => d.statut === 'en_attente') || [];

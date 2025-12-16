@@ -23,6 +23,7 @@ const SmartLadder = lazy(() => import("./pages/Admin/SmartLadder"));
 const DataRoom = lazy(() => import("./pages/Investors/DataRoom"));
 const FounderDossier = lazy(() => import("./pages/Investors/FounderDossier"));
 const TractionReport = lazy(() => import("./pages/Investors/TractionReport"));
+const SlideDeck = lazy(() => import("./pages/Investors/SlideDeck"));
 const Register = lazy(() => import("./pages/Auth/Register"));
 const AdminRegister = lazy(() => import("./pages/Auth/AdminRegister"));
 const AdminLogin = lazy(() => import("./pages/Auth/AdminLogin"));
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/data-room" element={<DataRoom />} />
               <Route path="/founder-dossier" element={<FounderDossier />} />
               <Route path="/traction-report" element={<TractionReport />} />
+              <Route path="/pitch-deck" element={<SlideDeck />} />
               <Route path="/connexion" element={<Login />} />
               <Route path="/inscription" element={<Register />} />
               <Route path="/secure-admin-registration-2024" element={<AdminRegister />} />

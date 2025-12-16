@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Download, ChevronLeft, ChevronRight, AlertTriangle, Lightbulb, 
   Play, TrendingUp, Wallet, Target, Users, Store, ShoppingBag, 
-  Shield, CheckCircle2, Truck, Zap, ArrowRight, Globe, DollarSign
+  Shield, CheckCircle2, Truck, Zap, ArrowRight, Globe, DollarSign,
+  Printer
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ import EmbeddedDemo from '@/components/demo/EmbeddedDemo';
 
 const SlideDeck = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showAllSlides, setShowAllSlides] = useState(false);
 
   const { data: tractionData } = useQuery({
     queryKey: ['slide-deck-traction'],
@@ -45,8 +47,27 @@ const SlideDeck = () => {
   };
 
   const handleExportPDF = () => {
-    window.print();
+    setShowAllSlides(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setShowAllSlides(false), 500);
+    }, 100);
   };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        goToSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToSlide(currentSlide - 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlide]);
 
   const slides = [
     // Slide 1: Problème
@@ -331,21 +352,40 @@ const SlideDeck = () => {
       
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          .slide-content { 
-            visibility: visible !important;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100vh;
-            page-break-after: always;
-          }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .no-print { display: none !important; }
+          .print-slide {
+            page-break-after: always;
+            page-break-inside: avoid;
+            height: 100vh;
+            width: 100vw;
+            display: flex !important;
+            padding: 2rem;
+          }
+          .print-slide:last-child {
+            page-break-after: auto;
+          }
         }
       `}</style>
 
-      <div className="min-h-screen bg-background flex flex-col">
+      {/* Print View - All Slides */}
+      {showAllSlides && (
+        <div className="fixed inset-0 bg-background z-[100]">
+          {slides.map((slide, index) => (
+            <div key={slide.id} className="print-slide bg-background">
+              <div className="w-full">
+                <div className="flex justify-between items-center mb-4 px-4">
+                  <h1 className="text-xl font-bold text-primary">BokaTrade</h1>
+                  <span className="text-sm text-muted-foreground">Slide {index + 1}/{slides.length}</span>
+                </div>
+                {slide.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className={`min-h-screen bg-background flex flex-col ${showAllSlides ? 'hidden' : ''}`}>
         {/* Header */}
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border no-print">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -358,8 +398,8 @@ const SlideDeck = () => {
                 {currentSlide + 1} / {slides.length}
               </span>
               <Button onClick={handleExportPDF} size="sm" className="gap-2">
-                <Download className="h-4 w-4" />
-                PDF
+                <Printer className="h-4 w-4" />
+                Export PDF
               </Button>
             </div>
           </div>

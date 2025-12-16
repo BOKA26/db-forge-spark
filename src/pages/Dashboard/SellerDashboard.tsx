@@ -1023,6 +1023,7 @@ const SellerDashboard = () => {
                           <TableHead>ID Commande</TableHead>
                           <TableHead>Produit</TableHead>
                           <TableHead>Client</TableHead>
+                          <TableHead>Livreur</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Total</TableHead>
                           <TableHead>Date</TableHead>
@@ -1041,6 +1042,21 @@ const SellerDashboard = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm text-muted-foreground">ID: {order.acheteur_id?.slice(0, 8)}</div>
+                            </TableCell>
+                            <TableCell>
+                              {order.livreur ? (
+                                <div className="flex items-center gap-2">
+                                  <TruckIcon className="h-4 w-4 text-muted-foreground" />
+                                  <div>
+                                    <div className="text-sm font-medium">{order.livreur.nom}</div>
+                                    {order.livreur.telephone && (
+                                      <div className="text-xs text-muted-foreground">{order.livreur.telephone}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Non assigné</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               {getOrderStatusBadge(order.statut)}

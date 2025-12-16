@@ -64,6 +64,7 @@ const StartLive = lazy(() => import("./pages/Live/StartLive"));
 const WatchLive = lazy(() => import("./pages/Live/WatchLive"));
 const BlogList = lazy(() => import("./pages/Blog/BlogList"));
 const BlogPost = lazy(() => import("./pages/Blog/BlogPost"));
+const DemoPage = lazy(() => import("./pages/Demo/DemoPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/panier" element={<Cart />} />
               <Route path="/confirmation-paiement" element={<PaymentConfirmation />} />
               <Route path="/suivi-livraison/:id" element={<TrackDelivery />} />
+              <Route path="/demo" element={<DemoPage />} />
 
               {/* Protected routes */}
               <Route

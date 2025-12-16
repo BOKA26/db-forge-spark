@@ -383,16 +383,11 @@ const SlideDeck = () => {
 
       {/* Print Container - Hidden on screen, visible on print */}
       <div id="print-container">
-        {slides.map((slide, index) => (
+        {slides.map((slide) => (
           <div key={`print-${slide.id}`} className="print-slide-page">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-              <h1 className="text-2xl font-bold" style={{ color: '#8B5CF6' }}>BokaTrade</h1>
-              <span className="text-sm text-gray-500">Slide {index + 1} / {slides.length}</span>
-            </div>
-            <h2 className="text-xl font-semibold mb-6 text-gray-700">{slide.title}</h2>
-            <div className="flex-1">
+            <div className="flex-1 flex items-center justify-center">
               {slide.id === 'demo' ? (
-                <div className="text-center py-12">
+                <div className="text-center py-12 w-full">
                   <Play className="h-16 w-16 text-purple-500 mx-auto mb-4" />
                   <h3 className="text-2xl font-bold mb-2">Démo Interactive</h3>
                   <p className="text-gray-600 mb-4">Parcours utilisateur en 5 étapes</p>
@@ -410,9 +405,6 @@ const SlideDeck = () => {
               ) : (
                 slide.content
               )}
-            </div>
-            <div className="mt-auto pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
-              BokaTrade - Le commerce B2B sécurisé en Afrique | {new Date().toLocaleDateString('fr-FR')}
             </div>
           </div>
         ))}

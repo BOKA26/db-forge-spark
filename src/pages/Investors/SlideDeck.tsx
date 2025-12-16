@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,14 +6,19 @@ import {
   Download, ChevronLeft, ChevronRight, AlertTriangle, Lightbulb, 
   Play, TrendingUp, Wallet, Target, Users, Store, ShoppingBag, 
   Shield, CheckCircle2, Truck, Zap, ArrowRight, Globe, DollarSign,
-  Printer
+  Loader2
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
 import EmbeddedDemo from '@/components/demo/EmbeddedDemo';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 const SlideDeck = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: tractionData } = useQuery({
     queryKey: ['slide-deck-traction'],
@@ -45,8 +50,50 @@ const SlideDeck = () => {
     return new Intl.NumberFormat('fr-FR').format(num) + ' FCFA';
   };
 
-  const handleExportPDF = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    if (!slidesContainerRef.current) return;
+    
+    setIsExporting(true);
+    toast.info('Génération du PDF en cours...');
+
+    try {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const slideElements = slidesContainerRef.current.querySelectorAll('.pdf-slide');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      for (let i = 0; i < slideElements.length; i++) {
+        const slideElement = slideElements[i] as HTMLElement;
+        
+        const canvas = await html2canvas(slideElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      }
+
+      pdf.save('BokaTrade-PitchDeck.pdf');
+      toast.success('PDF téléchargé avec succès !');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de la génération du PDF');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Keyboard navigation
@@ -405,31 +452,46 @@ const SlideDeck = () => {
         }
       `}</style>
 
-      {/* Print Container - Hidden on screen, visible on print */}
-      <div id="print-container">
+      {/* Hidden PDF Container for html2canvas */}
+      <div 
+        ref={slidesContainerRef}
+        style={{ position: 'absolute', left: '-9999px', top: 0, width: '1920px' }}
+        aria-hidden="true"
+      >
         {slides.map((slide) => (
-          <div key={`print-${slide.id}`} className="print-slide-page">
-            <div className="flex-1 flex items-center justify-center">
-              {slide.id === 'demo' ? (
-                <div className="text-center py-12 w-full">
-                  <Play className="h-16 w-16 text-purple-500 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold mb-2">Démo Interactive</h3>
-                  <p className="text-gray-600 mb-4">Parcours utilisateur en 5 étapes</p>
-                  <div className="flex justify-center gap-4 flex-wrap">
-                    {['Découverte', 'Sélection', 'Commande', 'Validation', 'Succès'].map((step, i) => (
-                      <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                        {i + 1}. {step}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-6">
-                    🔗 Voir la démo en direct sur bokatrade.com/demo
-                  </p>
+          <div 
+            key={`pdf-${slide.id}`} 
+            className="pdf-slide"
+            style={{ 
+              width: '1920px', 
+              height: '1080px', 
+              padding: '60px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              background: 'white'
+            }}
+          >
+            {slide.id === 'demo' ? (
+              <div className="text-center py-12 w-full">
+                <Play className="h-24 w-24 text-purple-500 mx-auto mb-6" />
+                <h3 className="text-4xl font-bold mb-4">Démo Interactive</h3>
+                <p className="text-xl text-gray-600 mb-6">Parcours utilisateur en 5 étapes</p>
+                <div className="flex justify-center gap-4 flex-wrap">
+                  {['Découverte', 'Sélection', 'Commande', 'Validation', 'Succès'].map((step, i) => (
+                    <span key={i} className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-lg">
+                      {i + 1}. {step}
+                    </span>
+                  ))}
                 </div>
-              ) : (
-                slide.content
-              )}
-            </div>
+                <p className="text-lg text-gray-500 mt-8">
+                  🔗 Voir la démo en direct sur bokatrade.com/demo
+                </p>
+              </div>
+            ) : (
+              slide.content
+            )}
           </div>
         ))}
       </div>
@@ -446,9 +508,13 @@ const SlideDeck = () => {
               <span className="text-sm text-muted-foreground">
                 {currentSlide + 1} / {slides.length}
               </span>
-              <Button onClick={handleExportPDF} size="sm" className="gap-2">
-                <Printer className="h-4 w-4" />
-                Export PDF
+              <Button onClick={handleExportPDF} size="sm" className="gap-2" disabled={isExporting}>
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isExporting ? 'Génération...' : 'Télécharger PDF'}
               </Button>
             </div>
           </div>

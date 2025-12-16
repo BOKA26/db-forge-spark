@@ -31,16 +31,17 @@ export const NotificationBell = ({ iconClassName = "h-5 w-5", className, showLab
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(50);
 
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id && open,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: !!user?.id,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
-  const unreadCount = notifications?.length || 0;
+  const unreadCount = notifications?.filter((n) => !n.lue).length || 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

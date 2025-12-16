@@ -110,15 +110,36 @@ const UserProfile = () => {
     setSavingProfile(true);
 
     try {
-      const { error } = await supabase
+      // Vérifier si l'utilisateur existe déjà
+      const { data: existingUser } = await supabase
         .from("users")
-        .upsert({
-          id: user.id,
-          email: user.email || "",
-          nom: profile?.nom || "",
-          telephone: profile?.telephone || "",
-        })
-        .eq("id", user.id);
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      let error;
+      if (existingUser) {
+        // Mise à jour
+        const result = await supabase
+          .from("users")
+          .update({
+            nom: profile?.nom || "",
+            telephone: profile?.telephone || "",
+          })
+          .eq("id", user.id);
+        error = result.error;
+      } else {
+        // Insertion
+        const result = await supabase
+          .from("users")
+          .insert({
+            id: user.id,
+            email: user.email || "",
+            nom: profile?.nom || "",
+            telephone: profile?.telephone || "",
+          });
+        error = result.error;
+      }
 
       if (error) throw error;
       toast.success("Profil mis à jour avec succès !");

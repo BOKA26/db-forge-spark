@@ -4,48 +4,48 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Download, Brain, LayoutGrid, Map, Wallet, HelpCircle, 
-  BarChart3, CheckCircle2, Users, Star, TrendingUp, 
-  Shield, Target, Clock, Zap, ArrowRight, Activity,
-  ShoppingBag, Store, MessageSquare, Truck, UserPlus, Package
-} from 'lucide-react';
+import { Download, Brain, LayoutGrid, Map, Wallet, HelpCircle, BarChart3, CheckCircle2, Users, Star, TrendingUp, Shield, Target, Clock, Zap, ArrowRight, Activity, ShoppingBag, Store, MessageSquare, Truck, UserPlus, Package } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
-
 const FounderDossier = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Fetch real traction data from Supabase
-  const { data: tractionData, isLoading } = useQuery({
+  const {
+    data: tractionData,
+    isLoading
+  } = useQuery({
     queryKey: ['traction-data'],
     queryFn: async () => {
-      const [
-        usersRes,
-        shopsRes,
-        productsRes,
-        ordersRes,
-        conversationsRes,
-        messagesRes,
-        deliveriesRes,
-        betaRes,
-      ] = await Promise.all([
-        supabase.from('users').select('id, created_at', { count: 'exact', head: true }),
-        supabase.from('shops').select('id', { count: 'exact', head: true }),
-        supabase.from('products').select('id', { count: 'exact', head: true }),
-        supabase.from('orders').select('id, montant, created_at', { count: 'exact' }),
-        supabase.from('conversations').select('id', { count: 'exact', head: true }),
-        supabase.from('messages').select('id', { count: 'exact', head: true }),
-        supabase.from('deliveries').select('id', { count: 'exact', head: true }),
-        supabase.from('beta_sellers').select('id, statut', { count: 'exact' }),
-      ]);
+      const [usersRes, shopsRes, productsRes, ordersRes, conversationsRes, messagesRes, deliveriesRes, betaRes] = await Promise.all([supabase.from('users').select('id, created_at', {
+        count: 'exact',
+        head: true
+      }), supabase.from('shops').select('id', {
+        count: 'exact',
+        head: true
+      }), supabase.from('products').select('id', {
+        count: 'exact',
+        head: true
+      }), supabase.from('orders').select('id, montant, created_at', {
+        count: 'exact'
+      }), supabase.from('conversations').select('id', {
+        count: 'exact',
+        head: true
+      }), supabase.from('messages').select('id', {
+        count: 'exact',
+        head: true
+      }), supabase.from('deliveries').select('id', {
+        count: 'exact',
+        head: true
+      }), supabase.from('beta_sellers').select('id, statut', {
+        count: 'exact'
+      })]);
 
       // Calculate GMV from orders
       const gmv = ordersRes.data?.reduce((acc, order) => acc + Number(order.montant || 0), 0) || 0;
-      
+
       // Count beta accepted
       const betaAccepted = betaRes.data?.filter(b => b.statut === 'accepté').length || 0;
-
       return {
         totalUsers: usersRes.count || 0,
         totalShops: shopsRes.count || 0,
@@ -56,31 +56,23 @@ const FounderDossier = () => {
         totalDeliveries: deliveriesRes.count || 0,
         betaApplications: betaRes.count || 0,
         betaAccepted,
-        gmv,
+        gmv
       };
-    },
+    }
   });
-
   const handleExportPDF = () => {
     window.print();
   };
-
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
   };
-
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('fr-FR').format(num) + ' FCFA';
   };
-
-  return (
-    <>
-      <SEOHead 
-        title="Founder Dossier - BokaTrade"
-        description="Document stratégique du fondateur BokaTrade"
-      />
+  return <>
+      <SEOHead title="Founder Dossier - BokaTrade" description="Document stratégique du fondateur BokaTrade" />
       
       {/* Print-only styles */}
       <style>{`
@@ -128,39 +120,16 @@ const FounderDossier = () => {
 
           {/* NEW SECTION: Users & Traction Report */}
           <Section icon={Activity} title="USERS & TRACTION REPORT" subtitle="Données en temps réel">
-            {isLoading ? (
-              <div className="text-center py-8">
+            {isLoading ? <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
                 <p className="text-sm text-muted-foreground mt-2">Chargement des données...</p>
-              </div>
-            ) : (
-              <>
+              </div> : <>
                 {/* Key Metrics Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <MetricCard 
-                    icon={Users} 
-                    label="Utilisateurs" 
-                    value={tractionData?.totalUsers || 0}
-                    color="bg-blue-500"
-                  />
-                  <MetricCard 
-                    icon={Store} 
-                    label="Boutiques" 
-                    value={tractionData?.totalShops || 0}
-                    color="bg-green-500"
-                  />
-                  <MetricCard 
-                    icon={Package} 
-                    label="Produits" 
-                    value={tractionData?.totalProducts || 0}
-                    color="bg-purple-500"
-                  />
-                  <MetricCard 
-                    icon={ShoppingBag} 
-                    label="Commandes" 
-                    value={tractionData?.totalOrders || 0}
-                    color="bg-amber-500"
-                  />
+                  <MetricCard icon={Users} label="Utilisateurs" value={tractionData?.totalUsers || 0} color="bg-blue-500" />
+                  <MetricCard icon={Store} label="Boutiques" value={tractionData?.totalShops || 0} color="bg-green-500" />
+                  <MetricCard icon={Package} label="Produits" value={tractionData?.totalProducts || 0} color="bg-purple-500" />
+                  <MetricCard icon={ShoppingBag} label="Commandes" value={tractionData?.totalOrders || 0} color="bg-amber-500" />
                 </div>
 
                 {/* GMV Highlight */}
@@ -236,9 +205,7 @@ const FounderDossier = () => {
                           <span className="text-sm">Taux d'acceptation</span>
                         </div>
                         <span className="font-bold">
-                          {tractionData?.betaApplications 
-                            ? Math.round((tractionData.betaAccepted / tractionData.betaApplications) * 100) 
-                            : 0}%
+                          {tractionData?.betaApplications ? Math.round(tractionData.betaAccepted / tractionData.betaApplications * 100) : 0}%
                         </span>
                       </div>
                     </CardContent>
@@ -262,33 +229,44 @@ const FounderDossier = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {[
-                            { metric: 'Utilisateurs', value: tractionData?.totalUsers || 0, target: 500 },
-                            { metric: 'Boutiques', value: tractionData?.totalShops || 0, target: 50 },
-                            { metric: 'Produits', value: tractionData?.totalProducts || 0, target: 200 },
-                            { metric: 'Commandes', value: tractionData?.totalOrders || 0, target: 30 },
-                            { metric: 'Livraisons', value: tractionData?.totalDeliveries || 0, target: 20 },
-                          ].map((row, i) => {
-                            const progress = Math.min(Math.round((row.value / row.target) * 100), 100);
-                            return (
-                              <tr key={i} className="border-b">
+                          {[{
+                        metric: 'Utilisateurs',
+                        value: tractionData?.totalUsers || 0,
+                        target: 500
+                      }, {
+                        metric: 'Boutiques',
+                        value: tractionData?.totalShops || 0,
+                        target: 50
+                      }, {
+                        metric: 'Produits',
+                        value: tractionData?.totalProducts || 0,
+                        target: 200
+                      }, {
+                        metric: 'Commandes',
+                        value: tractionData?.totalOrders || 0,
+                        target: 30
+                      }, {
+                        metric: 'Livraisons',
+                        value: tractionData?.totalDeliveries || 0,
+                        target: 20
+                      }].map((row, i) => {
+                        const progress = Math.min(Math.round(row.value / row.target * 100), 100);
+                        return <tr key={i} className="border-b">
                                 <td className="py-2 font-medium">{row.metric}</td>
                                 <td className="text-right font-bold">{row.value}</td>
                                 <td className="text-right text-muted-foreground">{row.target}</td>
                                 <td className="text-right">
                                   <div className="flex items-center justify-end gap-2">
                                     <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                                      <div 
-                                        className="h-full bg-primary rounded-full transition-all"
-                                        style={{ width: `${progress}%` }}
-                                      />
+                                      <div className="h-full bg-primary rounded-full transition-all" style={{
+                                  width: `${progress}%`
+                                }} />
                                     </div>
                                     <span className="text-xs font-medium w-10">{progress}%</span>
                                   </div>
                                 </td>
-                              </tr>
-                            );
-                          })}
+                              </tr>;
+                      })}
                         </tbody>
                       </table>
                     </div>
@@ -346,8 +324,7 @@ const FounderDossier = () => {
                     </Badge>
                   </div>
                 </div>
-              </>
-            )}
+              </>}
           </Section>
 
           <Separator className="my-8" />
@@ -406,17 +383,22 @@ const FounderDossier = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { freq: 'Quotidien', action: 'Check KPIs, support, 5 prospects' },
-                      { freq: 'Hebdomadaire', action: 'Sprint dev, analyse traction' },
-                      { freq: 'Mensuel', action: 'Review roadmap' },
-                      { freq: 'Trimestriel', action: 'Bilan OKRs, pivot si nécessaire' },
-                    ].map((item, i) => (
-                      <div key={i} className="text-center p-3 bg-muted/50 rounded-lg">
+                    {[{
+                    freq: 'Quotidien',
+                    action: 'Check KPIs, support, 5 prospects'
+                  }, {
+                    freq: 'Hebdomadaire',
+                    action: 'Sprint dev, analyse traction'
+                  }, {
+                    freq: 'Mensuel',
+                    action: 'Review roadmap'
+                  }, {
+                    freq: 'Trimestriel',
+                    action: 'Bilan OKRs, pivot si nécessaire'
+                  }].map((item, i) => <div key={i} className="text-center p-3 bg-muted/50 rounded-lg">
                         <p className="font-semibold text-primary">{item.freq}</p>
                         <p className="text-xs text-muted-foreground mt-1">{item.action}</p>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </CardContent>
               </Card>
@@ -426,24 +408,39 @@ const FounderDossier = () => {
           {/* Section 2: Business Model Canvas */}
           <Section icon={LayoutGrid} title="2. Mini Business Model Canvas" className="page-break">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                { title: 'Segments clients', content: 'Fabricants africains, Grossistes, Acheteurs B2B' },
-                { title: 'Proposition de valeur', content: 'Marketplace B2B + Escrow + Triple validation' },
-                { title: 'Canaux', content: 'App web/mobile, WhatsApp, Agents terrain' },
-                { title: 'Relation client', content: 'Self-service + Support WhatsApp + Account managers' },
-                { title: 'Sources de revenus', content: 'Commission 5%, Abonnements Premium, Logistique' },
-                { title: 'Ressources clés', content: 'Plateforme tech, Vendeurs vérifiés, Partenaires paiement' },
-                { title: 'Activités clés', content: 'Vérification, Gestion Escrow, Logistique' },
-                { title: 'Partenaires', content: 'Paystack, Wave, Transporteurs, Chambres commerce' },
-                { title: 'Structure coûts', content: 'Tech 40%, Marketing 30%, Ops 20%, Admin 10%' },
-              ].map((block, i) => (
-                <Card key={i} className="bg-muted/30">
+              {[{
+              title: 'Segments clients',
+              content: 'Fabricants africains, Grossistes, Acheteurs B2B'
+            }, {
+              title: 'Proposition de valeur',
+              content: 'Marketplace B2B + Escrow + Triple validation'
+            }, {
+              title: 'Canaux',
+              content: 'App web/mobile, WhatsApp, Agents terrain'
+            }, {
+              title: 'Relation client',
+              content: 'Self-service + Support WhatsApp + Account managers'
+            }, {
+              title: 'Sources de revenus',
+              content: 'Commission 5%, Abonnements Premium, Logistique'
+            }, {
+              title: 'Ressources clés',
+              content: 'Plateforme tech, Vendeurs vérifiés, Partenaires paiement'
+            }, {
+              title: 'Activités clés',
+              content: 'Vérification, Gestion Escrow, Logistique'
+            }, {
+              title: 'Partenaires',
+              content: 'Paystack, Wave, Transporteurs, Chambres commerce'
+            }, {
+              title: 'Structure coûts',
+              content: 'Tech 40%, Marketing 30%, Ops 20%, Admin 10%'
+            }].map((block, i) => <Card key={i} className="bg-muted/30">
                   <CardContent className="p-3">
                     <p className="text-xs font-semibold text-primary mb-1">{block.title}</p>
                     <p className="text-sm">{block.content}</p>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </Section>
 
@@ -456,19 +453,25 @@ const FounderDossier = () => {
                   Q1 2025
                 </h4>
                 <div className="grid md:grid-cols-3 gap-3">
-                  {[
-                    { week: 'S1-4', goal: 'Lancement Beta', kpi: '50 vendeurs actifs' },
-                    { week: 'S5-8', goal: 'Intégration Mobile Money', kpi: '100 vendeurs, 1ère transaction' },
-                    { week: 'S9-12', goal: 'Livraisons trackées', kpi: 'NPS > 40' },
-                  ].map((item, i) => (
-                    <Card key={i}>
+                  {[{
+                  week: 'S1-4',
+                  goal: 'Lancement Beta',
+                  kpi: '50 vendeurs actifs'
+                }, {
+                  week: 'S5-8',
+                  goal: 'Intégration Mobile Money',
+                  kpi: '100 vendeurs, 1ère transaction'
+                }, {
+                  week: 'S9-12',
+                  goal: 'Livraisons trackées',
+                  kpi: 'NPS > 40'
+                }].map((item, i) => <Card key={i}>
                       <CardContent className="p-3">
                         <Badge variant="secondary" className="mb-2">{item.week}</Badge>
                         <p className="font-medium">{item.goal}</p>
                         <p className="text-xs text-muted-foreground">{item.kpi}</p>
                       </CardContent>
-                    </Card>
-                  ))}
+                    </Card>)}
                 </div>
               </div>
 
@@ -478,20 +481,29 @@ const FounderDossier = () => {
                   2025
                 </h4>
                 <div className="grid md:grid-cols-4 gap-3">
-                  {[
-                    { q: 'Q1', milestone: 'Product-Market Fit', kpi: '500 vendeurs, 50 tx' },
-                    { q: 'Q2', milestone: 'Expansion régionale', kpi: '3 pays (CI, SN, GH)' },
-                    { q: 'Q3', milestone: 'Levée Seed', kpi: '500K€' },
-                    { q: 'Q4', milestone: 'Scale', kpi: '5000 vendeurs, 500K€ GMV/mois' },
-                  ].map((item, i) => (
-                    <Card key={i} className="bg-primary/5 border-primary/20">
+                  {[{
+                  q: 'Q1',
+                  milestone: 'Product-Market Fit',
+                  kpi: '500 vendeurs, 50 tx'
+                }, {
+                  q: 'Q2',
+                  milestone: 'Expansion régionale',
+                  kpi: '3 pays (CI, SN, GH)'
+                }, {
+                  q: 'Q3',
+                  milestone: 'Levée Seed',
+                  kpi: '500K€'
+                }, {
+                  q: 'Q4',
+                  milestone: 'Scale',
+                  kpi: '5000 vendeurs, 500K€ GMV/mois'
+                }].map((item, i) => <Card key={i} className="bg-primary/5 border-primary/20">
                       <CardContent className="p-3 text-center">
                         <p className="font-bold text-primary">{item.q}</p>
                         <p className="font-medium text-sm mt-1">{item.milestone}</p>
                         <p className="text-xs text-muted-foreground mt-1">{item.kpi}</p>
                       </CardContent>
-                    </Card>
-                  ))}
+                    </Card>)}
                 </div>
               </div>
             </div>
@@ -538,20 +550,37 @@ const FounderDossier = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { m: 'M1', gmv: '10M', comm: '500K', abo: '0', total: '500K' },
-                    { m: 'M3', gmv: '50M', comm: '2.5M', abo: '500K', total: '3M' },
-                    { m: 'M6', gmv: '200M', comm: '10M', abo: '2M', total: '12M' },
-                    { m: 'M12', gmv: '1B', comm: '50M', abo: '10M', total: '60M' },
-                  ].map((row, i) => (
-                    <tr key={i} className="border-b">
+                  {[{
+                  m: 'M1',
+                  gmv: '10M',
+                  comm: '500K',
+                  abo: '0',
+                  total: '500K'
+                }, {
+                  m: 'M3',
+                  gmv: '50M',
+                  comm: '2.5M',
+                  abo: '500K',
+                  total: '3M'
+                }, {
+                  m: 'M6',
+                  gmv: '200M',
+                  comm: '10M',
+                  abo: '2M',
+                  total: '12M'
+                }, {
+                  m: 'M12',
+                  gmv: '1B',
+                  comm: '50M',
+                  abo: '10M',
+                  total: '60M'
+                }].map((row, i) => <tr key={i} className="border-b">
                       <td className="py-2 font-medium">{row.m}</td>
                       <td className="text-right">{row.gmv} FCFA</td>
                       <td className="text-right">{row.comm} FCFA</td>
                       <td className="text-right">{row.abo} FCFA</td>
                       <td className="text-right font-bold text-primary">{row.total} FCFA</td>
-                    </tr>
-                  ))}
+                    </tr>)}
                 </tbody>
               </table>
             </div>
@@ -560,25 +589,42 @@ const FounderDossier = () => {
           {/* Section 5: 10 Questions */}
           <Section icon={HelpCircle} title="5. 10 Questions de Réflexion" className="page-break">
             <div className="grid md:grid-cols-2 gap-4">
-              {[
-                { q: 'Pourquoi maintenant ?', a: '80% des PME africaines évitent le B2B en ligne par peur de la fraude.' },
-                { q: 'Pourquoi moi ?', a: 'Connaissance terrain + expertise tech + réseau local.' },
-                { q: 'Unfair advantage ?', a: 'Premier Escrow + Triple validation + Logistique trackée en Afrique francophone.' },
-                { q: 'Si un concurrent copie ?', a: 'Réseau vendeurs vérifiés et réputation = notre moat.' },
-                { q: 'Plus gros risque ?', a: 'Adoption lente. Solution : agents terrain + Beta gratuite.' },
-                { q: 'Comment scaler ?', a: 'Automatisation max + partenaires logistiques.' },
-                { q: 'Métrique clé ?', a: 'GMV et taux de completion des transactions.' },
-                { q: 'Quand pivoter ?', a: 'Si < 100 tx/mois après 6 mois avec 500+ vendeurs.' },
-                { q: "C'est quoi gagner ?", a: "10% du marché B2B Afrique de l'Ouest = 100M€ GMV/an." },
-                { q: 'Prêt pour 10 ans ?', a: 'Oui. Ce problème mérite une solution durable.' },
-              ].map((item, i) => (
-                <Card key={i} className="bg-muted/30">
+              {[{
+              q: 'Pourquoi maintenant ?',
+              a: '80% des PME africaines évitent le B2B en ligne par peur de la fraude.'
+            }, {
+              q: 'Pourquoi moi ?',
+              a: 'Connaissance terrain + expertise tech + réseau local.'
+            }, {
+              q: 'Unfair advantage ?',
+              a: 'Premier Escrow + Triple validation + Logistique trackée en Afrique francophone.'
+            }, {
+              q: 'Si un concurrent copie ?',
+              a: 'Réseau vendeurs vérifiés et réputation = notre moat.'
+            }, {
+              q: 'Plus gros risque ?',
+              a: 'Adoption lente. Solution : agents terrain + Beta gratuite.'
+            }, {
+              q: 'Comment scaler ?',
+              a: 'Automatisation max + partenaires logistiques.'
+            }, {
+              q: 'Métrique clé ?',
+              a: 'GMV et taux de completion des transactions.'
+            }, {
+              q: 'Quand pivoter ?',
+              a: 'Si < 100 tx/mois après 6 mois avec 500+ vendeurs.'
+            }, {
+              q: "C'est quoi gagner ?",
+              a: "10% du marché B2B Afrique de l'Ouest = 100M€ GMV/an."
+            }, {
+              q: 'Prêt pour 10 ans ?',
+              a: 'Oui. Ce problème mérite une solution durable.'
+            }].map((item, i) => <Card key={i} className="bg-muted/30">
                   <CardContent className="p-4">
                     <p className="font-semibold text-primary mb-1">{i + 1}. {item.q}</p>
                     <p className="text-sm">{item.a}</p>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </Section>
 
@@ -590,20 +636,10 @@ const FounderDossier = () => {
                   <CardTitle className="text-lg">Produit (7/7)</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {[
-                    'Marketplace fonctionnelle',
-                    'Système Escrow intégré',
-                    'Triple validation',
-                    'Dashboard vendeur',
-                    'Tracking GPS',
-                    'Messagerie intégrée',
-                    'Intégration Paystack',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                  {['Marketplace fonctionnelle', 'Système Escrow intégré', 'Triple validation', 'Dashboard vendeur', 'Tracking GPS', 'Messagerie intégrée', 'Intégration Paystack'].map((item, i) => <div key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                       {item}
-                    </div>
-                  ))}
+                    </div>)}
                 </CardContent>
               </Card>
 
@@ -612,20 +648,10 @@ const FounderDossier = () => {
                   <CardTitle className="text-lg">Contenu (7/7)</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {[
-                    'Landing page SEO',
-                    'Page "Pour vendeurs"',
-                    'Blog SEO',
-                    'FAQ complète',
-                    'CGU & mentions légales',
-                    'Vidéo démo',
-                    'Pitch deck',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                  {['Landing page SEO', 'Page "Pour vendeurs"', 'Blog SEO', 'FAQ complète', 'CGU & mentions légales', 'Vidéo démo', 'Pitch deck'].map((item, i) => <div key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                       {item}
-                    </div>
-                  ))}
+                    </div>)}
                 </CardContent>
               </Card>
 
@@ -634,20 +660,10 @@ const FounderDossier = () => {
                   <CardTitle className="text-lg">Tech & Sécurité (7/7)</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {[
-                    'Auth sécurisée (Supabase)',
-                    'RLS sur toutes tables',
-                    'HTTPS + headers sécurité',
-                    'Architecture scalable',
-                    'Notifications temps réel',
-                    'Multi-rôles',
-                    'Dashboard admin',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                  {['Auth sécurisée (Supabase)', 'RLS sur toutes tables', 'HTTPS + headers sécurité', 'Architecture scalable', 'Notifications temps réel', 'Multi-rôles', 'Dashboard admin'].map((item, i) => <div key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                       {item}
-                    </div>
-                  ))}
+                    </div>)}
                 </CardContent>
               </Card>
             </div>
@@ -656,32 +672,34 @@ const FounderDossier = () => {
           {/* Footer */}
           <Separator className="my-8" />
           <div className="text-center text-sm text-muted-foreground pb-8">
-            <p><strong>Document généré le :</strong> {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <p><strong>Document généré le :</strong> {new Date().toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })}</p>
             <p className="mt-2">BokaTrade — Le commerce B2B sécurisé en Afrique</p>
-            <p>support@bokatrade.com | bokatrade.com</p>
+            
           </div>
 
         </div>
       </div>
-    </>
-  );
+    </>;
 };
 
 // Section Component
-const Section = ({ 
-  icon: Icon, 
-  title, 
-  subtitle, 
-  children, 
-  className = '' 
-}: { 
-  icon: any; 
-  title: string; 
-  subtitle?: string; 
+const Section = ({
+  icon: Icon,
+  title,
+  subtitle,
+  children,
+  className = ''
+}: {
+  icon: any;
+  title: string;
+  subtitle?: string;
   children: React.ReactNode;
   className?: string;
-}) => (
-  <section className={`mb-12 ${className}`}>
+}) => <section className={`mb-12 ${className}`}>
     <div className="flex items-center gap-3 mb-4">
       <div className="p-2 bg-primary/10 rounded-lg">
         <Icon className="h-6 w-6 text-primary" />
@@ -692,22 +710,20 @@ const Section = ({
       </div>
     </div>
     {children}
-  </section>
-);
+  </section>;
 
 // Metric Card Component
-const MetricCard = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  color 
-}: { 
-  icon: any; 
-  label: string; 
+const MetricCard = ({
+  icon: Icon,
+  label,
+  value,
+  color
+}: {
+  icon: any;
+  label: string;
   value: number;
   color: string;
-}) => (
-  <Card>
+}) => <Card>
     <CardContent className="p-4">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${color}/20`}>
@@ -719,7 +735,5 @@ const MetricCard = ({
         </div>
       </div>
     </CardContent>
-  </Card>
-);
-
+  </Card>;
 export default FounderDossier;

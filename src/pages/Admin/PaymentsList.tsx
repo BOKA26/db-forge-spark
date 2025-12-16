@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminNavbar } from '@/components/layout/AdminNavbar';
 import {
@@ -11,11 +11,15 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DollarSign, Lock, Unlock, AlertTriangle, TrendingUp } from 'lucide-react';
 
 export default function PaymentsList() {
+  const queryClient = useQueryClient();
+
   const { data: payments, isLoading } = useQuery({
     queryKey: ['admin-payments'],
     queryFn: async () => {
@@ -37,6 +41,27 @@ export default function PaymentsList() {
       return data;
     },
   });
+
+  const backfillMissingPayments = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('admin-backfill-payments', {
+        body: { limit: 200 },
+      });
+      if (error) throw error;
+      return data as any;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
+      toast.success(
+        `✅ Réparation terminée: ${data?.created ?? 0} créés, ${data?.unlocked ?? 0} débloqués.`
+      );
+    },
+    onError: (error: any) => {
+      console.error('Backfill error:', error);
+      toast.error(error?.message || 'Erreur lors de la réparation');
+    },
+  });
+
 
   // Statistiques
   const stats = {
@@ -136,11 +161,22 @@ export default function PaymentsList() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Traçabilité des paiements
-            </CardTitle>
-            <CardDescription>Suivi de tous les paiements et leur statut</CardDescription>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Traçabilité des paiements
+                </CardTitle>
+                <CardDescription>Suivi de tous les paiements et leur statut</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => backfillMissingPayments.mutate()}
+                disabled={backfillMissingPayments.isPending}
+              >
+                {backfillMissingPayments.isPending ? 'Réparation…' : 'Réparer paiements manquants'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (

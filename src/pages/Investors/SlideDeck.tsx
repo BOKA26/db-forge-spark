@@ -14,7 +14,6 @@ import EmbeddedDemo from '@/components/demo/EmbeddedDemo';
 
 const SlideDeck = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [showAllSlides, setShowAllSlides] = useState(false);
 
   const { data: tractionData } = useQuery({
     queryKey: ['slide-deck-traction'],
@@ -47,11 +46,7 @@ const SlideDeck = () => {
   };
 
   const handleExportPDF = () => {
-    setShowAllSlides(true);
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => setShowAllSlides(false), 500);
-    }, 100);
+    window.print();
   };
 
   // Keyboard navigation
@@ -352,40 +347,78 @@ const SlideDeck = () => {
       
       <style>{`
         @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { margin: 0; padding: 0; }
           .no-print { display: none !important; }
-          .print-slide {
+          #print-container {
+            display: block !important;
+            visibility: visible !important;
+          }
+          .print-slide-page {
             page-break-after: always;
             page-break-inside: avoid;
-            height: 100vh;
-            width: 100vw;
-            display: flex !important;
-            padding: 2rem;
+            break-after: page;
+            break-inside: avoid;
+            min-height: 100vh;
+            width: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            background: white;
           }
-          .print-slide:last-child {
-            page-break-after: auto;
+          .print-slide-page:last-child {
+            page-break-after: avoid;
+          }
+          .screen-only {
+            display: none !important;
+          }
+        }
+        @media screen {
+          #print-container {
+            display: none;
           }
         }
       `}</style>
 
-      {/* Print View - All Slides */}
-      {showAllSlides && (
-        <div className="fixed inset-0 bg-background z-[100]">
-          {slides.map((slide, index) => (
-            <div key={slide.id} className="print-slide bg-background">
-              <div className="w-full">
-                <div className="flex justify-between items-center mb-4 px-4">
-                  <h1 className="text-xl font-bold text-primary">BokaTrade</h1>
-                  <span className="text-sm text-muted-foreground">Slide {index + 1}/{slides.length}</span>
-                </div>
-                {slide.content}
-              </div>
+      {/* Print Container - Hidden on screen, visible on print */}
+      <div id="print-container">
+        {slides.map((slide, index) => (
+          <div key={`print-${slide.id}`} className="print-slide-page">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <h1 className="text-2xl font-bold" style={{ color: '#8B5CF6' }}>BokaTrade</h1>
+              <span className="text-sm text-gray-500">Slide {index + 1} / {slides.length}</span>
             </div>
-          ))}
-        </div>
-      )}
+            <h2 className="text-xl font-semibold mb-6 text-gray-700">{slide.title}</h2>
+            <div className="flex-1">
+              {slide.id === 'demo' ? (
+                <div className="text-center py-12">
+                  <Play className="h-16 w-16 text-purple-500 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold mb-2">Démo Interactive</h3>
+                  <p className="text-gray-600 mb-4">Parcours utilisateur en 5 étapes</p>
+                  <div className="flex justify-center gap-4 flex-wrap">
+                    {['Découverte', 'Sélection', 'Commande', 'Validation', 'Succès'].map((step, i) => (
+                      <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        {i + 1}. {step}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-6">
+                    🔗 Voir la démo en direct sur bokatrade.com/demo
+                  </p>
+                </div>
+              ) : (
+                slide.content
+              )}
+            </div>
+            <div className="mt-auto pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
+              BokaTrade - Le commerce B2B sécurisé en Afrique | {new Date().toLocaleDateString('fr-FR')}
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <div className={`min-h-screen bg-background flex flex-col ${showAllSlides ? 'hidden' : ''}`}>
+      <div className="min-h-screen bg-background flex flex-col screen-only">
         {/* Header */}
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border no-print">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">

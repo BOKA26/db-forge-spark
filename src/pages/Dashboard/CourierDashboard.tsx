@@ -49,9 +49,10 @@ const CourierDashboard = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching deliveries:', error);
+        console.error('Error fetching courier deliveries:', error);
         throw error;
       }
+      console.log('Courier deliveries fetched:', data?.length || 0);
       return data;
     },
     enabled: !!user?.id,

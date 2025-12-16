@@ -23,7 +23,7 @@ const MyDeliveries = () => {
         .from('deliveries')
         .select(`
           *,
-          orders!inner(
+          orders(
             *,
             products(*),
             validations(*)
@@ -32,7 +32,11 @@ const MyDeliveries = () => {
         .eq('livreur_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching courier deliveries:', error);
+        throw error;
+      }
+      console.log('Courier deliveries fetched:', data?.length || 0);
       return data;
     },
     enabled: !!user?.id,

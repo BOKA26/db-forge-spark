@@ -158,7 +158,22 @@ const SellerDashboard = () => {
 
   // Calculate statistics
   const totalSales = payments?.reduce((sum, p) => sum + Number(p.montant), 0) || 0;
-  const revenuLibere = payments?.filter(p => p.statut === 'débloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
+  
+  // Revenu libéré: paiements débloqués OU commandes terminées (validation acheteur + livreur OK)
+  const revenuFromPayments = payments?.filter(p => p.statut === 'débloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
+  const revenuFromCompletedOrders = orders?.filter(o => 
+    (o.statut === 'terminé' || (o.statut === 'livré' && o.validations?.acheteur_ok === true))
+  ).reduce((sum, o) => sum + Number(o.montant), 0) || 0;
+  
+  // Éviter les doublons: si un paiement débloqué existe pour une commande, ne pas compter la commande
+  const orderIdsWithPayment = new Set(payments?.filter(p => p.statut === 'débloqué').map(p => p.order_id) || []);
+  const revenuFromOrdersWithoutPayment = orders?.filter(o => 
+    (o.statut === 'terminé' || (o.statut === 'livré' && o.validations?.acheteur_ok === true)) &&
+    !orderIdsWithPayment.has(o.id)
+  ).reduce((sum, o) => sum + Number(o.montant), 0) || 0;
+  
+  const revenuLibere = revenuFromPayments + revenuFromOrdersWithoutPayment;
+  
   const revenuEnAttente = payments?.filter(p => p.statut === 'bloqué').reduce((sum, p) => sum + Number(p.montant), 0) || 0;
   const pendingSales = orders?.filter(o => o.statut === 'fonds_bloques' || o.statut === 'en_livraison').length || 0;
 

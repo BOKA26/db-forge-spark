@@ -1,16 +1,133 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Play, Clock, Target, Lightbulb, TrendingUp, Users, 
-  DollarSign, Eye, ArrowRight, Video, Upload, CheckCircle2
+  Play, Pause, Clock, Target, Lightbulb, TrendingUp, Users, 
+  DollarSign, Eye, ArrowRight, Video, Upload, CheckCircle2,
+  Loader2, Trash2, Volume2, VolumeX, Maximize
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useHasRole } from '@/hooks/useUserRole';
 
 const VideoPitch = () => {
   const [activeVideo, setActiveVideo] = useState<'pitch' | 'demo'>('pitch');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const { hasRole: isAdmin } = useHasRole('admin');
+
+  // Fetch video URLs from storage
+  const { data: videos, isLoading: loadingVideos } = useQuery({
+    queryKey: ['investor-videos'],
+    queryFn: async () => {
+      const pitchUrl = supabase.storage.from('investor-videos').getPublicUrl('pitch-video.mp4');
+      const demoUrl = supabase.storage.from('investor-videos').getPublicUrl('demo-video.mp4');
+      
+      // Check if files exist by trying to fetch them
+      const [pitchCheck, demoCheck] = await Promise.all([
+        fetch(pitchUrl.data.publicUrl, { method: 'HEAD' }).catch(() => null),
+        fetch(demoUrl.data.publicUrl, { method: 'HEAD' }).catch(() => null)
+      ]);
+
+      return {
+        pitch: pitchCheck?.ok ? pitchUrl.data.publicUrl : null,
+        demo: demoCheck?.ok ? demoUrl.data.publicUrl : null
+      };
+    }
+  });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      toast.error('Veuillez sélectionner un fichier vidéo');
+      return;
+    }
+
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+      toast.error('La vidéo ne doit pas dépasser 100MB');
+      return;
+    }
+
+    setIsUploading(true);
+    const fileName = activeVideo === 'pitch' ? 'pitch-video.mp4' : 'demo-video.mp4';
+
+    try {
+      const { error } = await supabase.storage
+        .from('investor-videos')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      toast.success('Vidéo uploadée avec succès !');
+      queryClient.invalidateQueries({ queryKey: ['investor-videos'] });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Erreur lors de l\'upload');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    const fileName = activeVideo === 'pitch' ? 'pitch-video.mp4' : 'demo-video.mp4';
+    
+    try {
+      const { error } = await supabase.storage
+        .from('investor-videos')
+        .remove([fileName]);
+
+      if (error) throw error;
+
+      toast.success('Vidéo supprimée');
+      queryClient.invalidateQueries({ queryKey: ['investor-videos'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la suppression');
+    }
+  };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  const currentVideoUrl = activeVideo === 'pitch' ? videos?.pitch : videos?.demo;
 
   const pitchSections = [
     { icon: Target, title: 'Le Problème', duration: '10s', description: '85% des commerçants africains ne font pas confiance au e-commerce' },
@@ -18,7 +135,7 @@ const VideoPitch = () => {
     { icon: Play, title: 'La Démo Choc', duration: '10s', description: 'Parcours acheteur en 5 clics avec paiement sécurisé' },
     { icon: Users, title: 'La Traction', duration: '10s', description: 'Utilisateurs actifs, vendeurs vérifiés, GMV généré' },
     { icon: DollarSign, title: 'Business Model', duration: '10s', description: 'Commission 3-5% sur transactions + services premium' },
-    { icon: Eye, title: 'La Vision', duration: '5s', description: 'Devenir le Alibaba de confiance pour l\'Afrique' },
+    { icon: Eye, title: 'La Vision', duration: '5s', description: "Devenir le Alibaba de confiance pour l'Afrique" },
   ];
 
   return (
@@ -66,7 +183,7 @@ const VideoPitch = () => {
           <div className="flex justify-center gap-4 mb-12">
             <Button 
               variant={activeVideo === 'pitch' ? 'default' : 'outline'}
-              onClick={() => setActiveVideo('pitch')}
+              onClick={() => { setActiveVideo('pitch'); setIsPlaying(false); }}
               className="gap-2"
             >
               <Clock className="h-4 w-4" />
@@ -74,7 +191,7 @@ const VideoPitch = () => {
             </Button>
             <Button 
               variant={activeVideo === 'demo' ? 'default' : 'outline'}
-              onClick={() => setActiveVideo('demo')}
+              onClick={() => { setActiveVideo('demo'); setIsPlaying(false); }}
               className="gap-2"
             >
               <Play className="h-4 w-4" />
@@ -84,22 +201,66 @@ const VideoPitch = () => {
 
           {/* Main Content */}
           <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Video Player Placeholder */}
+            {/* Video Player */}
             <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 flex flex-col items-center justify-center relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-full bg-primary/90 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-2xl">
-                    <Play className="h-10 w-10 text-primary-foreground ml-1" />
+              <div className="aspect-video bg-black relative group">
+                {loadingVideos ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-white" />
                   </div>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-                  <Badge variant="secondary" className="bg-background/80">
-                    {activeVideo === 'pitch' ? '1:00' : '0:30'}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-background/80">
-                    {activeVideo === 'pitch' ? 'Pitch Investisseurs' : 'Démo Produit'}
-                  </Badge>
-                </div>
+                ) : currentVideoUrl ? (
+                  <>
+                    <video
+                      ref={videoRef}
+                      src={currentVideoUrl}
+                      className="w-full h-full object-contain"
+                      onEnded={() => setIsPlaying(false)}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                    />
+                    {/* Video Controls Overlay */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30"
+                        onClick={togglePlay}
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-8 w-8 text-white" />
+                        ) : (
+                          <Play className="h-8 w-8 text-white ml-1" />
+                        )}
+                      </Button>
+                    </div>
+                    {/* Bottom Controls */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={toggleMute} className="text-white hover:bg-white/20">
+                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={toggleFullscreen} className="text-white hover:bg-white/20">
+                          <Maximize className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                      <Video className="h-10 w-10 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground mb-4">Aucune vidéo uploadée</p>
+                    {isAdmin && (
+                      <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                        Uploader une vidéo
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -118,12 +279,40 @@ const VideoPitch = () => {
                   }
                 </p>
 
-                <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-dashed border-border">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Upload className="h-5 w-5" />
-                    <span className="text-sm">Vidéo en cours de production</span>
+                {/* Admin Controls */}
+                {isAdmin && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-sm font-medium mb-3">Administration</p>
+                    <div className="flex gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="video/*"
+                        onChange={handleUpload}
+                        className="hidden"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                      >
+                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                        {currentVideoUrl ? 'Remplacer' : 'Uploader'}
+                      </Button>
+                      {currentVideoUrl && (
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={handleDelete}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -178,7 +367,7 @@ const VideoPitch = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {[
-                      { step: 1, title: 'Découverte', description: 'L\'acheteur découvre un produit' },
+                      { step: 1, title: 'Découverte', description: "L'acheteur découvre un produit" },
                       { step: 2, title: 'Sélection', description: 'Choix des options et quantité' },
                       { step: 3, title: 'Commande', description: 'Paiement sécurisé via escrow' },
                       { step: 4, title: 'Livraison', description: 'Suivi GPS en temps réel' },

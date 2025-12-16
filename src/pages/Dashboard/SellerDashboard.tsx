@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon, ShoppingCart, ClipboardList, TruckIcon } from 'lucide-react';
+import { Plus, Package, CheckCircle, User, Mail, Phone, TrendingUp, Clock, DollarSign, Bell, Edit, Trash2, Store, MapPin, Globe, ExternalLink, AlertTriangle, XCircle, ImageIcon, ShoppingCart, ClipboardList, TruckIcon, UserX, Eye, Navigation } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -17,9 +17,11 @@ import * as z from 'zod';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useState } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
 const shopFormSchema = z.object({
   nom_boutique: z.string().min(1, 'Le nom de la boutique est requis'),
@@ -38,6 +40,10 @@ const SellerDashboard = () => {
   const [isEditShopOpen, setIsEditShopOpen] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState<any>(null);
+  const [courierDialogOpen, setCourierDialogOpen] = useState(false);
+  const [cancelOrderDialogOpen, setCancelOrderDialogOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const shopForm = useForm<ShopFormData>({
     resolver: zodResolver(shopFormSchema),
@@ -83,7 +89,8 @@ const SellerDashboard = () => {
           *,
           products(*),
           validations(*),
-          deliveries(*)
+          deliveries(*),
+          livreur:users!orders_livreur_id_fkey(id, nom, telephone, email)
         `)
         .eq('vendeur_id', user?.id)
         .order('created_at', { ascending: false });
@@ -92,7 +99,7 @@ const SellerDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
-    refetchInterval: 30000, // Rafraîchissement auto toutes les 30 secondes
+    refetchInterval: 30000,
   });
 
   const { data: payments } = useQuery({
@@ -215,6 +222,138 @@ const SellerDashboard = () => {
       toast.error('Erreur lors de la mise à jour');
     },
   });
+
+  // Cancel order mutation
+  const cancelOrder = useMutation({
+    mutationFn: async (orderId: string) => {
+      // Get order info
+      const { data: order } = await supabase
+        .from('orders')
+        .select('acheteur_id, livreur_id')
+        .eq('id', orderId)
+        .single();
+
+      // Update order status
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ statut: 'annulé' })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      // Update delivery status if exists
+      await supabase
+        .from('deliveries')
+        .update({ statut: 'annulé' })
+        .eq('order_id', orderId);
+
+      // Notify buyer
+      if (order?.acheteur_id) {
+        await supabase.from('notifications').insert({
+          user_id: order.acheteur_id,
+          message: '❌ Votre commande a été annulée par le vendeur.',
+          canal: 'app',
+        });
+      }
+
+      // Notify courier if assigned
+      if (order?.livreur_id) {
+        await supabase.from('notifications').insert({
+          user_id: order.livreur_id,
+          message: '❌ Une livraison a été annulée.',
+          canal: 'app',
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+      toast.success('Commande annulée');
+      setCancelOrderDialogOpen(false);
+      setSelectedOrderId(null);
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+
+  // Cancel courier mutation
+  const cancelCourier = useMutation({
+    mutationFn: async (orderId: string) => {
+      // Get delivery and courier info
+      const { data: delivery } = await supabase
+        .from('deliveries')
+        .select('livreur_id')
+        .eq('order_id', orderId)
+        .single();
+
+      // Remove courier from order
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ livreur_id: null })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      // Remove courier from delivery
+      const { error: deliveryError } = await supabase
+        .from('deliveries')
+        .update({ 
+          livreur_id: null, 
+          statut: 'en_attente',
+          date_assignation: null 
+        })
+        .eq('order_id', orderId);
+
+      if (deliveryError) throw deliveryError;
+
+      // Notify courier
+      if (delivery?.livreur_id) {
+        await supabase.from('notifications').insert({
+          user_id: delivery.livreur_id,
+          message: '⚠️ Vous avez été retiré d\'une livraison par le vendeur.',
+          canal: 'app',
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+      toast.success('Livreur retiré de la commande');
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+
+  // Fetch courier location
+  const fetchCourierLocation = async (deliveryId: string) => {
+    const { data } = await supabase
+      .from('courier_locations')
+      .select('*')
+      .eq('delivery_id', deliveryId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    return data;
+  };
+
+  const handleViewCourier = async (order: any) => {
+    const courier = order.livreur;
+    const delivery = Array.isArray(order.deliveries) ? order.deliveries[0] : null;
+    
+    let location = null;
+    if (delivery?.id) {
+      location = await fetchCourierLocation(delivery.id);
+    }
+
+    setSelectedCourier({
+      ...courier,
+      delivery,
+      location,
+      trackingCode: delivery?.tracking_code
+    });
+    setCourierDialogOpen(true);
+  };
 
   // Update shop mutation
   const updateShopMutation = useMutation({
@@ -917,49 +1056,108 @@ const SellerDashboard = () => {
                               })}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2 flex-wrap">
-                                {(order.statut === 'fonds_bloques' || order.statut === 'en_attente_paiement') && !order.validations?.vendeur_ok ? (
-                                  <>
-                                    {!Array.isArray(order.deliveries) || order.deliveries.length === 0 || !order.deliveries[0]?.livreur_id ? (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => assignCourier.mutate(order.id)}
-                                        disabled={assignCourier.isPending}
-                                      >
-                                        <TruckIcon className="h-4 w-4 mr-1" />
-                                        Assigner livreur
-                                      </Button>
-                                    ) : (
-                                      <Badge variant="secondary" className="mr-2">
-                                        Livreur assigné
-                                      </Badge>
-                                    )}
-                                    {Array.isArray(order.deliveries) && order.deliveries[0]?.livreur_id && (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => markAsShipped.mutate(order.id)}
-                                        disabled={markAsShipped.isPending}
-                                      >
-                                        <TruckIcon className="h-4 w-4 mr-1" />
-                                        Lancer livraison
-                                      </Button>
-                                    )}
-                                  </>
+                              <div className="flex justify-end gap-2 items-center">
+                                {/* Status indicator */}
+                                {order.statut === 'annulé' ? (
+                                  <Badge variant="destructive">Annulé</Badge>
+                                ) : order.statut === 'terminé' ? (
+                                  <div className="flex items-center gap-1 text-xs text-green-600">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Terminé
+                                  </div>
                                 ) : order.statut === 'en_livraison' ? (
                                   <div className="flex items-center gap-1 text-xs text-blue-600">
                                     <TruckIcon className="h-4 w-4" />
                                     En livraison
                                   </div>
-                                ) : order.validations?.vendeur_ok || order.statut === 'livré' || order.statut === 'terminé' ? (
+                                ) : order.validations?.vendeur_ok || order.statut === 'livré' ? (
                                   <div className="flex items-center gap-1 text-xs text-green-600">
                                     <CheckCircle className="h-4 w-4" />
-                                    {order.statut === 'terminé' ? 'Terminé' : 'Expédié'}
+                                    Expédié
                                   </div>
-                                ) : (
-                                  <Button variant="outline" size="sm">
-                                    Détails
-                                  </Button>
+                                ) : null}
+
+                                {/* Actions dropdown */}
+                                {order.statut !== 'annulé' && order.statut !== 'terminé' && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {/* Assign courier */}
+                                      {(order.statut === 'fonds_bloques' || order.statut === 'en_attente_paiement') && 
+                                       (!Array.isArray(order.deliveries) || order.deliveries.length === 0 || !order.deliveries[0]?.livreur_id) && (
+                                        <DropdownMenuItem 
+                                          onClick={() => assignCourier.mutate(order.id)}
+                                          disabled={assignCourier.isPending}
+                                        >
+                                          <TruckIcon className="h-4 w-4 mr-2" />
+                                          Assigner livreur
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Launch delivery */}
+                                      {(order.statut === 'fonds_bloques' || order.statut === 'en_attente_paiement') && 
+                                       !order.validations?.vendeur_ok &&
+                                       Array.isArray(order.deliveries) && order.deliveries[0]?.livreur_id && (
+                                        <DropdownMenuItem 
+                                          onClick={() => markAsShipped.mutate(order.id)}
+                                          disabled={markAsShipped.isPending}
+                                        >
+                                          <TruckIcon className="h-4 w-4 mr-2" />
+                                          Lancer livraison
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* View courier info */}
+                                      {order.livreur_id && order.livreur && (
+                                        <DropdownMenuItem onClick={() => handleViewCourier(order)}>
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          Voir infos livreur
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Track delivery */}
+                                      {Array.isArray(order.deliveries) && order.deliveries[0]?.tracking_code && (
+                                        <DropdownMenuItem asChild>
+                                          <Link to={`/suivi/${order.deliveries[0].tracking_code}`}>
+                                            <Navigation className="h-4 w-4 mr-2" />
+                                            Suivre la livraison
+                                          </Link>
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      <DropdownMenuSeparator />
+
+                                      {/* Cancel courier */}
+                                      {order.livreur_id && order.statut !== 'en_livraison' && order.statut !== 'livré' && (
+                                        <DropdownMenuItem 
+                                          onClick={() => cancelCourier.mutate(order.id)}
+                                          disabled={cancelCourier.isPending}
+                                          className="text-orange-600"
+                                        >
+                                          <UserX className="h-4 w-4 mr-2" />
+                                          Retirer le livreur
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Cancel order */}
+                                      {order.statut !== 'livré' && order.statut !== 'terminé' && (
+                                        <DropdownMenuItem 
+                                          onClick={() => {
+                                            setSelectedOrderId(order.id);
+                                            setCancelOrderDialogOpen(true);
+                                          }}
+                                          className="text-destructive"
+                                        >
+                                          <XCircle className="h-4 w-4 mr-2" />
+                                          Annuler la commande
+                                        </DropdownMenuItem>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 )}
                               </div>
                             </TableCell>
@@ -1035,6 +1233,124 @@ const SellerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Cancel Order Dialog */}
+      <Dialog open={cancelOrderDialogOpen} onOpenChange={setCancelOrderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Annuler la commande</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.
+              L'acheteur et le livreur (si assigné) seront notifiés.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+              <Button variant="outline">Non, garder</Button>
+            </DialogClose>
+            <Button 
+              variant="destructive" 
+              onClick={() => selectedOrderId && cancelOrder.mutate(selectedOrderId)}
+              disabled={cancelOrder.isPending}
+            >
+              {cancelOrder.isPending ? 'Annulation...' : 'Oui, annuler'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Courier Info Dialog */}
+      <Dialog open={courierDialogOpen} onOpenChange={setCourierDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TruckIcon className="h-5 w-5" />
+              Informations du livreur
+            </DialogTitle>
+          </DialogHeader>
+          {selectedCourier && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-lg">{selectedCourier.nom || 'Nom non disponible'}</p>
+                  <p className="text-sm text-muted-foreground">Livreur</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {selectedCourier.telephone && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Téléphone</p>
+                      <a href={`tel:${selectedCourier.telephone}`} className="font-medium text-primary hover:underline">
+                        {selectedCourier.telephone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedCourier.email && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <a href={`mailto:${selectedCourier.email}`} className="font-medium text-primary hover:underline">
+                        {selectedCourier.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedCourier.trackingCode && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <ClipboardList className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Code de suivi</p>
+                      <p className="font-mono font-medium">{selectedCourier.trackingCode}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedCourier.location ? (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50">
+                    <Navigation className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Dernière position</p>
+                      <p className="font-medium text-green-700">
+                        {selectedCourier.location.latitude.toFixed(6)}, {selectedCourier.location.longitude.toFixed(6)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(selectedCourier.location.created_at).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted">
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Position</p>
+                      <p className="font-medium">Non disponible</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedCourier.trackingCode && (
+                <Button asChild className="w-full">
+                  <Link to={`/suivi/${selectedCourier.trackingCode}`}>
+                    <Navigation className="h-4 w-4 mr-2" />
+                    Voir sur la carte
+                  </Link>
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

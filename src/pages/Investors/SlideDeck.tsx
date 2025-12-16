@@ -346,13 +346,40 @@ const SlideDeck = () => {
       />
       
       <style>{`
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
         @media print {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          body { margin: 0; padding: 0; }
-          .no-print { display: none !important; }
+          html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 100% !important;
+            height: 100% !important;
+          }
+          /* Hide all navigation, footer, headers */
+          nav, footer, header, 
+          .no-print, 
+          .screen-only,
+          [class*="BottomNav"],
+          [class*="bottom-nav"],
+          [class*="Navbar"],
+          [class*="navbar"],
+          [class*="Footer"],
+          [class*="footer"],
+          [class*="fixed bottom"],
+          .fixed.bottom-0 {
+            display: none !important;
+            visibility: hidden !important;
+          }
           #print-container {
             display: block !important;
             visibility: visible !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
           }
           .print-slide-page {
             page-break-after: always;
@@ -369,9 +396,6 @@ const SlideDeck = () => {
           }
           .print-slide-page:last-child {
             page-break-after: avoid;
-          }
-          .screen-only {
-            display: none !important;
           }
         }
         @media screen {

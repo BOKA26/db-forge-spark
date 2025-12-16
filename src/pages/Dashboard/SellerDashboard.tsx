@@ -90,7 +90,8 @@ const SellerDashboard = () => {
           products(*),
           validations(*),
           deliveries(*),
-          livreur:users!orders_livreur_id_fkey(id, nom, telephone, email)
+          livreur:users!orders_livreur_id_fkey(id, nom, telephone, email),
+          acheteur:users!orders_acheteur_id_fkey(id, nom, telephone, email)
         `)
         .eq('vendeur_id', user?.id)
         .order('created_at', { ascending: false });
@@ -1041,7 +1042,25 @@ const SellerDashboard = () => {
                               <div className="text-xs text-muted-foreground">Qté: {order.quantite}</div>
                             </TableCell>
                             <TableCell>
-                              <div className="text-sm text-muted-foreground">ID: {order.acheteur_id?.slice(0, 8)}</div>
+                              {order.acheteur ? (
+                                <div className="space-y-0.5">
+                                  <div className="font-medium text-sm">{order.acheteur.nom || order.nom_destinataire || 'Client'}</div>
+                                  {(order.acheteur.telephone || order.telephone_destinataire) && (
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Phone className="h-3 w-3" />
+                                      {order.telephone_destinataire || order.acheteur.telephone}
+                                    </div>
+                                  )}
+                                  {order.adresse_livraison && (
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />
+                                      <span className="truncate max-w-[150px]">{order.adresse_livraison}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-muted-foreground">ID: {order.acheteur_id?.slice(0, 8)}</div>
+                              )}
                             </TableCell>
                             <TableCell>
                               {order.livreur ? (

@@ -85,21 +85,37 @@ serve(async (req) => {
 
     console.log('Autorisation vérifiée - Vendeur:', isVendor, 'Admin:', isAdmin);
 
-    // Trouver un livreur actif disponible
-    const { data: couriers, error: couriersError } = await supabaseAdmin
+    // Trouver les user_ids des livreurs
+    const { data: courierRoles, error: rolesError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
       .eq('role', 'livreur')
-      .eq('is_active', true)
-      .limit(10);
+      .eq('is_active', true);
 
-    if (couriersError || !couriers || couriers.length === 0) {
+    if (rolesError || !courierRoles || courierRoles.length === 0) {
       throw new Error('Aucun livreur disponible pour le moment');
     }
 
+    const courierIds = courierRoles.map(r => r.user_id);
+
+    // Filtrer uniquement les livreurs avec statut "actif" dans la table users
+    const { data: activeCouriers, error: usersError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .in('id', courierIds)
+      .eq('statut', 'actif')
+      .limit(10);
+
+    if (usersError || !activeCouriers || activeCouriers.length === 0) {
+      console.log('Aucun livreur actif trouvé parmi:', courierIds);
+      throw new Error('Aucun livreur actif disponible pour le moment');
+    }
+
+    const couriers = activeCouriers;
+
     // Sélectionner un livreur aléatoirement (ou le premier disponible)
     const selectedCourier = couriers[Math.floor(Math.random() * couriers.length)];
-    const courierId = selectedCourier.user_id;
+    const courierId = selectedCourier.id;
 
     console.log('Livreur sélectionné:', courierId);
 

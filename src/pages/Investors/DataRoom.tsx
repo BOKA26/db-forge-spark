@@ -278,7 +278,7 @@ const DataRoom = () => {
         <div className="mt-12 text-center space-y-4">
           <h2 className="text-2xl font-bold">Prêt à investir dans l'avenir du B2B africain ?</h2>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg">
+            <Button size="lg" onClick={() => setSelectedDoc('pitch-deck')}>
               <Download className="w-5 h-5 mr-2" />
               Télécharger le Deck Complet
             </Button>

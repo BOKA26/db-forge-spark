@@ -12,9 +12,80 @@ import {
 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 const DataRoom = () => {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+
+  const downloadPitchDeckPDF = () => {
+    const pdf = new jsPDF();
+    
+    // Page 1: Couverture
+    pdf.setFontSize(24);
+    pdf.setTextColor(33, 33, 33);
+    pdf.text("PITCH DECK BOKATRADE", 105, 40, { align: "center" });
+    pdf.setFontSize(14);
+    pdf.text("La première marketplace B2B africaine avec Escrow intégré", 105, 55, { align: "center" });
+    pdf.setFontSize(12);
+    pdf.text("Data Room - Investisseurs", 105, 70, { align: "center" });
+    
+    // Page 2: Problème
+    pdf.addPage();
+    pdf.setFontSize(18);
+    pdf.text("SLIDE 1: PROBLÈME", 20, 30);
+    pdf.setFontSize(14);
+    pdf.text("Le B2B africain souffre d'un problème majeur de confiance", 20, 45);
+    pdf.setFontSize(11);
+    const problemes = [
+      "• 67% des PME africaines rapportent des problèmes de paiement B2B",
+      "• Délai moyen de paiement: 90-120 jours (vs 30 jours en Europe)",
+      "• 40% des transactions échouent par manque de garanties"
+    ];
+    problemes.forEach((p, i) => pdf.text(p, 20, 65 + i * 10));
+    
+    // Page 3: Solution
+    pdf.addPage();
+    pdf.setFontSize(18);
+    pdf.text("SLIDE 2: SOLUTION", 20, 30);
+    pdf.setFontSize(14);
+    pdf.text("BokaTrade: Marketplace B2B avec Escrow à triple validation", 20, 45);
+    pdf.setFontSize(11);
+    pdf.text("Système Escrow à Triple Validation™:", 20, 65);
+    pdf.text("Acheteur paie → Fonds bloqués → Vendeur expédie →", 20, 80);
+    pdf.text("Livreur valide → Acheteur confirme → Paiement libéré", 20, 90);
+    
+    // Page 4: Marché
+    pdf.addPage();
+    pdf.setFontSize(18);
+    pdf.text("SLIDE 3: MARCHÉ (TAM/SAM/SOM)", 20, 30);
+    pdf.setFontSize(12);
+    pdf.text("TAM: $1,200 Mds - Marché B2B total Afrique subsaharienne", 20, 50);
+    pdf.text("SAM: $180 Mds - Afrique de l'Ouest francophone", 20, 65);
+    pdf.text("SOM: $2.5 Mds - Objectif 3-5 ans: Togo, Bénin, Burkina Faso", 20, 80);
+    
+    // Page 5: Traction
+    pdf.addPage();
+    pdf.setFontSize(18);
+    pdf.text("TRACTION", 20, 30);
+    pdf.setFontSize(14);
+    pdf.text("• 120+ Beta Sellers", 20, 50);
+    pdf.text("• 350+ Acheteurs inscrits", 20, 65);
+    pdf.text("• 2.5M FCFA GMV", 20, 80);
+    pdf.text("• 180+ Transactions", 20, 95);
+    
+    // Page 6: Contact
+    pdf.addPage();
+    pdf.setFontSize(18);
+    pdf.text("CONTACT", 20, 30);
+    pdf.setFontSize(12);
+    pdf.text("BokaTrade - Marketplace B2B Afrique", 20, 50);
+    pdf.text("Email: contact@bokatrade.com", 20, 65);
+    pdf.text("Site: www.bokatrade.com", 20, 80);
+    
+    pdf.save("BokaTrade_PitchDeck.pdf");
+    toast.success("Pitch Deck téléchargé avec succès!");
+  };
 
   const stats = [
     { label: "Beta Sellers", value: "120+", icon: Users },
@@ -278,7 +349,7 @@ const DataRoom = () => {
         <div className="mt-12 text-center space-y-4">
           <h2 className="text-2xl font-bold">Prêt à investir dans l'avenir du B2B africain ?</h2>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" onClick={() => setSelectedDoc('pitch-deck')}>
+            <Button size="lg" onClick={downloadPitchDeckPDF}>
               <Download className="w-5 h-5 mr-2" />
               Télécharger le Deck Complet
             </Button>
